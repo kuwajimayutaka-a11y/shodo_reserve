@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}授業枠削除{% endblock %}
+
+{% block content %}
+<h2>授業枠削除確認</h2>
+
+<div style="margin-bottom: 20px;">
+    <a href="{% url 'admin_lesson_list' %}" style="color: #007bff; text-decoration: none;">← 授業枠一覧に戻る</a>
+</div>
+
+<div style="margin: 20px 0; padding: 20px; background-color: #fff3cd; border: 2px solid #ffc107; border-radius: 8px;">
+    <h3 style="margin-top: 0; color: #856404;">⚠️ 以下の授業枠を削除しますか?</h3>
+    
+    <div style="margin: 20px 0; padding: 15px; background-color: white; border: 1px solid #ffc107; border-radius: 4px;">
+        <p style="margin: 5px 0;"><strong>授業名:</strong> {% if lesson.title %}{{ lesson.title }}{% else %}書道教室{% endif %}</p>
+        <p style="margin: 5px 0;"><strong>開始日時:</strong> {{ lesson.start_time|date:"Y年m月d日 H:i" }}</p>
+        <p style="margin: 5px 0;"><strong>終了日時:</strong> {{ lesson.end_time|date:"Y年m月d日 H:i" }}</p>
+        <p style="margin: 5px 0;"><strong>定員:</strong> {{ lesson.capacity }}</p>
+        <p style="margin: 5px 0;"><strong>現在の予約数:</strong> 
+            <span style="color: {% if lesson.reservation_set.count > 0 %}#dc3545{% else %}#28a745{% endif %}; font-weight: bold;">
+                {{ lesson.reservation_set.count }}
+            </span>
+        </p>
+    </div>
+    
+    {% if lesson.reservation_set.count > 0 %}
+        <div style="padding: 10px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; color: #721c24; margin-bottom: 20px;">
+            <p style="margin: 0; font-weight: bold;">⚠️ この授業枠には予約が入っています。削除すると予約も削除されます。</p>
+        </div>
+    {% endif %}
+</div>
+
+<div style="margin-top: 30px;">
+    <form method="post" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" style="padding: 10px 20px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; margin-right: 10px;">削除する</button>
+    </form>
+    <a href="{% url 'admin_lesson_list' %}" style="padding: 10px 20px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">キャンセル</a>
+</div>
+{% endblock %}

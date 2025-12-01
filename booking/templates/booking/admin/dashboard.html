@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}管理者ダッシュボード{% endblock %}
+
+{% block content %}
+<h2>管理者ダッシュボード</h2>
+
+<div style="margin: 30px 0; padding: 20px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;">
+    <h3 style="margin-top: 0; color: #495057;">統計情報</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+        <div style="padding: 15px; background-color: white; border: 1px solid #dee2e6; border-radius: 4px;">
+            <p style="margin: 0; color: #6c757d; font-size: 0.9em;">総授業枠数</p>
+            <p style="margin: 10px 0 0 0; font-size: 1.8em; font-weight: bold; color: #007bff;">{{ total_lessons }}</p>
+        </div>
+        <div style="padding: 15px; background-color: white; border: 1px solid #dee2e6; border-radius: 4px;">
+            <p style="margin: 0; color: #6c757d; font-size: 0.9em;">今後の授業枠数</p>
+            <p style="margin: 10px 0 0 0; font-size: 1.8em; font-weight: bold; color: #28a745;">{{ upcoming_lessons }}</p>
+        </div>
+        <div style="padding: 15px; background-color: white; border: 1px solid #dee2e6; border-radius: 4px;">
+            <p style="margin: 0; color: #6c757d; font-size: 0.9em;">総予約数</p>
+            <p style="margin: 10px 0 0 0; font-size: 1.8em; font-weight: bold; color: #ffc107;">{{ total_reservations }}</p>
+        </div>
+        <div style="padding: 15px; background-color: white; border: 1px solid #dee2e6; border-radius: 4px;">
+            <p style="margin: 0; color: #6c757d; font-size: 0.9em;">総生徒数</p>
+            <p style="margin: 10px 0 0 0; font-size: 1.8em; font-weight: bold; color: #17a2b8;">{{ total_students }}</p>
+        </div>
+        <div style="padding: 15px; background-color: white; border: 1px solid #dee2e6; border-radius: 4px;">
+            <p style="margin: 0; color: #6c757d; font-size: 0.9em;">保護者数</p>
+            <p style="margin: 10px 0 0 0; font-size: 1.8em; font-weight: bold; color: #6f42c1;">{{ total_families }}</p>
+        </div>
+    </div>
+</div>
+
+<div style="margin: 30px 0; padding: 20px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;">
+    <h3 style="margin-top: 0; color: #495057;">管理メニュー</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+        <a href="{% url 'admin_create_lesson_slots' %}" style="padding: 20px; background-color: white; border: 2px solid #007bff; border-radius: 4px; text-decoration: none; color: #007bff; transition: all 0.3s;">
+            <h4 style="margin: 0 0 10px 0; color: #007bff;">📅 授業枠を一括作成</h4>
+            <p style="margin: 0; color: #6c757d; font-size: 0.9em;">期間と曜日を指定して授業枠を一括作成</p>
+        </a>
+        <a href="{% url 'admin_create_lesson_single' %}" style="padding: 20px; background-color: white; border: 2px solid #17a2b8; border-radius: 4px; text-decoration: none; color: #17a2b8; transition: all 0.3s;">
+            <h4 style="margin: 0 0 10px 0; color: #17a2b8;">➕ 授業枠を個別作成</h4>
+            <p style="margin: 0; color: #6c757d; font-size: 0.9em;">1つの授業枠を個別に作成</p>
+        </a>
+        <a href="{% url 'admin_lesson_list' %}" style="padding: 20px; background-color: white; border: 2px solid #28a745; border-radius: 4px; text-decoration: none; color: #28a745; transition: all 0.3s;">
+            <h4 style="margin: 0 0 10px 0; color: #28a745;">📋 授業枠一覧・編集</h4>
+            <p style="margin: 0; color: #6c757d; font-size: 0.9em;">授業枠を確認・編集・削除</p>
+        </a>
+        <a href="{% url 'admin_reservation_list' %}" style="padding: 20px; background-color: white; border: 2px solid #ffc107; border-radius: 4px; text-decoration: none; color: #ffc107; transition: all 0.3s;">
+            <h4 style="margin: 0 0 10px 0; color: #ffc107;">🎫 予約一覧</h4>
+            <p style="margin: 0; color: #6c757d; font-size: 0.9em;">全体の予約状況を確認</p>
+        </a>
+        <a href="{% url 'admin_student_management' %}" style="padding: 20px; background-color: white; border: 2px solid #17a2b8; border-radius: 4px; text-decoration: none; color: #17a2b8; transition: all 0.3s;">
+            <h4 style="margin: 0 0 10px 0; color: #17a2b8;">👥 生徒管理</h4>
+            <p style="margin: 0; color: #6c757d; font-size: 0.9em;">保護者と生徒の情報を管理</p>
+        </a>
+    </div>
+</div>
+
+<div style="margin: 30px 0; padding: 20px; background-color: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 4px;">
+    <p style="margin: 0;"><a href="{% url 'reservation_calendar' %}" style="color: #007bff; text-decoration: none;">← 生徒用予約ページへ</a></p>
+</div>
+{% endblock %}

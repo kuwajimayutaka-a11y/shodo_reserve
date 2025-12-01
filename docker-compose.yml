@@ -1,0 +1,35 @@
+# shodo_reserve/docker-compose.yml
+version: '3.8'
+
+services:
+  # 1. Djangoアプリケーションサービス
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000  # ローカル開発用
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      # データベース接続情報 (settings.pyで利用)
+      - POSTGRES_NAME=shodo_db
+      - POSTGRES_USER=shodo_user
+      - POSTGRES_PASSWORD=shodo_pass
+      - POSTGRES_HOST=db
+
+  # 2. PostgreSQLデータベースサービス
+  db:
+    image: postgres:14-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=shodo_db
+      - POSTGRES_USER=shodo_user
+      - POSTGRES_PASSWORD=shodo_pass
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:

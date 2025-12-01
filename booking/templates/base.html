@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}書道教室 予約システム{% endblock %}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        nav a { margin-right: 15px; }
+        .lesson-slot { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+        .full { background-color: #fdd; }
+        .reservable { background-color: #dfd; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>書道教室 予約システム</h1>
+        <nav>
+            {% if user.is_authenticated %}
+                <span>ようこそ, {{ user.username }}さん</span> |
+                <a href="{% url 'reservation_calendar' %}">予約カレンダー</a> |
+                <a href="{% url 'view_students' %}">生徒情報</a> |
+                {% if user.is_superuser %}
+                    <a href="{% url 'admin_dashboard' %}">管理者ダッシュボード</a> |
+                {% endif %}
+                <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" style="background: none; border: none; color: #007bff; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;">ログアウト</button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}">ログイン</a> |
+                <a href="{% url 'signup' %}">新規登録</a>
+            {% endif %}
+        </nav>
+        <hr>
+    </header>
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+</body>
+</html>

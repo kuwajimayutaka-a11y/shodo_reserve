@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}授業枠一括作成{% endblock %}
+
+{% block content %}
+<h2>授業枠一括作成 (管理者専用)</h2>
+
+{% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    
+    <fieldset>
+        <legend>授業情報</legend>
+        <p>{{ form.title.label_tag }} {{ form.title }}</p>
+        <p>{{ form.capacity.label_tag }} {{ form.capacity }}</p>
+    </fieldset>
+
+    <fieldset>
+        <legend>繰り返し設定</legend>
+        <p>{{ form.start_date.label_tag }} {{ form.start_date }}</p>
+        <p>{{ form.end_date.label_tag }} {{ form.end_date }}</p>
+        
+        <p>{{ form.days_of_week.label_tag }}</p>
+        <div style="display: flex; gap: 10px;">
+            {% for checkbox in form.days_of_week %}
+                <label>{{ checkbox.tag }} {{ checkbox.choice_label }}</label>
+            {% endfor %}
+        </div>
+        
+        <p>{{ form.start_time.label_tag }} {{ form.start_time }}</p>
+        <p>{{ form.end_time.label_tag }} {{ form.end_time }}</p>
+    </fieldset>
+
+    <fieldset>
+        <legend>予約開始設定</legend>
+        <p>{{ form.reservation_start_days_before.label_tag }} {{ form.reservation_start_days_before }}</p>
+        <p style="font-size: small; color: gray;">{{ form.reservation_start_days_before.help_text }}</p>
+    </fieldset>
+
+    <button type="submit">授業枠を一括作成</button>
+</form>
+
+<p><a href="{% url 'reservation_calendar' %}">カレンダーに戻る</a></p>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}生徒削除{% endblock %}
+
+{% block content %}
+<h2>生徒削除確認</h2>
+
+<div style="margin-bottom: 20px;">
+    <a href="{% url 'view_students' %}" style="color: #007bff; text-decoration: none;">← 生徒情報に戻る</a>
+</div>
+
+<div style="margin: 20px 0; padding: 20px; background-color: #fff3cd; border: 2px solid #ffc107; border-radius: 8px;">
+    <h3 style="margin-top: 0; color: #856404;">⚠️ 以下の生徒を削除しますか?</h3>
+    
+    <div style="margin: 20px 0; padding: 15px; background-color: white; border: 1px solid #ffc107; border-radius: 4px;">
+        <p style="margin: 5px 0;"><strong>生徒名:</strong> {{ student.name }}</p>
+        <p style="margin: 5px 0;"><strong>予約数:</strong> 
+            <span style="color: {% if student.reservation_set.count > 0 %}#dc3545{% else %}#28a745{% endif %}; font-weight: bold;">
+                {{ student.reservation_set.count }}
+            </span>
+        </p>
+    </div>
+    
+    {% if student.reservation_set.count > 0 %}
+        <div style="padding: 10px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; color: #721c24; margin-bottom: 20px;">
+            <p style="margin: 0; font-weight: bold;">⚠️ この生徒には予約が入っています。削除すると予約も削除されます。</p>
+        </div>
+    {% endif %}
+</div>
+
+<div style="margin-top: 30px;">
+    <form method="post" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" style="padding: 10px 20px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; margin-right: 10px;">削除する</button>
+    </form>
+    <a href="{% url 'view_students' %}" style="padding: 10px 20px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">キャンセル</a>
+</div>
+{% endblock %}

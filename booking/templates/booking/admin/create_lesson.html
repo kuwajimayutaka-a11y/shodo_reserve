@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}授業枠一括作成{% endblock %}
+
+{% block content %}
+<h2>授業枠一括作成</h2>
+
+<div style="margin-bottom: 20px;">
+    <a href="{% url 'admin_dashboard' %}" style="color: #007bff; text-decoration: none;">← 管理者ダッシュボードに戻る</a>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div style="padding: 10px; margin: 10px 0; background-color: {% if message.tags == 'success' %}#d4edda{% elif message.tags == 'error' %}#f8d7da{% else %}#d1ecf1{% endif %}; border: 1px solid {% if message.tags == 'success' %}#c3e6cb{% elif message.tags == 'error' %}#f5c6cb{% else %}#bee5eb{% endif %}; border-radius: 4px;">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+<form method="post" style="max-width: 700px;">
+    {% csrf_token %}
+    
+    <div style="margin-bottom: 20px;">
+        <label for="{{ form.title.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">{{ form.title.label }}</label>
+        {{ form.title }}
+        <small style="color: #6c757d;">空欄の場合、「書道教室」がデフォルトで使用されます</small>
+        {% if form.title.errors %}
+            <div style="color: #dc3545; font-size: 0.9em; margin-top: 5px;">{{ form.title.errors }}</div>
+        {% endif %}
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+        <div>
+            <label for="{{ form.start_date.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">{{ form.start_date.label }}</label>
+            {{ form.start_date }}
+            {% if form.start_date.errors %}
+                <div style="color: #dc3545; font-size: 0.9em; margin-top: 5px;">{{ form.start_date.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="{{ form.end_date.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">{{ form.end_date.label }}</label>
+            {{ form.end_date }}
+            {% if form.end_date.errors %}
+                <div style="color: #dc3545; font-size: 0.9em; margin-top: 5px;">{{ form.end_date.errors }}</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">{{ form.days_of_week.label }}</label>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;">
+            {{ form.days_of_week }}
+        </div>
+        {% if form.days_of_week.errors %}
+            <div style="color: #dc3545; font-size: 0.9em; margin-top: 5px;">{{ form.days_of_week.errors }}</div>
+        {% endif %}
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <label for="{{ form.time_slots.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">{{ form.time_slots.label }}</label>
+        {{ form.time_slots }}
+        <small style="color: #6c757d; display: block; margin-top: 5px;">{{ form.time_slots.help_text }}</small>
+        {% if form.time_slots.errors %}
+            <div style="color: #dc3545; font-size: 0.9em; margin-top: 5px;">{{ form.time_slots.errors }}</div>
+        {% endif %}
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+        <div>
+            <label for="{{ form.capacity.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">{{ form.capacity.label }}</label>
+            {{ form.capacity }}
+            {% if form.capacity.errors %}
+                <div style="color: #dc3545; font-size: 0.9em; margin-top: 5px;">{{ form.capacity.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="{{ form.reservation_start_datetime.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">{{ form.reservation_start_datetime.label }}</label>
+            {{ form.reservation_start_datetime }}
+            {% if form.reservation_start_datetime.errors %}
+                <div style="color: #dc3545; font-size: 0.9em; margin-top: 5px;">{{ form.reservation_start_datetime.errors }}</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <small style="color: #6c757d; display: block; margin-bottom: 20px;">{{ form.reservation_start_datetime.help_text }}</small>
+
+    {% if form.non_field_errors %}
+        <div style="color: #dc3545; margin-bottom: 20px; padding: 10px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px;">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <div style="margin-top: 30px;">
+        <button type="submit" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">作成</button>
+    </div>
+</form>
+{% endblock %}

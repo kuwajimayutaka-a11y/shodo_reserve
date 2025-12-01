@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}新規登録{% endblock %}
+
+{% block content %}
+<h2>新規保護者アカウント登録</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">登録</button>
+</form>
+<p>既にアカウントをお持ちですか？ <a href="{% url 'login' %}">ログイン</a></p>
+{% endblock %}

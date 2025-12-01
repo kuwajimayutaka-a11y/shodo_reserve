@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}ログアウト{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-lg mt-5">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">ログアウトしました</h4>
+            </div>
+            <div class="card-body text-center">
+                <p>ご利用ありがとうございました。</p>
+                <a href="{% url 'login' %}" class="btn btn-primary">再度ログインする</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
