@@ -21,3 +21,7 @@ EXPOSE 8000
 
 # Gunicornを使ってアプリケーションを起動
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "shodo_reserve.wsgi:application"]
+
+# 既存のイメージやコピーなどのあと
+RUN python manage.py migrate --noinput
+RUN python manage.py collectstatic --noinput
