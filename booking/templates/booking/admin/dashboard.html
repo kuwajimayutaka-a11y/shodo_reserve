@@ -5,31 +5,6 @@
 {% block content %}
 <h2>管理者ダッシュボード</h2>
 
-<div style="margin: 30px 0; padding: 20px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;">
-    <h3 style="margin-top: 0; color: #495057;">統計情報</h3>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-        <div style="padding: 15px; background-color: white; border: 1px solid #dee2e6; border-radius: 4px;">
-            <p style="margin: 0; color: #6c757d; font-size: 0.9em;">総授業枠数</p>
-            <p style="margin: 10px 0 0 0; font-size: 1.8em; font-weight: bold; color: #007bff;">{{ total_lessons }}</p>
-        </div>
-        <div style="padding: 15px; background-color: white; border: 1px solid #dee2e6; border-radius: 4px;">
-            <p style="margin: 0; color: #6c757d; font-size: 0.9em;">今後の授業枠数</p>
-            <p style="margin: 10px 0 0 0; font-size: 1.8em; font-weight: bold; color: #28a745;">{{ upcoming_lessons }}</p>
-        </div>
-        <div style="padding: 15px; background-color: white; border: 1px solid #dee2e6; border-radius: 4px;">
-            <p style="margin: 0; color: #6c757d; font-size: 0.9em;">総予約数</p>
-            <p style="margin: 10px 0 0 0; font-size: 1.8em; font-weight: bold; color: #ffc107;">{{ total_reservations }}</p>
-        </div>
-        <div style="padding: 15px; background-color: white; border: 1px solid #dee2e6; border-radius: 4px;">
-            <p style="margin: 0; color: #6c757d; font-size: 0.9em;">総生徒数</p>
-            <p style="margin: 10px 0 0 0; font-size: 1.8em; font-weight: bold; color: #17a2b8;">{{ total_students }}</p>
-        </div>
-        <div style="padding: 15px; background-color: white; border: 1px solid #dee2e6; border-radius: 4px;">
-            <p style="margin: 0; color: #6c757d; font-size: 0.9em;">保護者数</p>
-            <p style="margin: 10px 0 0 0; font-size: 1.8em; font-weight: bold; color: #6f42c1;">{{ total_families }}</p>
-        </div>
-    </div>
-</div>
 
 <div style="margin: 30px 0; padding: 20px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;">
     <h3 style="margin-top: 0; color: #495057;">管理メニュー</h3>
@@ -58,6 +33,32 @@
             <h4 style="margin: 0 0 10px 0; color: #6f42c1;">📆 予約カレンダー</h4>
             <p style="margin: 0; color: #6c757d; font-size: 0.9em;">カレンダー形式で予約を確認・作成</p>
         </a>
+    </div>
+</div>
+
+<div style="margin: 30px 0; padding: 20px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;">
+    <h3 style="margin-top: 0; color: #495057;">統計情報</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+        <div style="padding: 15px; background-color: white; border: 1px solid #dee2e6; border-radius: 4px;">
+            <p style="margin: 0; color: #6c757d; font-size: 0.9em;">総授業枠数</p>
+            <p style="margin: 10px 0 0 0; font-size: 1.8em; font-weight: bold; color: #007bff;">{{ total_lessons }}</p>
+        </div>
+        <div style="padding: 15px; background-color: white; border: 1px solid #dee2e6; border-radius: 4px;">
+            <p style="margin: 0; color: #6c757d; font-size: 0.9em;">今後の授業枠数</p>
+            <p style="margin: 10px 0 0 0; font-size: 1.8em; font-weight: bold; color: #28a745;">{{ upcoming_lessons }}</p>
+        </div>
+        <div style="padding: 15px; background-color: white; border: 1px solid #dee2e6; border-radius: 4px;">
+            <p style="margin: 0; color: #6c757d; font-size: 0.9em;">総予約数</p>
+            <p style="margin: 10px 0 0 0; font-size: 1.8em; font-weight: bold; color: #ffc107;">{{ total_reservations }}</p>
+        </div>
+        <div style="padding: 15px; background-color: white; border: 1px solid #dee2e6; border-radius: 4px;">
+            <p style="margin: 0; color: #6c757d; font-size: 0.9em;">総生徒数</p>
+            <p style="margin: 10px 0 0 0; font-size: 1.8em; font-weight: bold; color: #17a2b8;">{{ total_students }}</p>
+        </div>
+        <div style="padding: 15px; background-color: white; border: 1px solid #dee2e6; border-radius: 4px;">
+            <p style="margin: 0; color: #6c757d; font-size: 0.9em;">保護者数</p>
+            <p style="margin: 10px 0 0 0; font-size: 1.8em; font-weight: bold; color: #6f42c1;">{{ total_families }}</p>
+        </div>
     </div>
 </div>
 
