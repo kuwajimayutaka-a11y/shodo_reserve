@@ -3,50 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}書道教室 予約システム{% endblock %}</title>
+    <title>{% block title %}秀雪書道教室 予約システム{% endblock %}</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        nav a { margin-right: 15px; }
-        .lesson-slot { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
-        .full { background-color: #fdd; }
-        .reservable { background-color: #dfd; }
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            margin: 0;
+            background:#f7f8fa;
+        }
+
+        /* ==== ヘッダー ==== */
+        header {
+            background: #ffffff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            padding: 15px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        header h1 {
+            font-size: 20px;
+            margin: 0;
+            color:#2c3e50;
+            font-weight: 600;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap:18px;
+        }
+
+        nav a {
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 14px;
+            border-radius: 6px;
+            transition: 0.2s;
+            color:#1e88e5;
+        }
+
+        nav a:hover {
+            background:#e3f2fd;
+        }
+
+        .logout-btn {
+            background:#e53935;
+            color:white;
+            border:none;
+            padding: 8px 14px;
+            border-radius:6px;
+            cursor:pointer;
+            transition:0.2s;
+        }
+
+        .logout-btn:hover {
+            background:#c62828;
+        }
+
+        main {
+            padding:40px;
+            max-width:1200px;
+            margin:auto;
+        }
     </style>
 </head>
 <body>
+
     <header>
-        <h1>書道教室 予約システム</h1>
-            <nav>
-                {% if user.is_authenticated %}
-                    <span>ようこそ, {{ user.username }}さん</span> |
+        <h1>秀雪書道教室 予約システム</h1>
 
-                    {% if not user.is_staff %}
-                        <!-- 一般ユーザー用リンク -->
-                        <a href="{% url 'reservation_calendar' %}">予約カレンダー</a> |
-                        <a href="{% url 'view_students' %}">生徒情報</a> |
-                    {% else %}
-                        <!-- 管理者専用リンク -->
-                        <a href="{% url 'admin_dashboard' %}">管理者ダッシュボード</a> |
-                        <a href="{% url 'admin_reservation_calendar' %}">管理カレンダー</a> |
-                        <a href="{% url 'admin_create_lesson_slots' %}">授業枠作成</a> |
-                        <a href="{% url 'admin_student_management' %}">生徒管理</a> |
-                    {% endif %}
+        <nav>
+            {% if user.is_authenticated %}
+                <span style="opacity:.8;">こんにちは、<b>{{ user.username }}</b> さん</span>
 
-                    <!-- 全員共通のログアウト -->
-                    <form method="post" action="{% url 'logout' %}" style="display: inline;">
-                        {% csrf_token %}
-                        <button type="submit" style="background: none; border: none; color: #007bff; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;">ログアウト</button>
-                    </form>
+                {% if not user.is_staff %}
+                    <a href="{% url 'reservation_calendar' %}">予約カレンダー</a>
+                    <a href="{% url 'view_students' %}">生徒情報</a>
                 {% else %}
-                    <a href="{% url 'login' %}">ログイン</a> |
-                    <a href="{% url 'signup' %}">新規登録</a>
+                    <a href="{% url 'admin_dashboard' %}">管理者ダッシュボード</a>
+                    <a href="{% url 'admin_reservation_calendar' %}">管理カレンダー</a>
+                    <a href="{% url 'admin_create_lesson_slots' %}">授業枠作成</a>
+                    <a href="{% url 'admin_student_management' %}">生徒管理</a>
                 {% endif %}
-            </nav>
 
-        <hr>
+                <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-btn">ログアウト</button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}">ログイン</a>
+                <a href="{% url 'signup' %}">新規登録</a>
+            {% endif %}
+        </nav>
     </header>
+
     <main>
-        {% block content %}
-        {% endblock %}
+        {% block content %}{% endblock %}
     </main>
+
 </body>
 </html>
