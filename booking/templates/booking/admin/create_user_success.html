@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}ユーザー作成完了{% endblock %}
+
+{% block content %}
+<h2>✅ ユーザーを作成しました</h2>
+
+<div style="margin-bottom: 20px;">
+    <a href="{% url 'admin_dashboard' %}" style="color: #007bff; text-decoration: none;">← 管理者ダッシュボードに戻る</a>
+</div>
+
+<div style="max-width: 600px; margin: 30px 0; padding: 20px; border: 2px solid #28a745; border-radius: 8px; background-color: #d4edda;">
+    <h3 style="margin-top: 0; color: #155724;">作成されたユーザー情報</h3>
+    
+    <div style="background-color: white; padding: 15px; border-radius: 4px; margin: 15px 0;">
+        <p><strong>ユーザー名:</strong> <code style="background-color: #f8f9fa; padding: 2px 6px; border-radius: 3px;">{{ user.username }}</code></p>
+        <p><strong>メールアドレス:</strong> {{ user.email|default:"未設定" }}</p>
+        <p><strong>連絡先:</strong> {{ family.phone_number|default:"未設定" }}</p>
+    </div>
+
+    <div style="background-color: #fff3cd; padding: 15px; border-radius: 4px; margin: 15px 0; border: 1px solid #ffc107;">
+        <h4 style="margin-top: 0; color: #856404;">初期パスワード（一度だけ表示されます）</h4>
+        <p style="margin: 10px 0; font-size: 1.1em;">
+            <code style="background-color: white; padding: 8px 12px; border-radius: 3px; border: 1px solid #dee2e6; display: inline-block;">{{ password }}</code>
+        </p>
+        <p style="margin: 10px 0; color: #856404; font-size: 0.9em;">
+            このパスワードは安全に保管し、ユーザーに伝えてください。
+        </p>
+    </div>
+</div>
+
+<div style="margin: 30px 0; padding: 20px; background-color: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 4px;">
+    <h4 style="margin-top: 0; color: #004085;">次のステップ</h4>
+    <ol style="margin: 10px 0; padding-left: 20px;">
+        <li>ユーザー名とパスワードを保護者に伝えます。</li>
+        <li>保護者がログインして、生徒情報を追加します（申請制）。</li>
+        <li>管理者が生徒追加申請を確認・承認します。</li>
+    </ol>
+</div>
+
+<div style="margin: 30px 0;">
+    <a href="{% url 'admin_create_user' %}" style="padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">別のユーザーを作成</a>
+    <a href="{% url 'admin_student_management' %}" style="padding: 12px 24px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block; margin-left: 10px;">生徒管理へ</a>
+</div>
+{% endblock %}

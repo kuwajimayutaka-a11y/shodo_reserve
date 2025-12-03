@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}生徒追加申請を承認{% endblock %}
+
+{% block content %}
+<h2>生徒追加申請を承認</h2>
+
+<div style="margin-bottom: 20px;">
+    <a href="{% url 'admin_student_addition_requests' %}" style="color: #007bff; text-decoration: none;">← 申請一覧に戻る</a>
+</div>
+
+<div style="max-width: 600px; margin: 30px 0; padding: 20px; border: 2px solid #28a745; border-radius: 8px; background-color: #d4edda;">
+    <h3 style="margin-top: 0; color: #155724;">申請内容</h3>
+    
+    <div style="background-color: white; padding: 15px; border-radius: 4px; margin: 15px 0;">
+        <p><strong>生徒氏名:</strong> {{ student_request.student_name }}</p>
+        <p><strong>保護者:</strong> {{ student_request.family.user.username }}</p>
+        <p><strong>メールアドレス:</strong> {{ student_request.family.user.email|default:"未設定" }}</p>
+        <p><strong>連絡先:</strong> {{ student_request.family.phone_number|default:"未設定" }}</p>
+        <p><strong>申請日時:</strong> {{ student_request.requested_at|date:"Y年m月d日 H:i" }}</p>
+    </div>
+
+    <p style="color: #155724; margin: 15px 0;">この申請を承認してもよろしいですか？</p>
+
+    <form method="post" style="margin: 20px 0;">
+        {% csrf_token %}
+        <button type="submit" style="padding: 12px 24px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; margin-right: 10px;">承認する</button>
+        <a href="{% url 'admin_student_addition_requests' %}" style="padding: 12px 24px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">キャンセル</a>
+    </form>
+</div>
+{% endblock %}

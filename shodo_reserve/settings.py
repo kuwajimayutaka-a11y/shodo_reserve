@@ -70,17 +70,20 @@ TEMPLATES = [
 WSGI_APPLICATION = 'shodo_reserve.wsgi.application'
 
 
-
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-import os
-import dj_database_url
+import os # osモジュールをインポート
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL', 'postgres://shodo_user:shodo_pass@db:5432/shodo_db')
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('POSTGRES_DB', 'shodo_db'),
+        'USER': os.environ.get('POSTGRES_USER', 'shodo_user'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'shodo_pass'),
+        'HOST': os.environ.get('POSTGRES_HOST', 'db'),
+        'PORT': '5432',
+    }
 }
 
 

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}ユーザー作成{% endblock %}
+
+{% block content %}
+<h2>新しい保護者アカウントを作成</h2>
+
+<div style="margin-bottom: 20px;">
+    <a href="{% url 'admin_dashboard' %}" style="color: #007bff; text-decoration: none;">← 管理者ダッシュボードに戻る</a>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div style="padding: 10px; margin: 10px 0; background-color: {% if message.tags == 'success' %}#d4edda{% elif message.tags == 'error' %}#f8d7da{% else %}#d1ecf1{% endif %}; border: 1px solid {% if message.tags == 'success' %}#c3e6cb{% elif message.tags == 'error' %}#f5c6cb{% else %}#bee5eb{% endif %}; border-radius: 4px;">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div style="max-width: 600px; margin: 30px 0; padding: 20px; border: 1px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;">
+    <form method="post" style="display: flex; flex-direction: column; gap: 15px;">
+        {% csrf_token %}
+        
+        {% for field in form %}
+            <div>
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.errors %}
+                    <div style="color: #dc3545; font-size: 0.9em; margin-top: 5px;">
+                        {% for error in field.errors %}
+                            <p style="margin: 0;">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {% if field.help_text %}
+                    <div style="color: #6c757d; font-size: 0.85em; margin-top: 5px;">
+                        {{ field.help_text|safe }}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+        
+        {% if form.non_field_errors %}
+            <div style="padding: 10px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; color: #721c24;">
+                {% for error in form.non_field_errors %}
+                    <p style="margin: 0;">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <button type="submit" style="padding: 12px 24px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">ユーザーを作成</button>
+    </form>
+</div>
+
+<div style="margin: 30px 0; padding: 20px; background-color: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 4px;">
+    <h4 style="margin-top: 0; color: #004085;">📝 注意事項</h4>
+    <ul style="margin: 10px 0; padding-left: 20px;">
+        <li>ユーザー名は一意である必要があります。</li>
+        <li>初期パスワードはユーザーに安全に伝えてください。</li>
+        <li>ユーザーは初回ログイン時にパスワードを変更することをお勧めします。</li>
+        <li>メールアドレスは任意です。</li>
+    </ul>
+</div>
+{% endblock %}

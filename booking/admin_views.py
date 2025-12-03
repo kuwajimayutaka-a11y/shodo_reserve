@@ -279,3 +279,55 @@ def cancel_reservation_admin(request, reservation_id):
         'reservation': reservation
     }
     return render(request, 'booking/admin/cancel_reservation.html', context)
+
+
+# 管理者用予約カレンダー
+@login_required
+@user_passes_test(is_admin)
+def admin_reservation_calendar(request):
+    """管理者用予約カレンダー"""
+    from collections import defaultdict
+    
+    # 今後の授業枠を取得
+    lessons = LessonSlot.objects.filter(start_time__gte=timezone.now()).order_by('start_time')
+    
+    # 日付ごとにグループ化
+    lessons_by_date = defaultdict(list)
+    for lesson in lessons:
+        date_key = lesson.start_time.date()
+        lessons_by_date[date_key].append(lesson)
+    
+    # 日付順にソート
+    sorted_lessons_by_date = sorted(lessons_by_date.items())
+    
+    # 全生徒を取得
+    all_students = Student.objects.all().select_related('family__user').order_by('family__user__username', 'name')
+    
+    context = {
+        'lessons_by_date': sorted_lessons_by_date,
+        'all_students': all_students,
+    }
+    return render(request, 'booking/admin/calendar.html', context)
+
+# 管理者による予約作成
+@login_required
+@user_passes_test(is_admin)
+def admin_reserve_lesson(request, lesson_id):
+    """管理者による全生徒の予約作成"""
+    lesson = get_object_or_404(LessonSlot, pk=lesson_id)
+    
+    if request.method == 'POST':
+        student_id = request.POST.get('student_id')
+        student = get_object_or_404(Student, pk=student_id)
+        
+        # 予約処理（管理者は予約開始時刻の制限を受けない）
+        if lesson.available_slots() > 0:
+            try:
+                Reservation.objects.create(lesson_slot=lesson, student=student)
+                messages.success(request, f'{student.name}の予約が完了しました。')
+            except Exception as e:
+                messages.error(request, '予約に失敗しました。すでに予約済みの可能性があります。')
+        else:
+            messages.error(request, '満席のため予約できません。')
+
+    return redirect('admin_reservation_calendar')

@@ -1,5 +1,16 @@
 from django.urls import path
 from . import views, admin_views
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def root_redirect(request):
+    user = request.user
+
+    if user.is_staff:  
+        return redirect('admin_dashboard')  # 管理者ダッシュボード
+    else:
+        return redirect('student_calendar')  # 生徒カレンダー
 
 # 生徒用URL
 urlpatterns = [
@@ -27,6 +38,8 @@ admin_urlpatterns = [
     path('admin-dashboard/students/<int:student_id>/edit/', admin_views.edit_student_admin, name='admin_edit_student'),
     path('admin-dashboard/students/<int:student_id>/delete/', admin_views.delete_student_admin, name='admin_delete_student'),
     path('admin-dashboard/reservations/<int:reservation_id>/cancel/', admin_views.cancel_reservation_admin, name='admin_cancel_reservation'),
+    path('admin-dashboard/calendar/', admin_views.admin_reservation_calendar, name='admin_reservation_calendar'),
+    path('admin-dashboard/reserve/<int:lesson_id>/', admin_views.admin_reserve_lesson, name='admin_reserve_lesson'),
 ]
 
 urlpatterns += admin_urlpatterns
