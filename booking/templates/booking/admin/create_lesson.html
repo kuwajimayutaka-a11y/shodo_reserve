@@ -4,108 +4,128 @@
 {% block content %}
 
 <style>
-    .page-title {
-        font-size: 26px;
-        font-weight: 700;
-        margin-bottom: 25px;
-        color: #2c3e50;
-        text-align:center;
-    }
+/* ページタイトル */
+.page-title {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 25px;
+    color: #2c3e50;
+    text-align:center;
+}
 
-    .back-link {
-        text-decoration: none;
-        color: #1e88e5;
-        font-weight: 500;
-        display:block;
-        margin-bottom:15px;
-        text-align:center;
-        transition:.2s;
-    }
-    .back-link:hover { text-decoration: underline; }
+/* 戻るリンク */
+.back-link {
+    text-decoration: none;
+    color: #1e88e5;
+    font-weight: 500;
+    display:block;
+    margin-bottom:15px;
+    text-align:center;
+    transition:.2s;
+}
+.back-link:hover { text-decoration: underline; }
 
-    .form-card {
-        background:white;
-        border-radius:12px;
-        padding:30px;
-        box-shadow:0 5px 20px rgba(0,0,0,.06);
-        margin:20px auto;
-        max-width:750px;
-    }
+/* フォームカード */
+.form-card {
+    background:white;
+    border-radius:12px;
+    padding:30px;
+    box-shadow:0 5px 20px rgba(0,0,0,.06);
+    margin:20px auto;
+    max-width:750px;
+    box-sizing:border-box;
+}
 
-    .form-group { margin-bottom:22px; }
+/* フォームグループ */
+.form-group { margin-bottom:22px; }
+label {
+    display:block;
+    font-weight:600;
+    margin-bottom:6px;
+    color:#34495e;
+}
 
-    label {
-        display:block;
-        font-weight:600;
-        margin-bottom:6px;
-        color:#34495e;
-    }
+/* 入力欄 */
+input, select, textarea {
+    width:100%;
+    padding:10px 12px;
+    border-radius:6px;
+    border:1px solid #cfd8dc;
+    font-size:15px;
+    transition:.2s;
+    box-sizing:border-box;
+}
+input:focus, select:focus, textarea:focus {
+    border-color:#1e88e5;
+    box-shadow:0 0 0 3px rgba(30,136,229,.25);
+    outline:none;
+}
 
-    input, select, textarea {
-        width:100%;
-        padding:10px 12px;
-        border-radius:6px;
-        border:1px solid #cfd8dc;
-        font-size:15px;
-        transition:.2s;
-    }
+/* グリッド */
+.grid-2 {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:22px;
+    align-items: start;
+}
+.grid-auto {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+    gap:10px;
+}
 
-    input:focus, select:focus, textarea:focus {
-        border-color:#1e88e5;
-        box-shadow:0 0 0 3px rgba(30,136,229,.25);
-        outline:none;
-    }
+/* チェックボックス */
+.checkbox-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px,1fr));
+    gap:10px;
+}
+.checkbox-item {
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:0.95em;
+}
 
-    .grid-2 {
-        display:grid;
-        grid-template-columns:1fr 1fr;
-        gap:22px;
-    }
+/* エラー表示 */
+.error-text { color:#d63031; font-size:.92em; margin-top:5px; }
 
-    .grid-auto {
-        display:grid;
-        grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
-        gap:10px;
-    }
+/* メッセージ */
+.msg { padding:12px 15px; border-radius:6px; margin-bottom:15px; font-weight:500; }
+.msg-success { background:#d4edda; border-left:5px solid #28a745; }
+.msg-error   { background:#f8d7da; border-left:5px solid #e74c3c; }
+.msg-info    { background:#d1ecf1; border-left:5px solid #17a2b8; }
 
-    .error-text { color:#d63031; font-size:.92em; margin-top:5px; }
+/* 送信ボタン */
+button.submit-btn {
+    width:100%;
+    padding:14px;
+    background:#1e88e5;
+    color:white;
+    font-weight:700;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    transition:.2s;
+    font-size:16px;
+}
+button.submit-btn:hover { background:#1565c0; transform:translateY(-1px); }
 
-    .msg { padding:12px 15px; border-radius:6px; margin-bottom:15px; font-weight:500; }
-    .msg-success { background:#d4edda; border-left:5px solid #28a745; }
-    .msg-error   { background:#f8d7da; border-left:5px solid #e74c3c; }
-    .msg-info    { background:#d1ecf1; border-left:5px solid #17a2b8; }
-
-    button.submit-btn {
-        width:100%;
-        padding:14px;
-        background:#1e88e5;
-        color:white;
-        font-weight:700;
-        border:none;
-        border-radius:8px;
-        cursor:pointer;
-        transition:.2s;
-        font-size:16px;
-    }
-    button.submit-btn:hover { background:#1565c0; transform:translateY(-1px); }
-
-
-    /* -----------------------------
-       📱 スマホ画面用最適化
-    ----------------------------- */
-    @media(max-width: 768px) {
-        .grid-2 { grid-template-columns:1fr !important; }
-        .form-card { padding:20px; }
-        .page-title { font-size:22px; margin-top:10px; }
-        small { font-size:13px; display:block; margin-top:5px; }
-        button.submit-btn { font-size:15px; padding:12px; }
-    }
+/* スマホ対応 */
+@media(max-width: 768px) {
+    .grid-2 { grid-template-columns:1fr !important; }
+    .form-card { padding:20px; }
+    .page-title { font-size:22px; margin-top:10px; }
+    small { font-size:13px; display:block; margin-top:5px; }
+    button.submit-btn { font-size:15px; padding:12px; }
+}
+@media(max-width: 480px) {
+    .checkbox-grid { grid-template-columns:1fr; }
+}
 </style>
-
 
 <h2 class="page-title">📅 授業枠一括作成</h2>
 <a href="{% url 'admin_dashboard' %}" class="back-link">← 管理者ダッシュボードに戻る</a>
-
 
 {% if messages %}
     {% for message in messages %}
@@ -118,11 +138,11 @@
     {% endfor %}
 {% endif %}
 
-
 <div class="form-card">
 <form method="post">
     {% csrf_token %}
 
+    <!-- タイトル -->
     <div class="form-group">
         <label>{{ form.title.label }}</label>
         {{ form.title }}
@@ -130,6 +150,7 @@
         {% if form.title.errors %}<div class="error-text">{{ form.title.errors }}</div>{% endif %}
     </div>
 
+    <!-- 開始日・終了日 -->
     <div class="grid-2 form-group">
         <div>
             <label>{{ form.start_date.label }}</label>
@@ -143,12 +164,20 @@
         </div>
     </div>
 
+    <!-- 曜日チェックボックス -->
     <div class="form-group">
         <label>{{ form.days_of_week.label }}</label>
-        <div class="grid-auto">{{ form.days_of_week }}</div>
+        <div class="checkbox-grid">
+            {% for checkbox in form.days_of_week %}
+                <label class="checkbox-item">
+                    {{ checkbox.choice_label }} {{ checkbox.tag }}
+                </label>
+            {% endfor %}
+        </div>
         {% if form.days_of_week.errors %}<div class="error-text">{{ form.days_of_week.errors }}</div>{% endif %}
     </div>
 
+    <!-- 時間枠 -->
     <div class="form-group">
         <label>{{ form.time_slots.label }}</label>
         {{ form.time_slots }}
@@ -156,6 +185,7 @@
         {% if form.time_slots.errors %}<div class="error-text">{{ form.time_slots.errors }}</div>{% endif %}
     </div>
 
+    <!-- 定員・予約開始日時 -->
     <div class="grid-2 form-group">
         <div>
             <label>{{ form.capacity.label }}</label>
