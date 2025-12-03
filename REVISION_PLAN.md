@@ -185,7 +185,7 @@ class StudentAdditionRequest(models.Model):
    - 承認者と承認日時を記録
 
 3. **アクセス制御**
-   - 管理者機能は`@user_passes_test(is_admin)`で保護
+   - 管理者機能は`@user_passes_test(is_staff)`で保護
    - ユーザー機能は`@login_required`で保護
 
 ---
