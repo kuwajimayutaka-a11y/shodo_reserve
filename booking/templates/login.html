@@ -1,33 +1,134 @@
 {% extends "base.html" %}
-
 {% block title %}ログイン{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card shadow-lg">
-            <div class="card-header bg-success text-white">
-                <h4 class="mb-0">ログイン</h4>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    {% for field in form %}
-                        <div class="mb-3">
-                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                            {{ field }}
-                            {% for error in field.errors %}
-                                <div class="alert alert-danger mt-1">{{ error }}</div>
-                            {% endfor %}
-                        </div>
+<style>
+    /* ---画面中央に整列--- */
+    .login-page {
+        min-height: 80vh;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        padding-top:40px;
+        padding-bottom:40px;
+    }
+
+    .login-wrapper {
+        max-width: 430px;
+        width: 100%;
+        padding: 35px 40px;
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        animation: fadeIn .5s ease;
+        text-align: center;
+    }
+
+    @keyframes fadeIn {
+        from { opacity:0; transform: translateY(10px); }
+        to   { opacity:1; transform: translateY(0); }
+    }
+
+
+    /* タイトル */
+    .login-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color:#263238;
+    }
+
+
+    /* フォームUI統一 */
+    .login-wrapper label {
+        text-align:left;
+        display:block;
+        font-weight:600;
+        color:#37474f;
+    }
+
+    .login-wrapper input {
+        width:100%;
+        padding:12px;
+        border-radius:8px;
+        border:1px solid #cfd8dc;
+        margin-top:6px;
+        font-size:15px;
+        transition:.2s;
+    }
+    .login-wrapper input:focus {
+        border-color:#2196F3;
+        box-shadow:0 0 7px rgba(33,150,243,.35);
+        outline:none;
+    }
+
+
+    /* エラーメッセージ */
+    .error-msg {
+        background:#ffebee;
+        border-left:4px solid #e53935;
+        padding:7px 10px;
+        border-radius:6px;
+        margin-top:6px;
+        font-size:0.9em;
+        color:#c62828;
+    }
+
+
+    /* ボタン */
+    .submit-btn {
+        margin-top:22px;
+        padding:12px;
+        background:#2196F3;
+        color:#fff;
+        border:none;
+        border-radius:10px;
+        width:100%;
+        font-size:17px;
+        font-weight:700;
+        cursor:pointer;
+        transition:.25s;
+    }
+    .submit-btn:hover { background:#1976d2; transform:translateY(-2px); }
+
+
+    /* 下部リンク */
+    .signup-text {
+        margin-top:18px;
+        font-size:14px;
+    }
+    .signup-text a {
+        color:#1976d2;
+        font-weight:700;
+        text-decoration:none;
+    }
+    .signup-text a:hover { text-decoration:underline; }
+</style>
+
+
+<div class="login-page">
+    <div class="login-wrapper">
+
+        <div class="login-title">ログイン</div>
+
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div style="margin-bottom:18px;">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% for error in field.errors %}
+                        <div class="error-msg">{{ error }}</div>
                     {% endfor %}
-                    <button type="submit" class="btn btn-success w-100">ログイン</button>
-                </form>
-            </div>
-            <div class="card-footer text-center">
-                アカウントをお持ちでないですか？ <a href="{% url 'signup' %}">新規登録</a>
-            </div>
-        </div>
+                </div>
+            {% endfor %}
+            <button type="submit" class="submit-btn">ログイン</button>
+        </form>
+
+        <p class="signup-text">
+            アカウント未登録の方 → <a href="{% url 'signup' %}">新規登録</a>
+        </p>
+
     </div>
 </div>
 {% endblock %}

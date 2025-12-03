@@ -3,34 +3,100 @@
 {% block title %}新規登録{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card shadow-lg">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">新規登録 (保護者アカウント)</h4>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    {% for field in form %}
-                        <div class="mb-3">
-                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                            {{ field }}
-                            {% if field.help_text %}
-                                <div class="form-text">{{ field.help_text }}</div>
-                            {% endif %}
-                            {% for error in field.errors %}
-                                <div class="alert alert-danger mt-1">{{ error }}</div>
-                            {% endfor %}
-                        </div>
+<style>
+    /* --- 全体を中央寄せレイアウトに --- */
+    .auth-wrapper {
+        min-height: 80vh; /* 画面の縦のほぼ中央 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding-top: 20px;
+        padding-bottom: 40px;
+    }
+
+    /* --- カード本体 --- */
+    .auth-box {
+        width: 100%;
+        max-width: 450px;
+        background: #fff;
+        padding: 32px;
+        border-radius: 18px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        animation: fadeIn .6s ease;
+        text-align: center;
+    }
+
+    /* タイトル */
+    .auth-box h2 {
+        margin-bottom: 10px;
+        font-size: 22px;
+        font-weight: 600;
+    }
+
+    /* フォーム */
+    .form-group-modern {
+        text-align: left;
+        margin-bottom: 18px;
+    }
+    .form-group-modern input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        margin-top: 5px;
+        font-size: 15px;
+    }
+    .form-group-modern input:focus {
+        border-color: #4CAF50;
+        outline: none;
+        box-shadow: 0 0 6px rgba(76,175,80,.4);
+    }
+
+    /* ボタン */
+    .btn-modern {
+        width: 100%;
+        padding: 12px;
+        font-size: 17px;
+        border-radius: 10px;
+        border: none;
+        color: white;
+        cursor: pointer;
+        transition: .2s;
+    }
+    .btn-green { background: #4CAF50; }
+    .btn-green:hover { background: #43a047; transform: translateY(-2px); }
+
+    .switch-form-text { margin-top: 15px; }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+
+<div class="auth-wrapper">
+    <div class="auth-box">
+        <h2>新規登録（保護者アカウント）</h2>
+        <p class="text-muted">必要情報を入力してください。</p>
+
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-group-modern">
+                    <label>{{ field.label }}</label>
+                    {{ field }}
+                    {% for error in field.errors %}
+                        <p style="color:red; font-size:13px;">{{ error }}</p>
                     {% endfor %}
-                    <button type="submit" class="btn btn-primary w-100">登録</button>
-                </form>
-            </div>
-            <div class="card-footer text-center">
-                既にアカウントをお持ちですか？ <a href="{% url 'login' %}">ログイン</a>
-            </div>
-        </div>
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn-modern btn-green">登録</button>
+        </form>
+
+        <p class="switch-form-text">
+            すでにアカウントがある方 → <a href="{% url 'login' %}">ログインへ</a>
+        </p>
     </div>
 </div>
 {% endblock %}
