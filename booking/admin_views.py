@@ -7,13 +7,13 @@ from .models import LessonSlot, Reservation, Waitlist, Family, Student
 from django.utils import timezone
 from django.contrib.auth.models import User
 
-def is_staff(user):
+def is_superuser(user):
     """管理者権限チェック"""
     return user.is_superuser
 
 # 管理者トップページ
 @login_required
-@user_passes_test(is_staff)
+@user_passes_test(is_superuser)
 def admin_dashboard(request):
     """管理者ダッシュボード"""
     total_lessons = LessonSlot.objects.count()
@@ -33,7 +33,7 @@ def admin_dashboard(request):
 
 # 授業枠一括作成機能
 @login_required
-@user_passes_test(is_staff)
+@user_passes_test(is_superuser)
 def create_lesson_slots(request):
     """授業枠一括作成"""
     if request.method == "POST":
@@ -103,7 +103,7 @@ def create_lesson_slots(request):
 
 # 授業枠一覧表示
 @login_required
-@user_passes_test(is_staff)
+@user_passes_test(is_superuser)
 def lesson_list(request):
     """授業枠一覧"""
     lessons = LessonSlot.objects.all().order_by('-start_time')
@@ -115,7 +115,7 @@ def lesson_list(request):
 
 # 授業枠個別編集
 @login_required
-@user_passes_test(is_staff)
+@user_passes_test(is_superuser)
 def edit_lesson_slot(request, lesson_id):
     """授業枠個別編集"""
     lesson = get_object_or_404(LessonSlot, pk=lesson_id)
@@ -137,7 +137,7 @@ def edit_lesson_slot(request, lesson_id):
 
 # 授業枠削除
 @login_required
-@user_passes_test(is_staff)
+@user_passes_test(is_superuser)
 def delete_lesson_slot(request, lesson_id):
     """授業枠削除"""
     lesson = get_object_or_404(LessonSlot, pk=lesson_id)
@@ -155,7 +155,7 @@ def delete_lesson_slot(request, lesson_id):
 
 # 授業枠個別作成
 @login_required
-@user_passes_test(is_staff)
+@user_passes_test(is_superuser)
 def create_lesson_single(request):
     """授業枠個別作成"""
     if request.method == "POST":
@@ -174,7 +174,7 @@ def create_lesson_single(request):
 
 # 予約一覧表示
 @login_required
-@user_passes_test(is_staff)
+@user_passes_test(is_superuser)
 def reservation_list(request):
     """予約一覧"""
     reservations = Reservation.objects.all().order_by('-reserved_at')
@@ -186,7 +186,7 @@ def reservation_list(request):
 
 # 生徒管理一覧
 @login_required
-@user_passes_test(is_staff)
+@user_passes_test(is_superuser)
 def student_management(request):
     """生徒管理一覧"""
     families = Family.objects.all().select_related('user').prefetch_related('student_set')
@@ -198,7 +198,7 @@ def student_management(request):
 
 # 生徒追加
 @login_required
-@user_passes_test(is_staff)
+@user_passes_test(is_superuser)
 def add_student_admin(request, family_id):
     """管理者による生徒追加"""
     family = get_object_or_404(Family, pk=family_id)
@@ -222,7 +222,7 @@ def add_student_admin(request, family_id):
 
 # 生徒編集
 @login_required
-@user_passes_test(is_staff)
+@user_passes_test(is_superuser)
 def edit_student_admin(request, student_id):
     """管理者による生徒編集"""
     student = get_object_or_404(Student, pk=student_id)
@@ -244,7 +244,7 @@ def edit_student_admin(request, student_id):
 
 # 生徒削除
 @login_required
-@user_passes_test(is_staff)
+@user_passes_test(is_superuser)
 def delete_student_admin(request, student_id):
     """管理者による生徒削除"""
     student = get_object_or_404(Student, pk=student_id)
@@ -263,7 +263,7 @@ def delete_student_admin(request, student_id):
 
 # 予約キャンセル(管理者用)
 @login_required
-@user_passes_test(is_staff)
+@user_passes_test(is_superuser)
 def cancel_reservation_admin(request, reservation_id):
     """管理者による予約キャンセル"""
     reservation = get_object_or_404(Reservation, pk=reservation_id)
@@ -283,7 +283,7 @@ def cancel_reservation_admin(request, reservation_id):
 
 # 管理者用予約カレンダー
 @login_required
-@user_passes_test(is_staff)
+@user_passes_test(is_superuser)
 def admin_reservation_calendar(request):
     """管理者用予約カレンダー"""
     from collections import defaultdict
@@ -311,7 +311,7 @@ def admin_reservation_calendar(request):
 
 # 管理者による予約作成
 @login_required
-@user_passes_test(is_staff)
+@user_passes_test(is_superuser)
 def admin_reserve_lesson(request, lesson_id):
     """管理者による全生徒の予約作成"""
     lesson = get_object_or_404(LessonSlot, pk=lesson_id)
