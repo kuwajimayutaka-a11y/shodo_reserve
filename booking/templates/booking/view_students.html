@@ -7,7 +7,7 @@
 
 <div style="margin-bottom: 20px;">
     <a href="{% url 'reservation_calendar' %}">予約カレンダー</a>
-    {% if user.is_superuser %}
+    {% if user.is_staff %}
         | <a href="{% url 'admin_dashboard' %}">管理者ダッシュボード</a>
     {% endif %}
 </div>

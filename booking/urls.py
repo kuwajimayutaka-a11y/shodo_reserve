@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 def root_redirect(request):
     user = request.user
 
-    if user.is_superuser:  
+    if user.is_staff:  
         return redirect('admin_dashboard')  # 管理者ダッシュボード
     else:
         return redirect('student_calendar')  # 生徒カレンダー

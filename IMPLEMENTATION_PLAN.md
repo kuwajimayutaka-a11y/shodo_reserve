@@ -8,7 +8,7 @@
 ## 現状分析
 - Djangoベースの書道教室予約システム
 - 既存の管理者機能: `admin_views.py`で実装済み
-- 管理者判定: `is_superuser`フラグで判定
+- 管理者判定: `is_staff`フラグで判定
 - 既存の管理者機能:
   - ダッシュボード (`admin_dashboard`)
   - 授業枠管理

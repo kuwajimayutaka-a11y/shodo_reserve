@@ -7,7 +7,7 @@
 
 <div style="margin-bottom: 20px;">
     <a href="{% url 'view_students' %}">生徒情報</a>
-    {% if user.is_superuser %}
+    {% if user.is_staff %}
         | <a href="{% url 'admin_dashboard' %}">管理者ダッシュボード</a>
     {% endif %}
 </div>

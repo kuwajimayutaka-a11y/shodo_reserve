@@ -11,7 +11,7 @@ class CustomLoginView(LoginView):
     
     def get_success_url(self):
         # ログインしたユーザーが管理者かどうかをチェック
-        if self.request.user.is_superuser:
+        if self.request.user.is_staff:
             return '/admin-dashboard/'
         else:
             return '/calendar/'

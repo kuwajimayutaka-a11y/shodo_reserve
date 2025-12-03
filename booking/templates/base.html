@@ -19,7 +19,7 @@
                 {% if user.is_authenticated %}
                     <span>ようこそ, {{ user.username }}さん</span> |
 
-                    {% if not user.is_superuser %}
+                    {% if not user.is_staff %}
                         <!-- 一般ユーザー用リンク -->
                         <a href="{% url 'reservation_calendar' %}">予約カレンダー</a> |
                         <a href="{% url 'view_students' %}">生徒情報</a> |
