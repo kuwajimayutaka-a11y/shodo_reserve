@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: django-web
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+
+    # 起動前に migrate を走らせる
+    preDeployCommand: "python manage.py migrate"
+
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: django-db
+          property: connectionString
+
+      - key: SECRET_KEY
+        generateValue: true
+
+      - key: PYTHONUNBUFFERED
+        value: "1"
+
+      # 必要なら本番用設定
+      - key: DJANGO_DEBUG
+        value: "False"
+
+databases:
+  - name: django-db
+    plan: free
