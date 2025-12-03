@@ -73,18 +73,33 @@ WSGI_APPLICATION = 'shodo_reserve.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-import os # osモジュールをインポート
+import os
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', 'shodo_db'),
-        'USER': os.environ.get('POSTGRES_USER', 'shodo_user'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'shodo_pass'),
-        'HOST': os.environ.get('POSTGRES_HOST', 'db'),
-        'PORT': '5432',
+if os.environ.get("RENDER") == "true":
+    # Render 本番用
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ['POSTGRES_DB'],
+            'USER': os.environ['POSTGRES_USER'],
+            'PASSWORD': os.environ['POSTGRES_PASSWORD'],
+            'HOST': os.environ['POSTGRES_HOST'],
+            'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+        }
     }
-}
+else:
+    # ローカル開発用
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('POSTGRES_DB', 'shodo_db'),
+            'USER': os.environ.get('POSTGRES_USER', 'shodo_user'),
+            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'shodo_pass'),
+            'HOST': 'db',
+            'PORT': '5432',
+        }
+    }
+
 
 
 # Password validation

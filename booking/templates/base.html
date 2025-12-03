@@ -15,23 +15,33 @@
 <body>
     <header>
         <h1>書道教室 予約システム</h1>
-        <nav>
-            {% if user.is_authenticated %}
-                <span>ようこそ, {{ user.username }}さん</span> |
-                <a href="{% url 'reservation_calendar' %}">予約カレンダー</a> |
-                <a href="{% url 'view_students' %}">生徒情報</a> |
-                {% if user.is_superuser %}
-                    <a href="{% url 'admin_dashboard' %}">管理者ダッシュボード</a> |
+            <nav>
+                {% if user.is_authenticated %}
+                    <span>ようこそ, {{ user.username }}さん</span> |
+
+                    {% if not user.is_staff %}
+                        <!-- 一般ユーザー用リンク -->
+                        <a href="{% url 'reservation_calendar' %}">予約カレンダー</a> |
+                        <a href="{% url 'view_students' %}">生徒情報</a> |
+                    {% else %}
+                        <!-- 管理者専用リンク -->
+                        <a href="{% url 'admin_dashboard' %}">管理者ダッシュボード</a> |
+                        <a href="{% url 'admin_reservation_calendar' %}">管理カレンダー</a> |
+                        <a href="{% url 'admin_create_lesson_slots' %}">授業枠作成</a> |
+                        <a href="{% url 'admin_student_management' %}">生徒管理</a> |
+                    {% endif %}
+
+                    <!-- 全員共通のログアウト -->
+                    <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" style="background: none; border: none; color: #007bff; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;">ログアウト</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}">ログイン</a> |
+                    <a href="{% url 'signup' %}">新規登録</a>
                 {% endif %}
-                <form method="post" action="{% url 'logout' %}" style="display: inline;">
-                    {% csrf_token %}
-                    <button type="submit" style="background: none; border: none; color: #007bff; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;">ログアウト</button>
-                </form>
-            {% else %}
-                <a href="{% url 'login' %}">ログイン</a> |
-                <a href="{% url 'signup' %}">新規登録</a>
-            {% endif %}
-        </nav>
+            </nav>
+
         <hr>
     </header>
     <main>
