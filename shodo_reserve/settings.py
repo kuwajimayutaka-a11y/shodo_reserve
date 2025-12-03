@@ -78,10 +78,10 @@ import os
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', 'shodo_db'),
-        'USER': os.environ.get('POSTGRES_USER', 'shodo_user'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'shodo_pass'),
-        'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
+        'NAME': os.environ.get('POSTGRES_DB'),
+        'USER': os.environ.get('POSTGRES_USER'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+        'HOST': os.environ.get('POSTGRES_HOST'),
         'PORT': os.environ.get('POSTGRES_PORT', '5432'),
     }
 }
