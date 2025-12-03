@@ -21,41 +21,31 @@
 {% endif %}
 
 {% if not students %}
-    <p style="color: red;">予約を行うには生徒の登録が必要です。管理者にお問い合わせください。</p>
+    <p style="color: red;">予約を行うには生徒の登録が必要です。</p>
 {% endif %}
 
 <h3>予約済みの授業</h3>
 {% if user.is_authenticated %}
-    {% with reservations=user.family.student_set.all|dictsort:"reservation_set" %}
-        {% if reservations %}
-            <div style="margin: 20px 0;">
-                {% for student in students %}
-                    {% if student.reservation_set.all %}
-                        <div style="margin-bottom: 20px;">
-                            <h4>{{ student.name }}の予約</h4>
-                            <div style="display: grid; gap: 10px;">
-                                {% for reservation in student.reservation_set.all %}
-                                    <div style="padding: 15px; border: 1px solid #dee2e6; border-radius: 4px; background-color: #e7f3ff;">
-                                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                                            <div>
-                                                <p style="margin: 0; font-weight: bold;">{% if reservation.lesson_slot.title %}{{ reservation.lesson_slot.title }}{% else %}書道教室{% endif %}</p>
-                                                <p style="margin: 5px 0 0 0; color: #6c757d; font-size: 0.9em;">{{ reservation.lesson_slot.start_time|date:"Y年m月d日 H:i" }} - {{ reservation.lesson_slot.end_time|date:"H:i" }}</p>
-                                            </div>
-                                            <a href="{% url 'cancel_reservation' reservation.id %}" style="padding: 8px 16px; background-color: #dc3545; color: white; text-decoration: none; border-radius: 4px; display: inline-block; font-size: 0.9em;">キャンセル</a>
-                                        </div>
-                                    </div>
-                                {% endfor %}
+    {% for student in students %}
+        {% if student.reservation_set.all %}
+            <div style="margin-bottom: 25px; padding: 15px; border: 1px solid #ccc; border-radius: 6px; background: #f9fbff;">
+                <h4>{{ student.name }} の予約一覧</h4>
+                    {% for reservation in student.reservation_set.all %}
+                        <div style="margin: 12px 0; padding: 12px; border: 1px solid #ddd; border-radius: 6px; background: #e7f3ff;">
+                            <strong>{{ reservation.lesson_slot.title|default:"書道教室" }}</strong><br>
+                            <span style="color:#555;">{{ reservation.lesson_slot.start_time|date:"Y年m月d日 H:i" }} - {{ reservation.lesson_slot.end_time|date:"H:i" }}</span>
+                            <div style="margin-top: 8px;">
+                                <a href="{% url 'cancel_reservation' reservation.id %}" style="padding: 6px 12px; background: #dc3545; color: #fff; border-radius: 4px; text-decoration: none; font-size: 0.9em;">キャンセル</a>
                             </div>
                         </div>
-                    {% endif %}
-                {% endfor %}
+                    {% endfor %}
             </div>
-        {% else %}
-            <p style="color: #6c757d;">予約済みの授業はありません。</p>
         {% endif %}
-    {% endwith %}
+    {% endfor %}
+{% else %}
+     <p style="color: #6c757d;">予約済みの授業はありません。</p>
 {% endif %}
-
+       
 <h3 style="margin-top: 40px;">予約可能な授業</h3>
 
 {% for date, lessons in lessons_by_date %}
