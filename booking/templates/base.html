@@ -114,7 +114,16 @@
             <span style="opacity:.8;">ログイン者：<b>{{ user.username }}</b> さん</span>
 
             {% if not user.is_staff %}
-            <a href="{% url 'admin_dashboard' %}">
+                <a href="{% url 'reservation_calendar' %}">
+                    <i class="bi bi-calendar-check"></i> 予約カレンダー
+                </a>
+
+                <a href="{% url 'view_students' %}">
+                    <i class="bi bi-people"></i> 生徒情報
+                </a>
+                
+            {% else %}
+                <a href="{% url 'admin_dashboard' %}">
                     <i class="bi bi-speedometer2"></i> 管理者ダッシュボード
                 </a>
 
@@ -127,16 +136,9 @@
                 </a>
 
                 <a href="{% url 'admin_student_management' %}">
-                    <i class="bi bi-mortarboard"></i> 生徒管理
-                </a>
-            {% else %}
-                <a href="{% url 'reservation_calendar' %}">
-                    <i class="bi bi-calendar-check"></i> 予約カレンダー
+                    i class="bi bi-mortarboard"></i> 生徒管理
                 </a>
 
-                <a href="{% url 'view_students' %}">
-                    <i class="bi bi-people"></i> 生徒情報
-                </a>
             {% endif %}
 
             <form method="post" action="{% url 'logout' %}">
