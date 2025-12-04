@@ -14,7 +14,7 @@ from django.utils import timezone
 # ユーザー登録(保護者アカウント作成)
 class SignUpView(CreateView):
     form_class = UserCreationForm
-    success_url = reverse_lazy('login')
+    success_url = reverse_lazy('reservation_calendar')
     template_name = 'registration/signup.html'
 
     def form_valid(self, form):

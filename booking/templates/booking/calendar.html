@@ -6,7 +6,6 @@
 <h2>予約カレンダー</h2>
 
 <div style="margin-bottom: 20px;">
-    <a href="{% url 'view_students' %}">生徒情報</a>
     {% if user.is_staff %}
         | <a href="{% url 'admin_dashboard' %}">管理者ダッシュボード</a>
     {% endif %}
@@ -22,6 +21,7 @@
 
 {% if not students %}
     <p style="color: red;">予約を行うには生徒の登録が必要です。</p>
+    <a href="{% url 'view_students' %}">生徒情報</a>
 {% endif %}
 
 <h3>予約済みの授業</h3>
