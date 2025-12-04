@@ -120,15 +120,6 @@ document.addEventListener("DOMContentLoaded", function() {
                     {% elif lesson.available_slots <= 0 %}
                         <p style="color: orange; font-weight: bold;">満席です</p>
                         <form method="post" action="{% url 'reserve_lesson' lesson.id %}" style="margin-top: 10px;">
-                            {% csrf_token %}
-                            <label for="waitlist_student_{{ lesson.id }}">補欠登録する生徒:</label>
-                            <select name="student_id" id="waitlist_student_{{ lesson.id }}" required style="margin: 0 10px; padding: 5px;">
-                                {% for student in students %}
-                                    <option value="{{ student.id }}">{{ student.name }}</option>
-                                {% endfor %}
-                            </select>
-                            <button type="submit" style="padding: 8px 16px; background-color: #ffc107; color: black; border: none; border-radius: 4px; cursor: pointer;">補欠登録する</button>
-                        </form>
                     {% else %}
                         <p style="color: gray;">予約開始前です</p>
                     {% endif %}
