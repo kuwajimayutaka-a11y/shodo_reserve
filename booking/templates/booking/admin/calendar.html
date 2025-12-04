@@ -95,25 +95,6 @@
     {% endfor %}
 {% endif %}
 
-<h3 style="cursor:pointer;" onclick="toggleContent('all-reservations')">
-    ▼ 全体の予約状況
-</h3>
-
-<script>
-function toggleBlock(id, iconId) {
-    const block = document.getElementById(id);
-    const icon = document.getElementById(iconId);
-
-    if (block.style.display === "none" || block.style.display === "") {
-        block.style.display = "block";
-        icon.textContent = "▼";
-    } else {
-        block.style.display = "none";
-        icon.textContent = "▶";
-    }
-}
-</script>
-
 
 <h3 style="margin-top: 40px;">授業枠一覧と予約作成</h3>
 
