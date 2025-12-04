@@ -95,6 +95,76 @@
     {% endfor %}
 {% endif %}
 
+<h3 style="cursor:pointer;" onclick="toggleBlock('all-block', 'icon-all')">
+    <span id="icon-all">▶</span> 全体の予約状況
+</h3>
+
+<div id="all-block" style="display:none; margin-left:20px;">
+
+    {% for date, lessons in lessons_by_date %}
+        <div style="margin-bottom:15px;">
+
+            <!-- ▶ 日付 -->
+            <h4 style="cursor:pointer; margin:8px 0;"
+                onclick="toggleBlock('date-{{ forloop.counter }}', 'icon-date-{{ forloop.counter }}')">
+
+                <span id="icon-date-{{ forloop.counter }}">▶</span>
+                {{ date }}
+            </h4>
+
+            <div id="date-{{ forloop.counter }}" style="display:none; margin-left:20px;">
+
+                {% for lesson in lessons %}
+                    {% if lesson.reservation_set.all %}
+
+                        <!-- ▶ レッスン -->
+                        <div style="cursor:pointer; font-weight:bold; margin:5px 0;"
+                             onclick="toggleBlock('lesson-{{ lesson.id }}', 'icon-lesson-{{ lesson.id }}')">
+
+                            <span id="icon-lesson-{{ lesson.id }}">▶</span>
+                            {{ lesson.title|default:"書道教室" }} - {{ lesson.start_time|date:"H:i" }}
+                        </div>
+
+                        <!-- 生徒一覧（折り畳まれる） -->
+                        <div id="lesson-{{ lesson.id }}" style="display:none; margin-left:20px;">
+                            {% for reservation in lesson.reservation_set.all %}
+                                <div style="margin-bottom:8px;">
+                                    <strong>{{ reservation.student.name }}</strong>
+                                    (<span style="color:#6c757d;">{{ reservation.student.family.user.username }}</span>)
+
+                                    <a href="{% url 'admin_cancel_reservation' reservation.id %}"
+                                       class="cancel-btn">
+                                        キャンセル
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                    {% endif %}
+                {% endfor %}
+
+            </div>
+        </div>
+    {% endfor %}
+
+</div>
+
+<script>
+function toggleBlock(id, iconId) {
+    const block = document.getElementById(id);
+    const icon = document.getElementById(iconId);
+
+    if (block.style.display === "none" || block.style.display === "") {
+        block.style.display = "block";
+        icon.textContent = "▼";
+    } else {
+        block.style.display = "none";
+        icon.textContent = "▶";
+    }
+}
+</script>
+
+
 <h3 style="margin-top: 40px;">授業枠一覧と予約作成</h3>
 
 {% for date, lessons in lessons_by_date %}
