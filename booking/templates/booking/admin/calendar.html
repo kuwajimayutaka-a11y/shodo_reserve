@@ -95,59 +95,63 @@
     {% endfor %}
 {% endif %}
 
-<h3 style="cursor:pointer;" onclick="toggleBlock('all-block', 'icon-all')">
-    <span id="icon-all">▶</span> 全体の予約状況
+<h3 style="cursor:pointer;" onclick="toggleContent('all-reservations')">
+    ▼ 全体の予約状況
 </h3>
 
-<div id="all-block" style="display:none; margin-left:20px;">
+<div id="all-reservations" style="display:none;">
 
     {% for date, lessons in lessons_by_date %}
-        <div style="margin-bottom:15px;">
+        <div style="margin-bottom:20px;">
 
-            <!-- ▶ 日付 -->
-            <h4 style="cursor:pointer; margin:8px 0;"
-                onclick="toggleBlock('date-{{ forloop.counter }}', 'icon-date-{{ forloop.counter }}')">
-
-                <span id="icon-date-{{ forloop.counter }}">▶</span>
-                {{ date }}
+            <!-- 日付 見出し（折りたたみ可能） -->
+            <h4 style="cursor:pointer; margin: 10px 0;"
+                onclick="toggleContent('date-{{ forloop.counter }}')">
+                ▶ {{ date }}
             </h4>
 
-            <div id="date-{{ forloop.counter }}" style="display:none; margin-left:20px;">
+            <div id="date-{{ forloop.counter }}" style="display:none;">
 
                 {% for lesson in lessons %}
                     {% if lesson.reservation_set.all %}
+                        <div class="reservation-card" style="margin-left:15px;">
 
-                        <!-- ▶ レッスン -->
-                        <div style="cursor:pointer; font-weight:bold; margin:5px 0;"
-                             onclick="toggleBlock('lesson-{{ lesson.id }}', 'icon-lesson-{{ lesson.id }}')">
+                            <!-- レッスンタイトル（折りたたみ可能） -->
+                            <div style="cursor:pointer; font-weight:bold; margin:5px 0;"
+                                 onclick="toggleContent('lesson-{{ lesson.id }}')">
+                                ■ {{ lesson.title|default:"書道教室" }} - {{ lesson.start_time|date:"H:i" }}
+                            </div>
 
-                            <span id="icon-lesson-{{ lesson.id }}">▶</span>
-                            {{ lesson.title|default:"書道教室" }} - {{ lesson.start_time|date:"H:i" }}
-                        </div>
-
-                        <!-- 生徒一覧（折り畳まれる） -->
-                        <div id="lesson-{{ lesson.id }}" style="display:none; margin-left:20px;">
-                            {% for reservation in lesson.reservation_set.all %}
-                                <div style="margin-bottom:8px;">
-                                    <strong>{{ reservation.student.name }}</strong>
-                                    (<span style="color:#6c757d;">{{ reservation.student.family.user.username }}</span>)
-
-                                    <a href="{% url 'admin_cancel_reservation' reservation.id %}"
-                                       class="cancel-btn">
-                                        キャンセル
-                                    </a>
+                            <div id="lesson-{{ lesson.id }}" style="display:none; margin-left:15px;">
+                                <div class="reservation-list">
+                                    {% for reservation in lesson.reservation_set.all %}
+                                        <div class="reservation-item" style="margin-bottom:8px;">
+                                            <div>
+                                                <strong>{{ reservation.student.name }}</strong>
+                                                (<span style="color:#6c757d;">{{ reservation.student.family.user.username }}</span>)
+                                            </div>
+                                            <a href="{% url 'admin_cancel_reservation' reservation.id %}"
+                                               class="cancel-btn">
+                                                キャンセル
+                                            </a>
+                                        </div>
+                                    {% endfor %}
                                 </div>
-                            {% endfor %}
-                        </div>
+                            </div>
 
+                        </div>
                     {% endif %}
                 {% endfor %}
 
             </div>
+
         </div>
+    {% empty %}
+        <p style="color: #6c757d;">予約済みの授業はありません。</p>
     {% endfor %}
 
 </div>
+
 
 <script>
 function toggleBlock(id, iconId) {
