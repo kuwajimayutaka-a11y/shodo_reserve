@@ -3,11 +3,11 @@
 {% block title %}ログイン{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-center align-items-center text-center" style="min-height: 80vh; background-color: #f8f9fa;">
-    <div class="card shadow p-4 border" style="width: 100%; max-width: 420px; border-radius: 10px; background: white; border: 1px solid #ced4da; margin: 0 auto; text-align: center;"> 
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh; background-color: #f8f9fa;">
+    <div class="card shadow p-4" style="width: 100%; max-width: 420px; border-radius: 10px; background: white;">
         <h3 class="text-center mb-4" style="color: #2c3e50;">ログイン</h3>
 
-        <form method="post" class="text-start"></form>
+        <form method="post" class="w-100">
             {% csrf_token %}
             <div class="mb-3">
                 {{ form.as_p }}
