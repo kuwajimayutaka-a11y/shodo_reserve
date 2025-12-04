@@ -3,11 +3,22 @@
 {% block title %}ログイン{% endblock %}
 
 {% block content %}
-<h2>ログイン</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">ログイン</button>
-</form>
-<p>アカウントをお持ちでないですか？ <a href="{% url 'signup' %}">新規登録</a></p>
+<div class="d-flex justify-content-center align-items-center text-center" style="min-height: 80vh; background-color: #f8f9fa;">
+    <div class="card shadow p-4 border" style="width: 100%; max-width: 420px; border-radius: 10px; background: white; border: 1px solid #ced4da; margin: 0 auto; text-align: center;"> 
+        <h3 class="text-center mb-4" style="color: #2c3e50;">ログイン</h3>
+
+        <form method="post" class="w-100 text-center">
+            {% csrf_token %}
+            <div class="mb-3">
+                {{ form.as_p }}
+            </div>
+            <button type="submit" class="btn btn-primary w-100" style="padding: 10px 0;">ログイン</button>
+        </form>
+
+        <p class="mt-3 text-center" style="color: #6c757d;">
+            アカウントをお持ちでないですか？
+            <a href="{% url 'signup' %}" style="color: #007bff;">新規登録</a>
+        </p>
+    </div>
+</div>
 {% endblock %}

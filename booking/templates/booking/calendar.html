@@ -28,23 +28,59 @@
 {% if user.is_authenticated %}
     {% for student in students %}
         {% if student.reservation_set.all %}
-            <div style="margin-bottom: 25px; padding: 15px; border: 1px solid #ccc; border-radius: 6px; background: #f9fbff;">
-                <h4>{{ student.name }} の予約一覧</h4>
+            <div style="margin-bottom: 10px; padding: 15px; border: 1px solid #ccc; border-radius: 6px; background: #f9fbff;">
+                
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h4 style="margin:0;">{{ student.name }} の予約一覧</h4>
+                    <button type="button"
+                        class="toggle-btn"
+                        data-target="student-{{ student.id }}-reservations"
+                        style="padding:4px 10px; font-size:0.9em;">
+                        ▼ 開く
+                    </button>
+                </div>
+
+                <!-- 折りたたみ対象 -->
+                <div id="student-{{ student.id }}-reservations" class="reservation-content" style="display:none; margin-top:10px;">
                     {% for reservation in student.reservation_set.all %}
                         <div style="margin: 12px 0; padding: 12px; border: 1px solid #ddd; border-radius: 6px; background: #e7f3ff;">
                             <strong>{{ reservation.lesson_slot.title|default:"書道教室" }}</strong><br>
                             <span style="color:#555;">{{ reservation.lesson_slot.start_time|date:"Y年m月d日 H:i" }} - {{ reservation.lesson_slot.end_time|date:"H:i" }}</span>
                             <div style="margin-top: 8px;">
-                                <a href="{% url 'cancel_reservation' reservation.id %}" style="padding: 6px 12px; background: #dc3545; color: #fff; border-radius: 4px; text-decoration: none; font-size: 0.9em;">キャンセル</a>
+                                <a href="{% url 'cancel_reservation' reservation.id %}"
+                                   style="padding: 6px 12px; background: #dc3545; color: #fff; border-radius: 4px; text-decoration: none; font-size: 0.9em;">
+                                   キャンセル
+                                </a>
                             </div>
                         </div>
                     {% endfor %}
+                </div>
             </div>
         {% endif %}
     {% endfor %}
 {% else %}
      <p style="color: #6c757d;">予約済みの授業はありません。</p>
 {% endif %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll(".toggle-btn").forEach(btn => {
+        btn.addEventListener("click", function() {
+            const targetId = this.getAttribute("data-target");
+            const content = document.getElementById(targetId);
+
+            if (content.style.display === "none") {
+                content.style.display = "block";
+                this.textContent = "▲ 閉じる";
+            } else {
+                content.style.display = "none";
+                this.textContent = "▼ 開く";
+            }
+        });
+    });
+});
+</script>
+
+
        
 <h3 style="margin-top: 40px;">予約可能な授業</h3>
 
@@ -61,7 +97,7 @@
                         書道教室
                     {% endif %}
                 </h4>
-                <p><strong>時間:</strong> {{ lesson.start_time|date:"H:i" }} - {{ lesson.end_time|date:"H:i" }}</p>
+                <p><strong>時間: {{ lesson.start_time|date:"H:i" }} - {{ lesson.end_time|date:"H:i" }}</strong></p>
                 <p><strong>定員:</strong> {{ lesson.capacity }} / <strong>残り枠:</strong> 
                     <span style="color: {% if lesson.available_slots > 0 %}green{% else %}red{% endif %}; font-weight: bold;">
                         {{ lesson.available_slots }}
