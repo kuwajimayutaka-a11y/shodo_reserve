@@ -95,31 +95,6 @@
     {% endfor %}
 {% endif %}
 
-<h3>全体の予約状況</h3>
-<div>
-    {% for date, lessons in lessons_by_date %}
-        <div style="margin-bottom: 20px;">
-            {% for lesson in lessons %}
-                {% if lesson.reservation_set.all %}
-                    <div class="reservation-card">
-                        <h4>{{ lesson.title|default:"書道教室" }} - {{ lesson.start_time|date:"Y年m月d日 H:i" }}</h4>
-                        <div class="reservation-list">
-                            {% for reservation in lesson.reservation_set.all %}
-                                <div class="reservation-item">
-                                    <div><strong>{{ reservation.student.name }}</strong> (<span style="color: #6c757d;">{{ reservation.student.family.user.username }}</span>)</div>
-                                    <a href="{% url 'admin_cancel_reservation' reservation.id %}" class="cancel-btn">キャンセル</a>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endif %}
-            {% endfor %}
-        </div>
-    {% empty %}
-        <p style="color: #6c757d;">予約済みの授業はありません。</p>
-    {% endfor %}
-</div>
-
 <h3 style="margin-top: 40px;">授業枠一覧と予約作成</h3>
 
 {% for date, lessons in lessons_by_date %}
