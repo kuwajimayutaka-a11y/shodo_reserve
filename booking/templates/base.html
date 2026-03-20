@@ -96,6 +96,34 @@
             max-width:1200px;
             margin:auto;
         }
+        /* ヘッダーリンクを少し小さくする */
+        nav a {
+            font-size: 0.9rem;   /* ← ここで文字小さく */
+        }
+
+        /* ログイン者ラベルも少し小さく */
+        nav span {
+            font-size: 0.85rem;
+        }
+
+        /* スマホでは左寄せにする */
+        @media (max-width: 750px) {
+
+            nav a, nav span, nav form {
+                width: 100%;        /* 全部100%幅で */
+                text-align: left;   /* 左寄せ */
+            }
+
+            nav a {
+                padding-left: 4px;  /* 左余白少し追加して揃える */
+            }
+
+            .logout-btn {
+                width: 100%;               
+                text-align: left;     
+                padding-left: 4px;
+            }
+        }
     </style>
 </head>
 

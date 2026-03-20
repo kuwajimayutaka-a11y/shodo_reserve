@@ -1,19 +1,20 @@
-from django.urls import path
+from django.urls import path, reverse
 from . import views, admin_views
 from django.shortcuts import redirect
-from django.contrib.auth.decorators import login_required
 
-@login_required
 def root_redirect(request):
-    user = request.user
+    # 未ログインの場合は、必ず /students/ を next にしてログインへ誘導する
+    if not request.user.is_authenticated:
+        return redirect(f"{reverse('login')}?next={reverse('view_students')}")
 
-    if user.is_staff:  
+    if request.user.is_staff:
         return redirect('admin_dashboard')  # 管理者ダッシュボード
-    else:
-        return redirect('student_calendar')  # 生徒カレンダー
+
+    return redirect('view_students')  # 保護者用 生徒情報
 
 # 生徒用URL
 urlpatterns = [
+    path("", root_redirect),
     path('signup/', views.SignUpView.as_view(), name='signup'),
     path('students/', views.view_students, name='view_students'),
     path('students/add/', views.add_student, name='add_student'),
