@@ -8,8 +8,11 @@ python manage.py migrate --noinput
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
+# 管理者ユーザーを作成（環境変数が設定されている場合のみ）
+echo "Creating admin user..."
+python create_admin.py
+
 # Gunicornでアプリケーションを起動
 echo "Starting Gunicorn..."
-# Renderの環境変数PORTを使用。未設定の場合は8000をデフォルトとする
 PORT=${PORT:-8000}
 exec gunicorn shodo_reserve.wsgi:application --bind 0.0.0.0:$PORT

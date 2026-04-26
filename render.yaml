@@ -15,6 +15,12 @@ services:
         value: "1"
       - key: DJANGO_DEBUG
         value: "False"
+      - key: DJANGO_ADMIN_USER
+        sync: false
+      - key: DJANGO_ADMIN_EMAIL
+        sync: false
+      - key: DJANGO_ADMIN_PASSWORD
+        sync: false
 
 databases:
   - name: django-db
