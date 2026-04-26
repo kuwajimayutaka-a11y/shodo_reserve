@@ -76,7 +76,7 @@ WSGI_APPLICATION = 'shodo_reserve.wsgi.application'
 import os
 import dj_database_url
 
-# ローカル docker-compose 用（POSTGRES_HOST など）
+# ローカル docker-compose 用
 if os.environ.get("POSTGRES_HOST"):
     DATABASES = {
         'default': {
@@ -88,15 +88,20 @@ if os.environ.get("POSTGRES_HOST"):
             'PORT': os.environ.get('POSTGRES_PORT', '5432'),
         }
     }
-
 # Render 本番用（DATABASE_URL）
-else:
+elif os.environ.get("DATABASE_URL"):
     DATABASES = {
         'default': dj_database_url.config(
-            default=os.environ.get("DATABASE_URL"),
             conn_max_age=600,
-            ssl_require=True,
         )
+    }
+# ローカル開発用（SQLite）
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
 
 
@@ -138,6 +143,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
