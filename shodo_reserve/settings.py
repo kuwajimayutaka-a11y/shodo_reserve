@@ -27,6 +27,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://shodo-reserve-syg.onrender.com',
+]
+
 
 # Application definition
 
