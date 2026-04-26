@@ -1,11 +1,10 @@
-from django.urls import path, reverse
+from django.urls import path
 from . import views, admin_views
 from django.shortcuts import redirect
 
 def root_redirect(request):
-    # 未ログインの場合は、必ず /students/ を next にしてログインへ誘導する
     if not request.user.is_authenticated:
-        return redirect(f"{reverse('login')}?next={reverse('view_students')}")
+        return redirect('login')
 
     if request.user.is_staff:
         return redirect('admin_dashboard')  # 管理者ダッシュボード
