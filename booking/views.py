@@ -9,6 +9,8 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
 from collections import defaultdict
+from datetime import timedelta
+from django.db import IntegrityError
 from .models import Family, Student, LessonSlot, Reservation, Waitlist
 from .forms import SignUpForm, StudentForm
 from django.utils import timezone
@@ -151,13 +153,13 @@ def reserve_lesson(request, lesson_id):
             try:
                 Reservation.objects.create(lesson_slot=lesson, student=student)
                 messages.success(request, f'{student.name}の予約が完了しました。')
-            except Exception:
+            except IntegrityError:
                 messages.error(request, '予約に失敗しました。すでに予約済みの可能性があります。')
         else:
             try:
                 Waitlist.objects.create(lesson_slot=lesson, student=student)
                 messages.info(request, f'{student.name}を補欠登録しました。')
-            except Exception:
+            except IntegrityError:
                 messages.error(request, '補欠登録に失敗しました。すでに登録済みの可能性があります。')
     return redirect('reservation_calendar')
 
@@ -168,7 +170,6 @@ def cancel_reservation(request, reservation_id):
         return redirect('admin_dashboard')
     family = get_object_or_404(Family, user=request.user)
     reservation = get_object_or_404(Reservation, pk=reservation_id, student__family=family)
-    from datetime import timedelta
     deadline = reservation.lesson_slot.start_time - timedelta(hours=1)
     can_cancel = timezone.now() < deadline
     if request.method == 'POST':
