@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}予約カレンダー{% endblock %}
 
@@ -25,6 +25,11 @@
 .mini-cal-cell.today { background:#fff3e0; }
 .mini-cal-cell.selected { background:#0d9488 !important; color:white !important; }
 .mini-cal-cell.selected::after { background:white !important; }
+.snackbar-wrap { position: fixed; right: 12px; bottom: 12px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
+.snackbar-item { color: #fff; padding: 10px 14px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.18); font-size: .9rem; }
+.snackbar-success { background: #047857; }
+.snackbar-error { background: #be123c; }
+.snackbar-info { background: #0d9488; }
 </style>
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="fw-bold mb-0" style="color: #2c3e50;">
@@ -162,13 +167,13 @@ document.addEventListener("DOMContentLoaded", function() {
         </div>
         <div class="card-body p-3">
             {% for lesson in lessons %}
-            <div class="lesson-card border rounded-3 p-3 mb-3" style="background:white;">
+            <div class="lesson-card border rounded-3 p-3 mb-3" style="background:white;" data-lesson-id="{{ lesson.id }}">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <h6 class="fw-bold mb-0">{{ lesson.title|default:"書道教室" }}</h6>
                     {% if lesson.available_slots > 0 %}
-                        <span class="badge bg-success">残り{{ lesson.available_slots }}枠</span>
+                        <span class="badge bg-success js-available-badge">残り{{ lesson.available_slots }}枠</span>
                     {% else %}
-                        <span class="badge bg-danger">満席</span>
+                        <span class="badge bg-danger js-available-badge">満席</span>
                     {% endif %}
                 </div>
                 <div class="text-muted small mb-2">
@@ -180,7 +185,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 {% endif %}
                 {% if students %}
                     {% if lesson.is_reservable %}
-                    <form method="post" action="{% url 'reserve_lesson' lesson.id %}" class="reserve-form-inline d-flex flex-wrap gap-2 align-items-center mt-2">
+                    <form method="post" action="{% url 'reserve_lesson' lesson.id %}" class="reserve-form-inline d-flex flex-wrap gap-2 align-items-center mt-2 js-reserve-form" data-lesson-id="{{ lesson.id }}">
                         {% csrf_token %}
                         <select name="student_id" class="form-select form-select-sm" style="max-width:160px;" required>
                             {% for student in students %}
@@ -192,7 +197,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         </button>
                     </form>
                     {% elif lesson.available_slots <= 0 %}
-                    <form method="post" action="{% url 'reserve_lesson' lesson.id %}" class="d-flex gap-2 align-items-center mt-2">
+                    <form method="post" action="{% url 'reserve_lesson' lesson.id %}" class="d-flex gap-2 align-items-center mt-2 js-reserve-form" data-lesson-id="{{ lesson.id }}">
                         {% csrf_token %}
                         <select name="student_id" class="form-select form-select-sm" style="max-width:160px;" required>
                             {% for student in students %}
@@ -216,4 +221,79 @@ document.addEventListener("DOMContentLoaded", function() {
     <p class="mt-2">現在、予約可能な授業枠はありません。</p>
 </div>
 {% endfor %}
+<div id="snackbar-wrap" class="snackbar-wrap"></div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    function showSnackbar(message, tone) {
+        const wrap = document.getElementById('snackbar-wrap');
+        const el = document.createElement('div');
+        el.className = 'snackbar-item snackbar-' + tone;
+        el.textContent = message;
+        wrap.appendChild(el);
+        setTimeout(function () { el.remove(); }, 3000);
+    }
+
+    function updateAvailableSlots(lessonId, availableSlots) {
+        const card = document.querySelector('.lesson-card[data-lesson-id="' + lessonId + '"]');
+        if (!card) return;
+        const badge = card.querySelector('.js-available-badge');
+        if (!badge) return;
+        if (availableSlots > 0) {
+            badge.classList.remove('bg-danger');
+            badge.classList.add('bg-success');
+            badge.textContent = '残り' + availableSlots + '枠';
+        } else {
+            badge.classList.remove('bg-success');
+            badge.classList.add('bg-danger');
+            badge.textContent = '満席';
+        }
+    }
+
+    function updateReserveButtonState(lessonId, availableSlots) {
+        const form = document.querySelector('.js-reserve-form[data-lesson-id="' + lessonId + '"]');
+        if (!form) return;
+        const btn = form.querySelector('button[type="submit"]');
+        if (!btn) return;
+        if (availableSlots > 0) {
+            btn.classList.remove('btn-warning');
+            btn.classList.add('btn-success');
+            btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>予約する';
+        } else {
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-warning');
+            btn.innerHTML = '<i class="bi bi-clock me-1"></i>補欠登録';
+        }
+    }
+
+    document.querySelectorAll('.js-reserve-form').forEach(function (form) {
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) submitBtn.disabled = true;
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: new FormData(form),
+                });
+                const payload = await response.json();
+                if (!response.ok || !payload.success) {
+                    showSnackbar(payload.message || '予約処理に失敗しました。', 'error');
+                    return;
+                }
+                const tone = payload.status_type === 'waitlist' ? 'info' : 'success';
+                showSnackbar(payload.message || '予約が完了しました。', tone);
+                if (typeof payload.available_slots === 'number') {
+                    updateAvailableSlots(payload.lesson_id, payload.available_slots);
+                    updateReserveButtonState(payload.lesson_id, payload.available_slots);
+                }
+            } catch (error) {
+                showSnackbar('通信エラーが発生しました。', 'error');
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

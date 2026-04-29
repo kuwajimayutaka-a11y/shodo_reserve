@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% block title %}管理者用予約カレンダー{% endblock %}
 
 {% block content %}
@@ -96,6 +96,10 @@
     .mini-cal-cell.today { background:#fff3e0; }
     .mini-cal-cell.selected { background:#0d9488 !important; color:white !important; }
     .mini-cal-cell.selected::after { background:white !important; }
+    .snackbar-wrap { position: fixed; right: 12px; bottom: 12px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
+    .snackbar-item { color: #fff; padding: 10px 14px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.18); font-size: .9rem; }
+    .snackbar-success { background: #047857; }
+    .snackbar-error { background: #be123c; }
 </style>
 
 <h2>管理者用予約カレンダー</h2>
@@ -116,16 +120,16 @@
         <h3 style="margin-top: 0; padding-bottom: 10px; border-bottom: 2px solid #0d9488;">{{ date|date:"Y年m月d日 (D)" }}</h3>
         
         {% for lesson in lessons %}
-            <div class="reservation-card">
+            <div class="reservation-card" data-lesson-id="{{ lesson.id }}">
                 <h4>{{ lesson.title|default:"書道教室" }}</h4>
                 <p><strong>時間:</strong> {{ lesson.start_time|date:"H:i" }} - {{ lesson.end_time|date:"H:i" }}</p>
                 <p><strong>定員:</strong> {{ lesson.capacity }} / <strong>残り枠:</strong> 
-                    <span style="color: {% if lesson.available_slots > 0 %}green{% else %}red{% endif %}; font-weight: bold;">{{ lesson.available_slots }}</span>
+                    <span class="js-available-slots" style="color: {% if lesson.available_slots > 0 %}green{% else %}red{% endif %}; font-weight: bold;">{{ lesson.available_slots }}</span>
                 </p>
                 <p><strong>予約開始:</strong> {{ lesson.reservation_start_time|date:"Y年m月d日 H:i" }}</p>
 
                 {% if all_students %}
-                    <form method="post" action="{% url 'admin_reserve_lesson' lesson.id %}" class="reserve-form">
+                    <form method="post" action="{% url 'admin_reserve_lesson' lesson.id %}" class="reserve-form js-admin-reserve-form" data-lesson-id="{{ lesson.id }}">
                         {% csrf_token %}
                         <label for="student_{{ lesson.id }}">予約する生徒:</label>
                         <select name="student_id" id="student_{{ lesson.id }}" required class="select2">
@@ -141,9 +145,9 @@
                 {% endif %}
 
                 {% if lesson.reservation_set.all %}
-                    <div style="margin-top: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;">
+                    <div class="js-current-reservations" style="margin-top: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;">
                         <strong>現在の予約:</strong>
-                        <ul style="margin: 5px 0; padding-left: 20px;">
+                        <ul class="js-current-reservation-list" style="margin: 5px 0; padding-left: 20px;">
                             {% for reservation in lesson.reservation_set.all %}
                                 <li>{{ reservation.student.name }} ({{ reservation.student.family.user.name }})</li>
                             {% endfor %}
@@ -156,11 +160,86 @@
 {% empty %}
     <p>現在、授業枠はありません。</p>
 {% endfor %}
+<div id="snackbar-wrap" class="snackbar-wrap"></div>
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         document.querySelectorAll('.select2').forEach(function(select) {
             $(select).select2({ width: '100%' });
+        });
+
+        function showSnackbar(message, tone) {
+            const wrap = document.getElementById('snackbar-wrap');
+            const el = document.createElement('div');
+            el.className = 'snackbar-item snackbar-' + tone;
+            el.textContent = message;
+            wrap.appendChild(el);
+            setTimeout(function () { el.remove(); }, 3000);
+        }
+
+        function updateAvailableSlots(lessonId, availableSlots) {
+            const card = document.querySelector('.reservation-card[data-lesson-id="' + lessonId + '"]');
+            if (!card) return;
+            const slotsEl = card.querySelector('.js-available-slots');
+            if (!slotsEl) return;
+            slotsEl.textContent = availableSlots;
+            slotsEl.style.color = availableSlots > 0 ? 'green' : 'red';
+        }
+
+        function appendCurrentReservation(lessonId, studentName, familyName) {
+            const card = document.querySelector('.reservation-card[data-lesson-id="' + lessonId + '"]');
+            if (!card) return;
+            let box = card.querySelector('.js-current-reservations');
+            let list;
+            if (!box) {
+                box = document.createElement('div');
+                box.className = 'js-current-reservations';
+                box.style.marginTop = '15px';
+                box.style.padding = '10px';
+                box.style.backgroundColor = '#f8f9fa';
+                box.style.borderRadius = '4px';
+                box.innerHTML = '<strong>現在の予約:</strong><ul class="js-current-reservation-list" style="margin: 5px 0; padding-left: 20px;"></ul>';
+                card.appendChild(box);
+            }
+            list = box.querySelector('.js-current-reservation-list');
+            if (!list) return;
+            const label = studentName + ' (' + familyName + ')';
+            const exists = Array.from(list.querySelectorAll('li')).some(function (li) { return li.textContent === label; });
+            if (exists) return;
+            const li = document.createElement('li');
+            li.textContent = label;
+            list.appendChild(li);
+        }
+
+        document.querySelectorAll('.js-admin-reserve-form').forEach(function(form) {
+            form.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) submitBtn.disabled = true;
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        body: new FormData(form),
+                    });
+                    const payload = await response.json();
+                    if (!response.ok || !payload.success) {
+                        showSnackbar(payload.message || '予約に失敗しました。', 'error');
+                        return;
+                    }
+                    showSnackbar(payload.message || '予約が完了しました。', 'success');
+                    if (typeof payload.available_slots === 'number') {
+                        updateAvailableSlots(payload.lesson_id, payload.available_slots);
+                    }
+                    if (payload.student_name && payload.family_name) {
+                        appendCurrentReservation(payload.lesson_id, payload.student_name, payload.family_name);
+                    }
+                } catch (error) {
+                    showSnackbar('通信エラーが発生しました。', 'error');
+                } finally {
+                    if (submitBtn) submitBtn.disabled = false;
+                }
+            });
         });
     });
 </script>

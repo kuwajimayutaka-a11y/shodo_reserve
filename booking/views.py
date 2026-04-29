@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.views.generic.edit import CreateView
+from django.http import JsonResponse
 from django.contrib import messages
 from django.core import signing
 from django.core.mail import send_mail
@@ -144,23 +145,51 @@ def reserve_lesson(request, lesson_id):
         return redirect('admin_dashboard')
     lesson = get_object_or_404(LessonSlot, pk=lesson_id)
     family = get_object_or_404(Family, user=request.user)
+    wants_json = request.headers.get('x-requested-with') == 'XMLHttpRequest'
     if request.method == 'POST':
         student = get_object_or_404(Student, pk=request.POST.get('student_id'), family=family)
         if timezone.now() < lesson.reservation_start_time:
-            messages.error(request, '予約開始時刻前です。')
+            message = '予約開始時刻前です。'
+            if wants_json:
+                return JsonResponse({'success': False, 'message': message}, status=400)
+            messages.error(request, message)
             return redirect('reservation_calendar')
         if lesson.available_slots() > 0:
             try:
                 Reservation.objects.create(lesson_slot=lesson, student=student)
-                messages.success(request, f'{student.name}の予約が完了しました。')
+                message = f'{student.name}の予約が完了しました。'
+                if wants_json:
+                    return JsonResponse({
+                        'success': True,
+                        'status_type': 'reserved',
+                        'message': message,
+                        'lesson_id': lesson.id,
+                        'available_slots': lesson.available_slots(),
+                    })
+                messages.success(request, message)
             except IntegrityError:
-                messages.error(request, '予約に失敗しました。すでに予約済みの可能性があります。')
+                message = '予約に失敗しました。すでに予約済みの可能性があります。'
+                if wants_json:
+                    return JsonResponse({'success': False, 'message': message}, status=400)
+                messages.error(request, message)
         else:
             try:
                 Waitlist.objects.create(lesson_slot=lesson, student=student)
-                messages.info(request, f'{student.name}を補欠登録しました。')
+                message = f'{student.name}を補欠登録しました。'
+                if wants_json:
+                    return JsonResponse({
+                        'success': True,
+                        'status_type': 'waitlist',
+                        'message': message,
+                        'lesson_id': lesson.id,
+                        'available_slots': lesson.available_slots(),
+                    })
+                messages.info(request, message)
             except IntegrityError:
-                messages.error(request, '補欠登録に失敗しました。すでに登録済みの可能性があります。')
+                message = '補欠登録に失敗しました。すでに登録済みの可能性があります。'
+                if wants_json:
+                    return JsonResponse({'success': False, 'message': message}, status=400)
+                messages.error(request, message)
     return redirect('reservation_calendar')
 
 

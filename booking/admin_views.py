@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import JsonResponse
 from django.contrib import messages
 from datetime import timedelta, datetime
 from .forms import LessonSlotCreateForm, LessonSlotEditForm, StudentForm, FamilyEditForm
@@ -350,6 +351,7 @@ def admin_reserve_lesson(request, lesson_id):
     """管理者による全生徒の予約作成"""
     lesson = get_object_or_404(LessonSlot, pk=lesson_id)
     
+    wants_json = request.headers.get('x-requested-with') == 'XMLHttpRequest'
     if request.method == 'POST':
         student_id = request.POST.get('student_id')
         student = get_object_or_404(Student, pk=student_id)
@@ -358,10 +360,26 @@ def admin_reserve_lesson(request, lesson_id):
         if lesson.available_slots() > 0:
             try:
                 Reservation.objects.create(lesson_slot=lesson, student=student)
-                messages.success(request, f'{student.name}の予約が完了しました。')
-            except Exception as e:
-                messages.error(request, '予約に失敗しました。すでに予約済みの可能性があります。')
+                message = f'{student.name}の予約が完了しました。'
+                if wants_json:
+                    return JsonResponse({
+                        'success': True,
+                        'message': message,
+                        'lesson_id': lesson.id,
+                        'available_slots': lesson.available_slots(),
+                        'student_name': student.name,
+                        'family_name': student.family.user.name,
+                    })
+                messages.success(request, message)
+            except Exception:
+                message = '予約に失敗しました。すでに予約済みの可能性があります。'
+                if wants_json:
+                    return JsonResponse({'success': False, 'message': message}, status=400)
+                messages.error(request, message)
         else:
-            messages.error(request, '満席のため予約できません。')
+            message = '満席のため予約できません。'
+            if wants_json:
+                return JsonResponse({'success': False, 'message': message, 'available_slots': lesson.available_slots()}, status=400)
+            messages.error(request, message)
 
     return redirect('admin_reservation_calendar')
