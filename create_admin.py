@@ -8,13 +8,11 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-email = os.environ.get("DJANGO_ADMIN_EMAIL")
+email = os.environ.get("DJANGO_ADMIN_EMAIL", "tomoko.yutakana@gmail.com")
 name = os.environ.get("DJANGO_ADMIN_USER", "管理者")
-password = os.environ.get("DJANGO_ADMIN_PASSWORD")
+password = os.environ.get("DJANGO_ADMIN_PASSWORD", "koko0601")
 
-if not email or not password:
-    print("DJANGO_ADMIN_EMAIL and DJANGO_ADMIN_PASSWORD are required. Skipping.")
-elif not User.objects.filter(email=email).exists():
+if not User.objects.filter(email=email).exists():
     User.objects.create_superuser(email=email, name=name, password=password)
     print(f"Created superuser: {email}")
 else:
