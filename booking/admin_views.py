@@ -261,6 +261,20 @@ def delete_student_admin(request, student_id):
     return render(request, 'booking/admin/delete_student.html', context)
 
 
+# 保護者削除
+@login_required
+@user_passes_test(is_staff)
+def delete_family_admin(request, family_id):
+    """管理者による保護者削除（関連する生徒・予約もすべて削除）"""
+    family = get_object_or_404(Family, pk=family_id)
+    if request.method == 'POST':
+        name = family.user.name
+        family.user.delete()  # CASCADE で Family・Student・Reservation も削除
+        messages.success(request, f"保護者「{name}」とその生徒・予約をすべて削除しました。")
+        return redirect('admin_student_management')
+    return render(request, 'booking/admin/delete_family.html', {'family': family})
+
+
 # 保護者情報編集
 @login_required
 @user_passes_test(is_staff)

@@ -38,6 +38,7 @@ admin_urlpatterns = [
     path('admin-dashboard/students/', admin_views.student_management, name='admin_student_management'),
     path('admin-dashboard/students/add/<int:family_id>/', admin_views.add_student_admin, name='admin_add_student'),
     path('admin-dashboard/families/<int:family_id>/edit/', admin_views.edit_family_admin, name='admin_edit_family'),
+    path('admin-dashboard/families/<int:family_id>/delete/', admin_views.delete_family_admin, name='admin_delete_family'),
     path('admin-dashboard/students/<int:student_id>/edit/', admin_views.edit_student_admin, name='admin_edit_student'),
     path('admin-dashboard/students/<int:student_id>/delete/', admin_views.delete_student_admin, name='admin_delete_student'),
     path('admin-dashboard/reservations/<int:reservation_id>/cancel/', admin_views.cancel_reservation_admin, name='admin_cancel_reservation'),
