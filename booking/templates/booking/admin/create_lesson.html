@@ -68,6 +68,14 @@ input:focus, select:focus, textarea:focus {
     gap:22px;
     align-items: start;
 }
+.grid-2 > div {
+    min-width: 0;
+    overflow: hidden;
+}
+.grid-2 input {
+    width: 100%;
+    min-width: 0;
+}
 .grid-auto {
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
@@ -76,15 +84,25 @@ input:focus, select:focus, textarea:focus {
 
 /* チェックボックス */
 .checkbox-grid {
-    display:grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px,1fr));
-    gap:10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 .checkbox-item {
-    display:flex;
-    align-items:center;
-    gap:6px;
-    font-size:0.95em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.95em;
+    white-space: nowrap;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+.checkbox-item input[type="checkbox"] {
+    width: auto;
+    margin: 0;
 }
 
 /* エラー表示 */
@@ -120,7 +138,7 @@ button.submit-btn:hover { background:#1565c0; transform:translateY(-1px); }
     button.submit-btn { font-size:15px; padding:12px; }
 }
 @media(max-width: 480px) {
-    .checkbox-grid { grid-template-columns:1fr; }
+    .grid-2 { grid-template-columns: 1fr !important; }
 }
 </style>
 
@@ -170,7 +188,7 @@ button.submit-btn:hover { background:#1565c0; transform:translateY(-1px); }
         <div class="checkbox-grid">
             {% for checkbox in form.days_of_week %}
                 <label class="checkbox-item">
-                    {{ checkbox.choice_label }} {{ checkbox.tag }}
+                    {{ checkbox.tag }} {{ checkbox.choice_label }}
                 </label>
             {% endfor %}
         </div>
