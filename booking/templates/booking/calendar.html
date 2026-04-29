@@ -223,7 +223,7 @@ document.addEventListener("DOMContentLoaded", function() {
 {% endfor %}
 <div id="snackbar-wrap" class="snackbar-wrap"></div>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+function initReservationAjax() {
     function showSnackbar(message, tone) {
         const wrap = document.getElementById('snackbar-wrap');
         const el = document.createElement('div');
@@ -294,6 +294,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initReservationAjax);
+} else {
+    initReservationAjax();
+}
 </script>
 {% endblock %}

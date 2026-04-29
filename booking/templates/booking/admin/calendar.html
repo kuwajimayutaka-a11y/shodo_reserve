@@ -163,10 +163,12 @@
 <div id="snackbar-wrap" class="snackbar-wrap"></div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        document.querySelectorAll('.select2').forEach(function(select) {
-            $(select).select2({ width: '100%' });
-        });
+    function initAdminReservationAjax() {
+        if (window.$ && typeof window.$.fn.select2 === 'function') {
+            document.querySelectorAll('.select2').forEach(function(select) {
+                window.$(select).select2({ width: '100%' });
+            });
+        }
 
         function showSnackbar(message, tone) {
             const wrap = document.getElementById('snackbar-wrap');
@@ -241,7 +243,13 @@
                 }
             });
         });
-    });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAdminReservationAjax);
+    } else {
+        initAdminReservationAjax();
+    }
 </script>
 
 <script>
