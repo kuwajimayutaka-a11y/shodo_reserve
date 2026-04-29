@@ -3,6 +3,15 @@
 {% block title %}予約カレンダー{% endblock %}
 
 {% block content %}
+<style>
+@media (max-width: 600px) {
+    .date-block { padding: 12px !important; margin: 16px 0 !important; }
+    .lesson-card { padding: 10px !important; margin: 10px 0 !important; }
+    .reserve-form-inline { display: flex; flex-direction: column; gap: 8px; }
+    .reserve-form-inline select,
+    .reserve-form-inline button { width: 100%; }
+}
+</style>
 <h2>予約カレンダー</h2>
 
 <div style="margin-bottom: 20px;">
@@ -85,11 +94,11 @@ document.addEventListener("DOMContentLoaded", function() {
 <h3 style="margin-top: 40px;">予約可能な授業</h3>
 
 {% for date, lessons in lessons_by_date %}
-    <div style="margin: 30px 0; padding: 20px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;">
+    <div class="date-block" style="margin: 30px 0; padding: 20px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;">
         <h3 style="margin-top: 0; padding-bottom: 10px; border-bottom: 2px solid #007bff;">{{ date|date:"Y年m月d日 (D)" }}</h3>
-        
+
         {% for lesson in lessons %}
-            <div style="margin: 15px 0; padding: 15px; border: 1px solid #ced4da; border-radius: 4px; background-color: white;">
+            <div class="lesson-card" style="margin: 15px 0; padding: 15px; border: 1px solid #ced4da; border-radius: 4px; background-color: white;">
                 <h4 style="margin-top: 0;">
                     {% if lesson.title %}
                         {{ lesson.title }}
@@ -107,10 +116,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 {% if user.is_authenticated and students %}
                     {% if lesson.is_reservable %}
-                        <form method="post" action="{% url 'reserve_lesson' lesson.id %}" style="margin-top: 10px;">
+                        <form method="post" action="{% url 'reserve_lesson' lesson.id %}" class="reserve-form-inline" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
                             {% csrf_token %}
                             <label for="student_{{ lesson.id }}">予約する生徒:</label>
-                            <select name="student_id" id="student_{{ lesson.id }}" required style="margin: 0 10px; padding: 5px;">
+                            <select name="student_id" id="student_{{ lesson.id }}" required style="padding: 5px;">
                                 {% for student in students %}
                                     <option value="{{ student.id }}">{{ student.name }}</option>
                                 {% endfor %}

@@ -48,12 +48,14 @@
 /* レスポンシブ */
 @media(max-width:600px){
     .admin-menu {
-        grid-template-columns: 1fr; /* 管理メニュー縦並び */
+        grid-template-columns: 1fr;
     }
+    .section-block { padding: 12px !important; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
 }
 </style>
 
-<div style="margin: 30px 0; padding: 20px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;">
+<div class="section-block" style="margin: 30px 0; padding: 20px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;">
     <h3 style="margin-top: 0; color: #495057;">管理メニュー</h3>
     <div class="admin-menu" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
         <a href="{% url 'admin_create_lesson_slots' %}"><h4>📅 授業枠を一括作成</h4><p>期間と曜日を指定して授業枠を一括作成</p></a>
@@ -65,7 +67,7 @@
     </div>
 </div>
 
-<div style="margin: 30px 0; padding: 20px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;">
+<div class="section-block" style="margin: 30px 0; padding: 20px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;">
     <h3 style="margin-top: 0; color: #495057;">統計情報</h3>
     <div class="stats-grid">
         <div class="stat-card"><p class="label">総授業枠数</p><p class="value" style="color:#007bff">{{ total_lessons }}</p></div>

@@ -78,6 +78,10 @@
         form.reserve-form { flex-direction: column; align-items: stretch; }
         form.reserve-form select, form.reserve-form button { width: 100%; }
     }
+    @media (max-width: 600px) {
+        .date-block { padding: 12px !important; margin: 16px 0 !important; }
+        .reservation-card { padding: 10px !important; }
+    }
 </style>
 
 <h2>管理者用予約カレンダー</h2>
@@ -99,7 +103,7 @@
 <h3 style="margin-top: 40px;">授業枠一覧と予約作成</h3>
 
 {% for date, lessons in lessons_by_date %}
-    <div style="margin: 30px 0; padding: 20px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;">
+    <div class="date-block" style="margin: 30px 0; padding: 20px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;">
         <h3 style="margin-top: 0; padding-bottom: 10px; border-bottom: 2px solid #007bff;">{{ date|date:"Y年m月d日 (D)" }}</h3>
         
         {% for lesson in lessons %}
