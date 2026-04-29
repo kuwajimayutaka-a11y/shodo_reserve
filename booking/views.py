@@ -50,14 +50,17 @@ def verify_email(request, token):
         user = User.objects.get(pk=data['user_id'])
         user.is_active = True
         user.save()
-        messages.success(request, 'メールアドレスの認証が完了しました。ログインしてください。')
-        return redirect('login')
+        return render(request, 'registration/verify_success.html')
     except signing.SignatureExpired:
-        messages.error(request, '認証リンクの有効期限が切れています。再度登録してください。')
-        return redirect('signup')
+        return render(request, 'registration/verify_error.html', {
+            'error_title': 'リンクの有効期限切れ',
+            'error_message': '認証リンクの有効期限（3日間）が切れています。再度登録してください。',
+        })
     except (signing.BadSignature, User.DoesNotExist):
-        messages.error(request, '無効な認証リンクです。')
-        return redirect('signup')
+        return render(request, 'registration/verify_error.html', {
+            'error_title': '無効な認証リンク',
+            'error_message': 'このリンクは無効です。正しいリンクをご確認ください。',
+        })
 
 
 @login_required

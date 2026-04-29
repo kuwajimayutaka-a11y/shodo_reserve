@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}認証完了{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card shadow-sm text-center" style="width: 100%; max-width: 480px; border-radius: 12px; border: none;">
+        <div class="card-body p-5">
+            <div style="font-size: 3.5rem; margin-bottom: 16px;">✅</div>
+            <h3 class="fw-bold mb-2" style="color: #2c3e50;">認証が完了しました</h3>
+            <p class="text-muted mb-4">メールアドレスの確認が完了しました。<br>ログインしてご利用ください。</p>
+            <a href="{% url 'login' %}" class="btn btn-primary px-5 py-2 fw-semibold">
+                <i class="bi bi-box-arrow-in-right me-1"></i>ログインへ
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
