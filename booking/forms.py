@@ -21,6 +21,12 @@ class SignUpForm(UserCreationForm):
         self.fields['password1'].widget.attrs.update({'class': 'form-control'})
         self.fields['password2'].widget.attrs.update({'class': 'form-control'})
 
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        # 未認証（is_active=False）の既存ユーザーは削除して再登録を許可
+        CustomUser.objects.filter(email=email, is_active=False).delete()
+        return email
+
 
 class LessonSlotCreateForm(forms.Form):
     title = forms.CharField(
