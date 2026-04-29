@@ -110,18 +110,10 @@ def edit_student(request, student_id):
 
 @login_required
 def delete_student(request, student_id):
+    from django.http import HttpResponseForbidden
     if request.user.is_staff:
         return redirect('admin_dashboard')
-    family = get_object_or_404(Family, user=request.user)
-    student = get_object_or_404(Student, pk=student_id, family=family)
-    if request.method == 'POST':
-        name = student.name
-        student.delete()
-        messages.success(request, f"生徒「{name}」を削除しました。")
-        return redirect('view_students')
-    return render(request, 'booking/delete_student.html', {
-        'student': student, 'family': family,
-    })
+    return HttpResponseForbidden("生徒の削除は管理者のみ可能です。")
 
 
 @login_required
