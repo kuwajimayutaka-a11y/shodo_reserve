@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}予約キャンセル{% endblock %}
 
@@ -15,7 +15,7 @@
     <div style="margin: 20px 0; padding: 15px; background-color: white; border: 1px solid #ffc107; border-radius: 4px;">
         <p style="margin: 5px 0;"><strong>授業名:</strong> {% if reservation.lesson_slot.title %}{{ reservation.lesson_slot.title }}{% else %}書道教室{% endif %}</p>
         <p style="margin: 5px 0;"><strong>生徒名:</strong> {{ reservation.student.name }}</p>
-        <p style="margin: 5px 0;"><strong>保護者:</strong> {{ reservation.student.family.user.username }}</p>
+        <p style="margin: 5px 0;"><strong>保護者:</strong> {{ reservation.student.family.user.name }}</p>
         <p style="margin: 5px 0;"><strong>授業日時:</strong> {{ reservation.lesson_slot.start_time|date:"Y年m月d日 H:i" }} - {{ reservation.lesson_slot.end_time|date:"H:i" }}</p>
         <p style="margin: 5px 0;"><strong>予約日時:</strong> {{ reservation.reserved_at|date:"Y年m月d日 H:i:s" }}</p>
     </div>

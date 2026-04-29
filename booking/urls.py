@@ -15,6 +15,8 @@ def root_redirect(request):
 urlpatterns = [
     path("", root_redirect),
     path('signup/', views.SignUpView.as_view(), name='signup'),
+    path('accounts/email-sent/', views.email_sent, name='email_sent'),
+    path('accounts/verify/<str:token>/', views.verify_email, name='verify_email'),
     path('students/', views.view_students, name='view_students'),
     path('students/add/', views.add_student, name='add_student'),
     path('students/<int:student_id>/edit/', views.edit_student, name='edit_student'),

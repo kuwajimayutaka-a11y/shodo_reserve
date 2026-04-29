@@ -1,4 +1,3 @@
-# create_admin.py
 import os
 import django
 
@@ -9,20 +8,14 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-username = os.environ.get("DJANGO_ADMIN_USER")
-email = os.environ.get("DJANGO_ADMIN_EMAIL", "")
+email = os.environ.get("DJANGO_ADMIN_EMAIL")
+name = os.environ.get("DJANGO_ADMIN_USER", "管理者")
 password = os.environ.get("DJANGO_ADMIN_PASSWORD")
 
-if not username or not password:
-    print("DJANGO_ADMIN_USER and DJANGO_ADMIN_PASSWORD are required. Skipping.")
-elif not User.objects.filter(username=username).exists():
-    User.objects.create_superuser(username=username, email=email, password=password)
-    print(f"Created superuser: {username}")
+if not email or not password:
+    print("DJANGO_ADMIN_EMAIL and DJANGO_ADMIN_PASSWORD are required. Skipping.")
+elif not User.objects.filter(email=email).exists():
+    User.objects.create_superuser(email=email, name=name, password=password)
+    print(f"Created superuser: {email}")
 else:
-    user = User.objects.get(username=username)
-    user.set_password(password)
-    user.email = email
-    user.is_staff = True
-    user.is_superuser = True
-    user.save()
-    print(f"Updated superuser: {username}")
+    print(f"Superuser {email} already exists. Skipping.")

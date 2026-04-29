@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}生徒編集{% endblock %}
 
@@ -10,7 +10,7 @@
 </div>
 
 <div style="margin: 20px 0; padding: 15px; background-color: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 4px;">
-    <p style="margin: 5px 0;"><strong>保護者:</strong> {{ student.family.user.username }}</p>
+    <p style="margin: 5px 0;"><strong>保護者:</strong> {{ student.family.user.name }}</p>
     <p style="margin: 5px 0 0 0;"><strong>現在の生徒名:</strong> {{ student.name }}</p>
 </div>
 
