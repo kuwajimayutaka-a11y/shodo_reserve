@@ -10,7 +10,7 @@
 </div>
 
 <div style="margin: 20px 0; padding: 20px; background-color: #fff3cd; border: 2px solid #ffc107; border-radius: 8px;">
-    <h3 style="margin-top: 0; color: #856404;">⚠️ 以下の生徒を削除しますか?</h3>
+    <h3 style="margin-top: 0; color: #856404;"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>以下の生徒を削除しますか?</h3>
     
     <div style="margin: 20px 0; padding: 15px; background-color: white; border: 1px solid #ffc107; border-radius: 4px;">
         <p style="margin: 5px 0;"><strong>生徒名:</strong> {{ student.name }}</p>
@@ -23,7 +23,7 @@
     
     {% if student.reservation_set.count > 0 %}
         <div style="padding: 10px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; color: #721c24; margin-bottom: 20px;">
-            <p style="margin: 0; font-weight: bold;">⚠️ この生徒には予約が入っています。削除すると予約も削除されます。</p>
+            <p style="margin: 0; font-weight: bold;"><i class="bi bi-exclamation-triangle-fill me-1"></i>この生徒には予約が入っています。削除すると予約も削除されます。</p>
         </div>
     {% endif %}
 </div>
