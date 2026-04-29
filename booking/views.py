@@ -30,10 +30,11 @@ class SignUpView(CreateView):
         verify_url = self.request.build_absolute_uri(
             reverse('verify_email', args=[token])
         )
-        subject = '【秀雪書道教室】メールアドレスの確認'
+        subject = '秀雪書道教室 メールアドレスの確認'
         message = render_to_string('registration/verify_email.txt', {
             'user': user,
             'verify_url': verify_url,
+            'from_email': settings.DEFAULT_FROM_EMAIL,
         })
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
         return redirect('email_sent')
