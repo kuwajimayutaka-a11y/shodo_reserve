@@ -26,63 +26,51 @@
 .mini-cal-cell.selected { background:#1e88e5 !important; color:white !important; }
 .mini-cal-cell.selected::after { background:white !important; }
 </style>
-<h2>予約カレンダー</h2>
-
-<div style="margin-bottom: 20px;">
-    {% if user.is_staff %}
-        | <a href="{% url 'admin_dashboard' %}">管理者ダッシュボード</a>
-    {% endif %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0" style="color: #2c3e50;">
+        <i class="bi bi-calendar-check me-2"></i>予約カレンダー
+    </h2>
 </div>
 
-{% if messages %}
-    {% for message in messages %}
-        <div style="padding: 10px; margin: 10px 0; background-color: {% if message.tags == 'success' %}#d4edda{% elif message.tags == 'error' %}#f8d7da{% else %}#d1ecf1{% endif %}; border: 1px solid {% if message.tags == 'success' %}#c3e6cb{% elif message.tags == 'error' %}#f5c6cb{% else %}#bee5eb{% endif %}; border-radius: 4px;">
-            {{ message }}
-        </div>
-    {% endfor %}
-{% endif %}
-
 {% if not students %}
-    <p style="color: red;">予約を行うには生徒の登録が必要です。</p>
-    <a href="{% url 'view_students' %}">生徒情報</a>
+<div class="alert alert-warning d-flex align-items-center" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    <div>
+        予約するには先に生徒を登録してください。
+        <a href="{% url 'view_students' %}" class="alert-link ms-1">生徒情報へ →</a>
+    </div>
+</div>
 {% endif %}
 
-<h3>予約済みの授業</h3>
+<h5 class="fw-bold mb-3" style="color:#2c3e50;"><i class="bi bi-bookmark-check me-2"></i>予約済みの授業</h5>
 {% if user.is_authenticated %}
     {% for student in students %}
         {% if student.reservation_set.all %}
-            <div style="margin-bottom: 10px; padding: 15px; border: 1px solid #ccc; border-radius: 6px; background: #f9fbff;">
-                
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h4 style="margin:0;">{{ student.name }} の予約一覧</h4>
-                    <button type="button"
-                        class="toggle-btn"
-                        data-target="student-{{ student.id }}-reservations"
-                        style="padding:4px 10px; font-size:0.9em;">
-                        ▼ 開く
-                    </button>
-                </div>
-
-                <!-- 折りたたみ対象 -->
-                <div id="student-{{ student.id }}-reservations" class="reservation-content" style="display:none; margin-top:10px;">
+        <div class="card shadow-sm mb-3" style="border-radius:10px; border:none;">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3" style="border-radius:10px 10px 0 0; cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#res-{{ student.id }}">
+                <span class="fw-semibold"><i class="bi bi-person me-2 text-primary"></i>{{ student.name }} の予約</span>
+                <span class="badge bg-primary rounded-pill">{{ student.reservation_set.count }}件</span>
+            </div>
+            <div class="collapse show" id="res-{{ student.id }}">
+                <div class="card-body pt-2">
                     {% for reservation in student.reservation_set.all %}
-                        <div style="margin: 12px 0; padding: 12px; border: 1px solid #ddd; border-radius: 6px; background: #e7f3ff;">
-                            <strong>{{ reservation.lesson_slot.title|default:"書道教室" }}</strong><br>
-                            <span style="color:#555;">{{ reservation.lesson_slot.start_time|date:"Y年m月d日 H:i" }} - {{ reservation.lesson_slot.end_time|date:"H:i" }}</span>
-                            <div style="margin-top: 8px;">
-                                <a href="{% url 'cancel_reservation' reservation.id %}"
-                                   style="padding: 6px 12px; background: #dc3545; color: #fff; border-radius: 4px; text-decoration: none; font-size: 0.9em;">
-                                   キャンセル
-                                </a>
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <div>
+                            <div class="fw-semibold">{{ reservation.lesson_slot.title|default:"書道教室" }}</div>
+                            <div class="text-muted small">
+                                <i class="bi bi-clock me-1"></i>{{ reservation.lesson_slot.start_time|date:"m月d日 H:i" }} - {{ reservation.lesson_slot.end_time|date:"H:i" }}
                             </div>
                         </div>
+                        <a href="{% url 'cancel_reservation' reservation.id %}" class="btn btn-outline-danger btn-sm">
+                            キャンセル
+                        </a>
+                    </div>
                     {% endfor %}
                 </div>
             </div>
+        </div>
         {% endif %}
     {% endfor %}
-{% else %}
-     <p style="color: #6c757d;">予約済みの授業はありません。</p>
 {% endif %}
 <script>
 document.addEventListener("DOMContentLoaded", function() {
@@ -163,53 +151,69 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
        
-<h3 style="margin-top: 40px;">予約可能な授業</h3>
+<h5 class="fw-bold mt-4 mb-3" style="color:#2c3e50;"><i class="bi bi-calendar3 me-2"></i>予約可能な授業</h5>
 <div id="mini-calendar"></div>
 
 {% for date, lessons in lessons_by_date %}
-    <div class="date-block" data-date="{{ date|date:'Y-m-d' }}" style="display:none; margin: 30px 0; padding: 20px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;">
-        <h3 style="margin-top: 0; padding-bottom: 10px; border-bottom: 2px solid #007bff;">{{ date|date:"Y年m月d日 (D)" }}</h3>
-
-        {% for lesson in lessons %}
-            <div class="lesson-card" style="margin: 15px 0; padding: 15px; border: 1px solid #ced4da; border-radius: 4px; background-color: white;">
-                <h4 style="margin-top: 0;">
-                    {% if lesson.title %}
-                        {{ lesson.title }}
+<div class="date-block" data-date="{{ date|date:'Y-m-d' }}" style="display:none;">
+    <div class="card shadow-sm mb-4" style="border-radius:12px; border:none;">
+        <div class="card-header fw-bold py-3" style="background:#1e88e5; color:white; border-radius:12px 12px 0 0; font-size:1.05rem;">
+            <i class="bi bi-calendar-day me-2"></i>{{ date|date:"Y年m月d日 (D)" }}
+        </div>
+        <div class="card-body p-3">
+            {% for lesson in lessons %}
+            <div class="lesson-card border rounded-3 p-3 mb-3" style="background:white;">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="fw-bold mb-0">{{ lesson.title|default:"書道教室" }}</h6>
+                    {% if lesson.available_slots > 0 %}
+                        <span class="badge bg-success">残り{{ lesson.available_slots }}枠</span>
                     {% else %}
-                        書道教室
+                        <span class="badge bg-danger">満席</span>
                     {% endif %}
-                </h4>
-                <p><strong>時間: {{ lesson.start_time|date:"H:i" }} - {{ lesson.end_time|date:"H:i" }}</strong></p>
-                <p><strong>定員:</strong> {{ lesson.capacity }} / <strong>残り枠:</strong> 
-                    <span style="color: {% if lesson.available_slots > 0 %}green{% else %}red{% endif %}; font-weight: bold;">
-                        {{ lesson.available_slots }}
-                    </span>
-                </p>
-                <p><strong>予約開始:</strong> {{ lesson.reservation_start_time|date:"Y年m月d日 H:i" }}</p>
-
-                {% if user.is_authenticated and students %}
+                </div>
+                <div class="text-muted small mb-2">
+                    <i class="bi bi-clock me-1"></i>{{ lesson.start_time|date:"H:i" }} - {{ lesson.end_time|date:"H:i" }}
+                    <span class="ms-3"><i class="bi bi-people me-1"></i>定員{{ lesson.capacity }}名</span>
+                </div>
+                {% if not lesson.is_reservable and lesson.available_slots > 0 %}
+                    <div class="text-muted small"><i class="bi bi-lock me-1"></i>予約開始: {{ lesson.reservation_start_time|date:"m月d日 H:i" }}</div>
+                {% endif %}
+                {% if students %}
                     {% if lesson.is_reservable %}
-                        <form method="post" action="{% url 'reserve_lesson' lesson.id %}" class="reserve-form-inline" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
-                            {% csrf_token %}
-                            <label for="student_{{ lesson.id }}">予約する生徒:</label>
-                            <select name="student_id" id="student_{{ lesson.id }}" required style="padding: 5px;">
-                                {% for student in students %}
-                                    <option value="{{ student.id }}">{{ student.name }}</option>
-                                {% endfor %}
-                            </select>
-                            <button type="submit" style="padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">予約する</button>
-                        </form>
+                    <form method="post" action="{% url 'reserve_lesson' lesson.id %}" class="reserve-form-inline d-flex flex-wrap gap-2 align-items-center mt-2">
+                        {% csrf_token %}
+                        <select name="student_id" class="form-select form-select-sm" style="max-width:160px;" required>
+                            {% for student in students %}
+                            <option value="{{ student.id }}">{{ student.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-success btn-sm">
+                            <i class="bi bi-check-circle me-1"></i>予約する
+                        </button>
+                    </form>
                     {% elif lesson.available_slots <= 0 %}
-                        <p style="color: orange; font-weight: bold;">満席です</p>
-                        <form method="post" action="{% url 'reserve_lesson' lesson.id %}" style="margin-top: 10px;">
-                    {% else %}
-                        <p style="color: gray;">予約開始前です</p>
+                    <form method="post" action="{% url 'reserve_lesson' lesson.id %}" class="d-flex gap-2 align-items-center mt-2">
+                        {% csrf_token %}
+                        <select name="student_id" class="form-select form-select-sm" style="max-width:160px;" required>
+                            {% for student in students %}
+                            <option value="{{ student.id }}">{{ student.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-warning btn-sm">
+                            <i class="bi bi-clock me-1"></i>補欠登録
+                        </button>
+                    </form>
                     {% endif %}
                 {% endif %}
             </div>
-        {% endfor %}
+            {% endfor %}
+        </div>
     </div>
+</div>
 {% empty %}
-    <p>現在、予約可能な授業枠はありません。</p>
+<div class="text-center py-5 text-muted">
+    <div style="font-size:3rem;">📅</div>
+    <p class="mt-2">現在、予約可能な授業枠はありません。</p>
+</div>
 {% endfor %}
 {% endblock %}

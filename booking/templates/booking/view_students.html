@@ -3,51 +3,52 @@
 {% block title %}生徒情報{% endblock %}
 
 {% block content %}
-<h2>生徒情報</h2>
-
-<div style="margin-bottom: 20px;">
-    <a href="{% url 'reservation_calendar' %}">予約カレンダー</a>
-    {% if user.is_staff %}
-        | <a href="{% url 'admin_dashboard' %}">管理者ダッシュボード</a>
-    {% endif %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0" style="color: #2c3e50;">
+        <i class="bi bi-people me-2"></i>生徒情報
+    </h2>
+    <a href="{% url 'add_student' %}" class="btn btn-success">
+        <i class="bi bi-person-plus me-1"></i>生徒を追加
+    </a>
 </div>
 
-{% if messages %}
-    {% for message in messages %}
-        <div style="padding: 10px; margin: 10px 0; background-color: {% if message.tags == 'success' %}#d4edda{% elif message.tags == 'error' %}#f8d7da{% else %}#d1ecf1{% endif %}; border: 1px solid {% if message.tags == 'success' %}#c3e6cb{% elif message.tags == 'error' %}#f5c6cb{% else %}#bee5eb{% endif %}; border-radius: 4px;">
-            {{ message }}
-        </div>
-    {% endfor %}
-{% endif %}
-
-<div style="margin: 20px 0; padding: 15px; background-color: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 4px;">
-    <p style="margin: 0;"><strong>保護者名:</strong> {{ user.name }}</p>
-</div>
-
-<div style="margin-top: 20px;">
-    <a href="{% url 'add_student' %}" style="padding: 10px 20px; background-color: #28a745; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">+ 生徒を追加</a>
+<div class="card shadow-sm mb-4" style="border-radius: 10px; border: none; background: #eef4ff;">
+    <div class="card-body py-3">
+        <span class="text-muted small"><i class="bi bi-person me-1"></i>保護者</span>
+        <strong class="ms-1">{{ user.name }}</strong>
+    </div>
 </div>
 
 {% if students %}
-    <div style="margin-top: 20px;">
+    <div class="row g-3">
         {% for student in students %}
-            <div style="margin: 15px 0; padding: 15px; border: 1px solid #dee2e6; border-radius: 4px; background-color: white;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="col-12 col-md-6">
+            <div class="card shadow-sm h-100" style="border-radius: 10px; border: none;">
+                <div class="card-body d-flex justify-content-between align-items-center">
                     <div>
-                        <h3 style="margin: 0 0 5px 0;">{{ student.name }}</h3>
-                        <p style="margin: 0; color: #6c757d; font-size: 0.9em;">予約数: <strong>{{ student.reservation_set.count }}</strong></p>
+                        <h5 class="fw-bold mb-1">{{ student.name }}</h5>
+                        <span class="badge bg-light text-secondary border">
+                            <i class="bi bi-calendar-check me-1"></i>予約数: {{ student.reservation_set.count }}
+                        </span>
                     </div>
-                    <div>
-                        <a href="{% url 'edit_student' student.id %}" style="padding: 8px 16px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; display: inline-block; font-size: 0.9em;">編集</a>
-                    </div>
+                    <a href="{% url 'edit_student' student.id %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-pencil me-1"></i>編集
+                    </a>
                 </div>
             </div>
+        </div>
         {% endfor %}
     </div>
 {% else %}
-    <div style="margin-top: 20px; padding: 20px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; text-align: center; color: #6c757d;">
-        <p>生徒が登録されていません。</p>
-        <a href="{% url 'add_student' %}" style="color: #007bff; text-decoration: none;">生徒を追加してください</a>
+    <div class="card shadow-sm text-center py-5" style="border-radius: 12px; border: none;">
+        <div class="card-body">
+            <div style="font-size: 3rem; margin-bottom: 12px;">👧</div>
+            <h5 class="text-muted">生徒が登録されていません</h5>
+            <p class="text-muted small mb-3">お子さんの情報を登録すると授業を予約できます</p>
+            <a href="{% url 'add_student' %}" class="btn btn-success">
+                <i class="bi bi-person-plus me-1"></i>生徒を追加する
+            </a>
+        </div>
     </div>
 {% endif %}
 {% endblock %}
