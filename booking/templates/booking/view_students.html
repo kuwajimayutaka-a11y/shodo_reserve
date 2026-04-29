@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}生徒情報{% endblock %}
 
@@ -10,6 +10,10 @@
     <a href="{% url 'add_student' %}" class="btn btn-success">
         <i class="bi bi-person-plus me-1"></i>生徒を追加
     </a>
+</div>
+
+<div class="alert alert-info py-2" role="alert">
+    保護者と生徒が同一の場合、保護者名で登録してください
 </div>
 
 <div class="card shadow-sm mb-4" style="border-radius: 10px; border: none; background: #eef4ff;">
