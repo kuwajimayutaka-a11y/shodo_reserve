@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}生徒追加{% endblock %}
 
@@ -10,7 +10,7 @@
 </div>
 
 <div style="margin: 20px 0; padding: 15px; background-color: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 4px;">
-    <p style="margin: 0;"><strong>保護者:</strong> {{ family.user.username }}</p>
+    <p style="margin: 0;"><strong>保護者:</strong> {{ family.user.name }}</p>
 </div>
 
 {% if messages %}

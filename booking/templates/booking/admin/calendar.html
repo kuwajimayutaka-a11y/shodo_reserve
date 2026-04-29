@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}管理者用予約カレンダー{% endblock %}
 
 {% block content %}
@@ -118,7 +118,7 @@
                         <select name="student_id" id="student_{{ lesson.id }}" required class="select2">
                             <option value="">-- 生徒を選択 --</option>
                             {% for student in all_students %}
-                                <option value="{{ student.id }}">{{ student.name }} ({{ student.family.user.username }})</option>
+                                <option value="{{ student.id }}">{{ student.name }} ({{ student.family.user.name }})</option>
                             {% endfor %}
                         </select>
                         <button type="submit">予約する</button>
@@ -132,7 +132,7 @@
                         <strong>現在の予約:</strong>
                         <ul style="margin: 5px 0; padding-left: 20px;">
                             {% for reservation in lesson.reservation_set.all %}
-                                <li>{{ reservation.student.name }} ({{ reservation.student.family.user.username }})</li>
+                                <li>{{ reservation.student.name }} ({{ reservation.student.family.user.name }})</li>
                             {% endfor %}
                         </ul>
                     </div>

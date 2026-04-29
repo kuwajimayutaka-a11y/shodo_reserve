@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}生徒追加申請{% endblock %}
 
@@ -50,7 +50,7 @@
                     <div style="flex: 1;">
                         <h4 style="margin: 0 0 10px 0;">{{ req.student_name }}</h4>
                         <p style="margin: 5px 0; color: #6c757d; font-size: 0.9em;">
-                            <strong>保護者:</strong> {{ req.family.user.username }} ({{ req.family.user.email|default:"メールなし" }})
+                            <strong>保護者:</strong> {{ req.family.user.name }} ({{ req.family.user.email|default:"メールなし" }})
                         </p>
                         <p style="margin: 5px 0; color: #6c757d; font-size: 0.9em;">
                             <strong>申請日時:</strong> {{ req.requested_at|date:"Y年m月d日 H:i" }}
@@ -60,7 +60,7 @@
                                 <strong>{{ req.get_status_display }}日時:</strong> {{ req.approved_at|date:"Y年m月d日 H:i" }}
                             </p>
                             <p style="margin: 5px 0; color: #6c757d; font-size: 0.9em;">
-                                <strong>{{ req.get_status_display }}者:</strong> {{ req.approved_by.username }}
+                                <strong>{{ req.get_status_display }}者:</strong> {{ req.approved_by.name }}
                             </p>
                         {% endif %}
                         <p style="margin: 5px 0;">

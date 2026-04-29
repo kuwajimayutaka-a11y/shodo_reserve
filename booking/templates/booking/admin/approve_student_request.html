@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}生徒追加申請を承認{% endblock %}
 
@@ -14,7 +14,7 @@
     
     <div style="background-color: white; padding: 15px; border-radius: 4px; margin: 15px 0;">
         <p><strong>生徒氏名:</strong> {{ student_request.student_name }}</p>
-        <p><strong>保護者:</strong> {{ student_request.family.user.username }}</p>
+        <p><strong>保護者:</strong> {{ student_request.family.user.name }}</p>
         <p><strong>メールアドレス:</strong> {{ student_request.family.user.email|default:"未設定" }}</p>
         <p><strong>連絡先:</strong> {{ student_request.family.phone_number|default:"未設定" }}</p>
         <p><strong>申請日時:</strong> {{ student_request.requested_at|date:"Y年m月d日 H:i" }}</p>

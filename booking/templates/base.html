@@ -139,7 +139,7 @@
 
     <nav>
         {% if user.is_authenticated %}
-            <span style="opacity:.8;">ログイン者：<b>{{ user.username }}</b> さん</span>
+            <span style="opacity:.8;">ログイン者：<b>{{ user.name }}</b> さん</span>
 
             {% if not user.is_staff %}
                 <a href="{% url 'reservation_calendar' %}">

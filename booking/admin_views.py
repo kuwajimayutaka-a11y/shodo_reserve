@@ -5,7 +5,7 @@ from datetime import timedelta, datetime
 from .forms import LessonSlotCreateForm, LessonSlotEditForm, StudentForm
 from .models import LessonSlot, Reservation, Waitlist, Family, Student
 from django.utils import timezone
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model  # noqa: F401
 
 def is_staff(user):
     """管理者権限チェック"""
@@ -301,7 +301,7 @@ def admin_reservation_calendar(request):
     sorted_lessons_by_date = sorted(lessons_by_date.items())
     
     # 全生徒を取得
-    all_students = Student.objects.all().select_related('family__user').order_by('family__user__username', 'name')
+    all_students = Student.objects.all().select_related('family__user').order_by('family__user__name', 'name')
     
     context = {
         'lessons_by_date': sorted_lessons_by_date,
