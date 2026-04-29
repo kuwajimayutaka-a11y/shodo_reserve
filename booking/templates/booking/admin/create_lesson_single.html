@@ -9,13 +9,7 @@
     <a href="{% url 'admin_dashboard' %}" style="color: #0d9488; text-decoration: none;">← 管理者ダッシュボードに戻る</a>
 </div>
 
-{% if messages %}
-    {% for message in messages %}
-        <div style="padding: 10px; margin: 10px 0; background-color: {% if message.tags == 'success' %}#d4edda{% elif message.tags == 'error' %}#f8d7da{% else %}#ccfbf1{% endif %}; border: 1px solid {% if message.tags == 'success' %}#c3e6cb{% elif message.tags == 'error' %}#f5c6cb{% else %}#bee5eb{% endif %}; border-radius: 4px;">
-            {{ message }}
-        </div>
-    {% endfor %}
-{% endif %}
+
 
 <form method="post" style="max-width: 700px;">
     {% csrf_token %}
@@ -25,7 +19,7 @@
         {{ form.title }}
         <small style="color: #6c757d;">空欄の場合、「書道教室」がデフォルトで使用されます</small>
         {% if form.title.errors %}
-            <div style="color: #be123c; font-size: 0.9em; margin-top: 5px;">{{ form.title.errors }}</div>
+            <div class="text-danger small mt-1">{{ form.title.errors }}</div>
         {% endif %}
     </div>
 
@@ -34,7 +28,7 @@
             <label for="{{ form.start_time.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">開始日時</label>
             {{ form.start_time }}
             {% if form.start_time.errors %}
-                <div style="color: #be123c; font-size: 0.9em; margin-top: 5px;">{{ form.start_time.errors }}</div>
+                <div class="text-danger small mt-1">{{ form.start_time.errors }}</div>
             {% endif %}
         </div>
         
@@ -44,7 +38,7 @@
             <label for="{{ form.end_time.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">終了日時</label>
             {{ form.end_time }}
             {% if form.end_time.errors %}
-                <div style="color: #be123c; font-size: 0.9em; margin-top: 5px;">{{ form.end_time.errors }}</div>
+                <div class="text-danger small mt-1">{{ form.end_time.errors }}</div>
             {% endif %}
         </div>
     </div>
@@ -54,7 +48,7 @@
             <label for="{{ form.capacity.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">{{ form.capacity.label }}</label>
             {{ form.capacity }}
             {% if form.capacity.errors %}
-                <div style="color: #be123c; font-size: 0.9em; margin-top: 5px;">{{ form.capacity.errors }}</div>
+                <div class="text-danger small mt-1">{{ form.capacity.errors }}</div>
             {% endif %}
         </div>
 
@@ -64,7 +58,7 @@
             <label for="{{ form.reservation_start_time.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">{{ form.reservation_start_time.label }}</label>
             {{ form.reservation_start_time }}
             {% if form.reservation_start_time.errors %}
-                <div style="color: #be123c; font-size: 0.9em; margin-top: 5px;">{{ form.reservation_start_time.errors }}</div>
+                <div class="text-danger small mt-1">{{ form.reservation_start_time.errors }}</div>
             {% endif %}
         </div>
     </div>

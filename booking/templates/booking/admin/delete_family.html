@@ -30,8 +30,8 @@
 <div style="margin-top: 30px;">
     <form method="post" style="display: inline;">
         {% csrf_token %}
-        <button type="submit" style="padding: 10px 20px; background-color: #be123c; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; margin-right: 10px;">削除する</button>
+        <button type="submit" class="btn btn-danger me-2">削除する</button>
     </form>
-    <a href="{% url 'admin_student_management' %}" style="padding: 10px 20px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">キャンセル</a>
+    <a href="{% url 'admin_student_management' %}" class="btn btn-secondary">キャンセル</a>
 </div>
 {% endblock %}

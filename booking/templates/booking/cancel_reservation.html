@@ -30,9 +30,9 @@
     {% if can_cancel %}
         <form method="post" style="display: inline;">
             {% csrf_token %}
-            <button type="submit" style="padding: 10px 20px; background-color: #be123c; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; margin-right: 10px;">キャンセルする</button>
+            <button type="submit" class="btn btn-danger me-2">キャンセルする</button>
         </form>
     {% endif %}
-    <a href="{% url 'reservation_calendar' %}" style="padding: 10px 20px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">戻る</a>
+    <a href="{% url 'reservation_calendar' %}" class="btn btn-secondary">戻る</a>
 </div>
 {% endblock %}
