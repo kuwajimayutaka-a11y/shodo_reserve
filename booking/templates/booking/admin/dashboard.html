@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}管理者ダッシュボード{% endblock %}
 
 {% block content %}
@@ -24,11 +24,11 @@
 .admin-menu a p { margin: 0; font-size: 0.9em; color: #6c757d; }
 
 /* 色ごとにボーダー設定 */
-.admin-menu a:nth-child(1) { border-color:#007bff; color:#007bff; }
-.admin-menu a:nth-child(2) { border-color:#17a2b8; color:#17a2b8; }
-.admin-menu a:nth-child(3) { border-color:#28a745; color:#28a745; }
+.admin-menu a:nth-child(1) { border-color:#0d9488; color:#0d9488; }
+.admin-menu a:nth-child(2) { border-color:#0d9488; color:#0d9488; }
+.admin-menu a:nth-child(3) { border-color:#047857; color:#047857; }
 .admin-menu a:nth-child(4) { border-color:#ffc107; color:#ffc107; }
-.admin-menu a:nth-child(5) { border-color:#17a2b8; color:#17a2b8; }
+.admin-menu a:nth-child(5) { border-color:#0d9488; color:#0d9488; }
 .admin-menu a:nth-child(6) { border-color:#6f42c1; color:#6f42c1; }
 
 /* 統計情報 */
@@ -70,15 +70,15 @@
 <div class="section-block" style="margin: 30px 0; padding: 20px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;">
     <h3 style="margin-top: 0; color: #495057;">統計情報</h3>
     <div class="stats-grid">
-        <div class="stat-card"><p class="label">総授業枠数</p><p class="value" style="color:#007bff">{{ total_lessons }}</p></div>
-        <div class="stat-card"><p class="label">今後の授業枠数</p><p class="value" style="color:#28a745">{{ upcoming_lessons }}</p></div>
+        <div class="stat-card"><p class="label">総授業枠数</p><p class="value" style="color:#0d9488">{{ total_lessons }}</p></div>
+        <div class="stat-card"><p class="label">今後の授業枠数</p><p class="value" style="color:#047857">{{ upcoming_lessons }}</p></div>
         <div class="stat-card"><p class="label">総予約数</p><p class="value" style="color:#ffc107">{{ total_reservations }}</p></div>
-        <div class="stat-card"><p class="label">総生徒数</p><p class="value" style="color:#17a2b8">{{ total_students }}</p></div>
+        <div class="stat-card"><p class="label">総生徒数</p><p class="value" style="color:#0d9488">{{ total_students }}</p></div>
         <div class="stat-card"><p class="label">保護者数</p><p class="value" style="color:#6f42c1">{{ total_families }}</p></div>
     </div>
 </div>
 
-<div style="margin: 30px 0; padding: 20px; background-color: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 4px;">
-    <p style="margin: 0;"><a href="{% url 'reservation_calendar' %}" style="color: #007bff; text-decoration: none;">← 生徒用予約ページへ</a></p>
+<div style="margin: 30px 0; padding: 20px; background-color: #f0fdfa; border: 1px solid #99f6e4; border-radius: 4px;">
+    <p style="margin: 0;"><a href="{% url 'reservation_calendar' %}" style="color: #0d9488; text-decoration: none;">← 生徒用予約ページへ</a></p>
 </div>
 {% endblock %}

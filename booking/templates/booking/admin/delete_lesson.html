@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}授業枠削除{% endblock %}
 
@@ -6,7 +6,7 @@
 <h2>授業枠削除確認</h2>
 
 <div style="margin-bottom: 20px;">
-    <a href="{% url 'admin_lesson_list' %}" style="color: #007bff; text-decoration: none;">← 授業枠一覧に戻る</a>
+    <a href="{% url 'admin_lesson_list' %}" style="color: #0d9488; text-decoration: none;">← 授業枠一覧に戻る</a>
 </div>
 
 <div style="margin: 20px 0; padding: 20px; background-color: #fff3cd; border: 2px solid #ffc107; border-radius: 8px;">
@@ -18,7 +18,7 @@
         <p style="margin: 5px 0;"><strong>終了日時:</strong> {{ lesson.end_time|date:"Y年m月d日 H:i" }}</p>
         <p style="margin: 5px 0;"><strong>定員:</strong> {{ lesson.capacity }}</p>
         <p style="margin: 5px 0;"><strong>現在の予約数:</strong> 
-            <span style="color: {% if lesson.reservation_set.count > 0 %}#dc3545{% else %}#28a745{% endif %}; font-weight: bold;">
+            <span style="color: {% if lesson.reservation_set.count > 0 %}#be123c{% else %}#047857{% endif %}; font-weight: bold;">
                 {{ lesson.reservation_set.count }}
             </span>
         </p>
@@ -34,7 +34,7 @@
 <div style="margin-top: 30px;">
     <form method="post" style="display: inline;">
         {% csrf_token %}
-        <button type="submit" style="padding: 10px 20px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; margin-right: 10px;">削除する</button>
+        <button type="submit" style="padding: 10px 20px; background-color: #be123c; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; margin-right: 10px;">削除する</button>
     </form>
     <a href="{% url 'admin_lesson_list' %}" style="padding: 10px 20px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">キャンセル</a>
 </div>

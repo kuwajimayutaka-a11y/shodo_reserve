@@ -8,7 +8,7 @@
 
 <style>
     h2, h3, h4 { color: #2c3e50; }
-    a { color: #007bff; text-decoration: none; }
+    a { color: #0d9488; text-decoration: none; }
     a:hover { text-decoration: underline; }
 
     .reservation-card {
@@ -39,7 +39,7 @@
     }
 
     .reservation-item a.cancel-btn {
-        background-color: #dc3545;
+        background-color: #be123c;
         color: white;
         padding: 6px 12px;
         border-radius: 4px;
@@ -66,7 +66,7 @@
 
     form.reserve-form button {
         padding: 8px 16px;
-        background-color: #28a745;
+        background-color: #047857;
         color: white;
         border: none;
         border-radius: 4px;
@@ -91,10 +91,10 @@
     .mini-cal-dayname { font-size:0.75em; color:#6c757d; padding:4px 0; font-weight:600; }
     .mini-cal-cell { padding:6px 2px; border-radius:4px; font-size:0.9em; cursor:default; min-height:32px; line-height:1.4; position:relative; }
     .mini-cal-cell.has-lesson { cursor:pointer; font-weight:700; }
-    .mini-cal-cell.has-lesson::after { content:''; display:block; width:5px; height:5px; background:#1e88e5; border-radius:50%; margin:1px auto 0; }
+    .mini-cal-cell.has-lesson::after { content:''; display:block; width:5px; height:5px; background:#0d9488; border-radius:50%; margin:1px auto 0; }
     .mini-cal-cell.has-lesson:hover { background:#e3f2fd; }
     .mini-cal-cell.today { background:#fff3e0; }
-    .mini-cal-cell.selected { background:#1e88e5 !important; color:white !important; }
+    .mini-cal-cell.selected { background:#0d9488 !important; color:white !important; }
     .mini-cal-cell.selected::after { background:white !important; }
 </style>
 
@@ -107,7 +107,7 @@
 
 {% if messages %}
     {% for message in messages %}
-        <div style="padding: 10px; margin: 10px 0; background-color: {% if message.tags == 'success' %}#d4edda{% elif message.tags == 'error' %}#f8d7da{% else %}#d1ecf1{% endif %}; border: 1px solid {% if message.tags == 'success' %}#c3e6cb{% elif message.tags == 'error' %}#f5c6cb{% else %}#bee5eb{% endif %}; border-radius: 4px;">
+        <div style="padding: 10px; margin: 10px 0; background-color: {% if message.tags == 'success' %}#d4edda{% elif message.tags == 'error' %}#f8d7da{% else %}#ccfbf1{% endif %}; border: 1px solid {% if message.tags == 'success' %}#c3e6cb{% elif message.tags == 'error' %}#f5c6cb{% else %}#bee5eb{% endif %}; border-radius: 4px;">
             {{ message }}
         </div>
     {% endfor %}
@@ -119,7 +119,7 @@
 
 {% for date, lessons in lessons_by_date %}
     <div class="date-block" data-date="{{ date|date:'Y-m-d' }}" style="display:none; margin: 30px 0; padding: 20px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;">
-        <h3 style="margin-top: 0; padding-bottom: 10px; border-bottom: 2px solid #007bff;">{{ date|date:"Y年m月d日 (D)" }}</h3>
+        <h3 style="margin-top: 0; padding-bottom: 10px; border-bottom: 2px solid #0d9488;">{{ date|date:"Y年m月d日 (D)" }}</h3>
         
         {% for lesson in lessons %}
             <div class="reservation-card">

@@ -21,13 +21,13 @@
         body {
             font-family: "Segoe UI", Arial, sans-serif;
             margin: 0;
-            background:#f7f8fa;
+            background: #f0fdf4;
         }
 
         /* ==== ヘッダー ==== */
         header {
-            background: #ffffff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            background: #1c1917;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.25);
             padding: 15px 20px;
             display: flex;
             align-items: center;
@@ -37,14 +37,14 @@
         header h1 {
             font-size: 20px;
             margin: 0;
-            color:#2c3e50;
+            color: #fafaf9;
             font-weight: 800;
         }
 
         nav {
             display: flex;
             align-items: center;
-            gap:18px;
+            gap: 18px;
         }
 
         nav a {
@@ -53,82 +53,99 @@
             padding: 8px 14px;
             border-radius: 6px;
             transition: 0.2s;
-            color:#1e88e5;
+            color: #d1fae5;
+            font-size: 0.9rem;
         }
-        nav a:hover { background:#e3f2fd; }
+        nav a:hover { background: rgba(255,255,255,0.12); }
+
+        nav span {
+            font-size: 0.85rem;
+            color: #d1fae5;
+            opacity: 0.85;
+        }
 
         .logout-btn {
-            background:#e53935; color:white;
-            border:none; padding: 8px 14px;
-            border-radius:6px; cursor:pointer;
+            background: #be123c; color: white;
+            border: none; padding: 8px 14px;
+            border-radius: 6px; cursor: pointer;
+            font-size: 0.9rem;
         }
-        .logout-btn:hover { background:#c62828; }
+        .logout-btn:hover { background: #9f1239; }
 
         /* ==== ハンバーガーボタン ==== */
         .menu-btn {
-            display:none;
-            cursor:pointer;
-            font-size:26px;
-            padding:6px 10px;
+            display: none;
+            cursor: pointer;
+            font-size: 26px;
+            padding: 6px 10px;
+            color: #fafaf9;
         }
 
         /* スマホ用レイアウト */
         @media(max-width:750px){
             nav {
-                display:none;
-                flex-direction:column;
-                gap:12px;
-                background:white;
-                padding:15px;
-                position:absolute;
-                top:60px;
-                right:0;
-                width:200px;
-                box-shadow:0 4px 15px rgba(0,0,0,.12);
-                border-radius:0 0 0 10px;
-                z-index:1000;
+                display: none;
+                flex-direction: column;
+                gap: 12px;
+                background: #1c1917;
+                padding: 15px;
+                position: absolute;
+                top: 60px;
+                right: 0;
+                width: 200px;
+                box-shadow: 0 4px 15px rgba(0,0,0,.3);
+                border-radius: 0 0 0 10px;
+                z-index: 1000;
             }
-            nav.show { display:flex; }
-            .menu-btn { display:block; }
+            nav.show { display: flex; }
+            .menu-btn { display: block; }
+
+            nav a, nav span, nav form {
+                width: 100%;
+                text-align: left;
+            }
+            nav a { padding-left: 4px; }
+            .logout-btn { width: 100%; text-align: left; padding-left: 4px; }
+            main { padding: 16px 12px; }
         }
 
         main {
-            padding:40px;
-            max-width:1200px;
-            margin:auto;
-        }
-        /* ヘッダーリンクを少し小さくする */
-        nav a {
-            font-size: 0.9rem;   /* ← ここで文字小さく */
+            padding: 40px;
+            max-width: 1200px;
+            margin: auto;
         }
 
-        /* ログイン者ラベルも少し小さく */
-        nav span {
-            font-size: 0.85rem;
-        }
+        /* ==== Bootstrap カラー上書き ==== */
+        .btn-primary, .btn-primary:focus { background-color: #0d9488; border-color: #0d9488; }
+        .btn-primary:hover { background-color: #0f766e; border-color: #0f766e; }
+        .btn-outline-primary { color: #0d9488; border-color: #0d9488; }
+        .btn-outline-primary:hover { background-color: #0d9488; color: white; border-color: #0d9488; }
 
-        /* スマホでは左寄せにする */
-        @media (max-width: 750px) {
+        .btn-success, .btn-success:focus { background-color: #047857; border-color: #047857; }
+        .btn-success:hover { background-color: #065f46; border-color: #065f46; }
+        .btn-outline-success { color: #047857; border-color: #047857; }
+        .btn-outline-success:hover { background-color: #047857; color: white; }
 
-            nav a, nav span, nav form {
-                width: 100%;        /* 全部100%幅で */
-                text-align: left;   /* 左寄せ */
-            }
+        .btn-danger, .btn-danger:focus { background-color: #be123c; border-color: #be123c; }
+        .btn-danger:hover { background-color: #9f1239; border-color: #9f1239; }
+        .btn-outline-danger { color: #be123c; border-color: #be123c; }
+        .btn-outline-danger:hover { background-color: #be123c; color: white; }
 
-            nav a {
-                padding-left: 4px;  /* 左余白少し追加して揃える */
-            }
+        .btn-info, .btn-info:focus { background-color: #0d9488; border-color: #0d9488; color: white; }
+        .btn-info:hover { background-color: #0f766e; color: white; }
 
-            .logout-btn {
-                width: 100%;
-                text-align: left;
-                padding-left: 4px;
-            }
+        .badge.bg-success { background-color: #047857 !important; }
+        .badge.bg-primary { background-color: #0d9488 !important; }
+        .badge.bg-danger  { background-color: #be123c !important; }
+        .badge.bg-info    { background-color: #0d9488 !important; }
 
-            main {
-                padding: 16px 12px;
-            }
-        }
+        .alert-success { background-color: #d1fae5; border-color: #047857; color: #064e3b; }
+        .alert-danger  { background-color: #ffe4e6; border-color: #be123c; color: #4c0519; }
+        .alert-info    { background-color: #ccfbf1; border-color: #0d9488; color: #134e4a; }
+        .alert-warning { background-color: #fef9c3; border-color: #a16207; color: #713f12; }
+
+        a { color: #0d9488; }
+        a:hover { color: #0f766e; }
     </style>
 </head>
 

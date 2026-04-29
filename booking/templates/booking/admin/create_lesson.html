@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}授業枠一括作成{% endblock %}
 
 {% block content %}
@@ -16,7 +16,7 @@
 /* 戻るリンク */
 .back-link {
     text-decoration: none;
-    color: #1e88e5;
+    color: #0d9488;
     font-weight: 500;
     display:block;
     margin-bottom:15px;
@@ -56,7 +56,7 @@ input, select, textarea {
     box-sizing:border-box;
 }
 input:focus, select:focus, textarea:focus {
-    border-color:#1e88e5;
+    border-color:#0d9488;
     box-shadow:0 0 0 3px rgba(30,136,229,.25);
     outline:none;
 }
@@ -110,15 +110,15 @@ input:focus, select:focus, textarea:focus {
 
 /* メッセージ */
 .msg { padding:12px 15px; border-radius:6px; margin-bottom:15px; font-weight:500; }
-.msg-success { background:#d4edda; border-left:5px solid #28a745; }
+.msg-success { background:#d4edda; border-left:5px solid #047857; }
 .msg-error   { background:#f8d7da; border-left:5px solid #e74c3c; }
-.msg-info    { background:#d1ecf1; border-left:5px solid #17a2b8; }
+.msg-info    { background:#ccfbf1; border-left:5px solid #0d9488; }
 
 /* 送信ボタン */
 button.submit-btn {
     width:100%;
     padding:14px;
-    background:#1e88e5;
+    background:#0d9488;
     color:white;
     font-weight:700;
     border:none;
@@ -127,7 +127,7 @@ button.submit-btn {
     transition:.2s;
     font-size:16px;
 }
-button.submit-btn:hover { background:#1565c0; transform:translateY(-1px); }
+button.submit-btn:hover { background:#0f766e; transform:translateY(-1px); }
 
 /* スマホ対応 */
 @media(max-width: 768px) {

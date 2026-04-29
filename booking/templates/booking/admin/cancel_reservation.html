@@ -6,7 +6,7 @@
 <h2>予約キャンセル確認</h2>
 
 <div style="margin-bottom: 20px;">
-    <a href="{% url 'admin_reservation_list' %}" style="color: #007bff; text-decoration: none;">← 予約一覧に戻る</a>
+    <a href="{% url 'admin_reservation_list' %}" style="color: #0d9488; text-decoration: none;">← 予約一覧に戻る</a>
 </div>
 
 <div style="margin: 20px 0; padding: 20px; background-color: #fff3cd; border: 2px solid #ffc107; border-radius: 8px;">
@@ -24,7 +24,7 @@
 <div style="margin-top: 30px;">
     <form method="post" style="display: inline;">
         {% csrf_token %}
-        <button type="submit" style="padding: 10px 20px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; margin-right: 10px;">キャンセルする</button>
+        <button type="submit" style="padding: 10px 20px; background-color: #be123c; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; margin-right: 10px;">キャンセルする</button>
     </form>
     <a href="{% url 'admin_reservation_list' %}" style="padding: 10px 20px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">戻る</a>
 </div>
