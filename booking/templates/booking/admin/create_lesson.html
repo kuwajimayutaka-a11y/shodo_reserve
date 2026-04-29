@@ -211,4 +211,25 @@ button.submit-btn:hover { background:#1565c0; transform:translateY(-1px); }
 </form>
 </div>
 
+<script>
+(function() {
+    var WED = '10:00-11:30\n14:30-15:20\n15:30-16:20\n16:30-17:20\n17:30-18:20\n18:30-19:20';
+    var FRI = '16:00-16:50\n17:00-17:50\n18:00-18:50\n19:00-19:50\n20:00-20:50';
+
+    function updateSlots() {
+        var checked = Array.from(document.querySelectorAll('input[name="days_of_week"]:checked'));
+        if (checked.length !== 1) return;
+        var val = checked[0].value;
+        var ta = document.querySelector('textarea[name="time_slots"]');
+        if (!ta) return;
+        if (val === '2') ta.value = WED;
+        else if (val === '4') ta.value = FRI;
+    }
+
+    document.querySelectorAll('input[name="days_of_week"]').forEach(function(cb) {
+        cb.addEventListener('change', updateSlots);
+    });
+})();
+</script>
+
 {% endblock %}

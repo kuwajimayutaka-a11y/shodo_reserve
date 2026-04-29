@@ -114,3 +114,14 @@ class StudentForm(forms.ModelForm):
         fields = ['name']
         labels = {'name': '生徒氏名'}
         widgets = {'name': forms.TextInput(attrs={'placeholder': '例: 山田太郎'})}
+
+
+class FamilyEditForm(forms.Form):
+    name = forms.CharField(
+        max_length=100, label='保護者氏名',
+        widget=forms.TextInput(attrs={'placeholder': '例: 山田 花子'})
+    )
+    phone_number = forms.CharField(
+        max_length=15, required=False, label='電話番号',
+        widget=forms.TextInput(attrs={'placeholder': '例: 090-1234-5678'})
+    )

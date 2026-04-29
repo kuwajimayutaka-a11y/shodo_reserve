@@ -173,7 +173,13 @@ def cancel_reservation(request, reservation_id):
         return redirect('admin_dashboard')
     family = get_object_or_404(Family, user=request.user)
     reservation = get_object_or_404(Reservation, pk=reservation_id, student__family=family)
+    from datetime import timedelta
+    deadline = reservation.lesson_slot.start_time - timedelta(hours=1)
+    can_cancel = timezone.now() < deadline
     if request.method == 'POST':
+        if not can_cancel:
+            messages.error(request, 'キャンセルできません。授業開始1時間前を過ぎています。')
+            return redirect('reservation_calendar')
         student_name = reservation.student.name
         lesson_title = reservation.lesson_slot.title or '書道教室'
         reservation.delete()
@@ -181,4 +187,5 @@ def cancel_reservation(request, reservation_id):
         return redirect('reservation_calendar')
     return render(request, 'booking/cancel_reservation.html', {
         'reservation': reservation, 'family': family,
+        'can_cancel': can_cancel, 'cancel_deadline': deadline,
     })

@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from datetime import timedelta, datetime
-from .forms import LessonSlotCreateForm, LessonSlotEditForm, StudentForm
+from .forms import LessonSlotCreateForm, LessonSlotEditForm, StudentForm, FamilyEditForm
 from .models import LessonSlot, Reservation, Waitlist, Family, Student
 from django.utils import timezone
 from django.contrib.auth import get_user_model  # noqa: F401
@@ -259,6 +259,26 @@ def delete_student_admin(request, student_id):
         'student': student
     }
     return render(request, 'booking/admin/delete_student.html', context)
+
+
+# 保護者情報編集
+@login_required
+@user_passes_test(is_staff)
+def edit_family_admin(request, family_id):
+    """管理者による保護者情報編集"""
+    family = get_object_or_404(Family, pk=family_id)
+    if request.method == 'POST':
+        form = FamilyEditForm(request.POST)
+        if form.is_valid():
+            family.user.name = form.cleaned_data['name']
+            family.user.save()
+            family.phone_number = form.cleaned_data['phone_number']
+            family.save()
+            messages.success(request, f"保護者「{family.user.name}」の情報を更新しました。")
+            return redirect('admin_student_management')
+    else:
+        form = FamilyEditForm(initial={'name': family.user.name, 'phone_number': family.phone_number})
+    return render(request, 'booking/admin/edit_family.html', {'form': form, 'family': family})
 
 
 # 予約キャンセル(管理者用)
