@@ -58,7 +58,7 @@ class LessonSlotCreateForm(forms.Form):
             'rows': 5,
             'placeholder': '例:\n09:00-10:00\n10:30-11:30\n13:00-14:00'
         }),
-        help_text="1日の複数の授業時間を入力してください。1行に1つ、「開始時刻-終了時刻」の形式で入力。"
+        help_text="1行に1つ「HH:MM-HH:MM」の形式で入力。第N週のみの場合は末尾に @1,2 のように追加（例: 10:00-11:30 @1,2）"
     )
     capacity = forms.IntegerField(
         label="定員",
@@ -80,10 +80,11 @@ class LessonSlotCreateForm(forms.Form):
         if start_date and end_date and start_date > end_date:
             raise forms.ValidationError("開始日は終了日よりも前の日付を設定してください。")
         if time_slots:
+            import re
             for line in time_slots.strip().split('\n'):
-                line = line.strip()
+                line = re.sub(r'@[\d,]+', '', line).strip()
                 if line and '-' not in line:
-                    raise forms.ValidationError("時間は「HH:MM-HH:MM」の形式で入力してください。")
+                    raise forms.ValidationError("時間は「HH:MM-HH:MM」または「HH:MM-HH:MM @1,2」の形式で入力してください。")
         return cleaned_data
 
 

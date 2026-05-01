@@ -57,29 +57,35 @@ def create_lesson_slots(request):
             current_date = start_date
             created_count = 0
             
-            # 時間スロットをパース
+            # 時間スロットをパース（@1,2 形式の週指定に対応）
+            import re
             time_pairs = []
             for line in time_slots.strip().split('\n'):
                 line = line.strip()
-                if line and '-' in line:
-                    try:
-                        start_str, end_str = line.split('-')
-                        start_time = datetime.strptime(start_str.strip(), '%H:%M').time()
-                        end_time = datetime.strptime(end_str.strip(), '%H:%M').time()
-                        time_pairs.append((start_time, end_time))
-                    except ValueError:
-                        continue
-            
+                if not line or '-' not in line:
+                    continue
+                try:
+                    week_spec = None
+                    week_match = re.search(r'@([\d,]+)', line)
+                    if week_match:
+                        week_spec = [int(w) for w in week_match.group(1).split(',')]
+                        line = line[:week_match.start()].strip()
+                    start_str, end_str = line.split('-')
+                    start_time = datetime.strptime(start_str.strip(), '%H:%M').time()
+                    end_time = datetime.strptime(end_str.strip(), '%H:%M').time()
+                    time_pairs.append((start_time, end_time, week_spec))
+                except ValueError:
+                    continue
+
             # 期間内の日付を反復処理
             while current_date <= end_date:
-                # 選択された曜日であるかチェック
                 if current_date.weekday() in days_of_week:
-                    # 各時間スロットに対して授業枠を作成
-                    for start_time, end_time in time_pairs:
+                    week_of_month = (current_date.day - 1) // 7 + 1
+                    for start_time, end_time, week_spec in time_pairs:
+                        if week_spec and week_of_month not in week_spec:
+                            continue
                         lesson_start_dt = datetime.combine(current_date, start_time, tzinfo=timezone.get_current_timezone())
                         lesson_end_dt = datetime.combine(current_date, end_time, tzinfo=timezone.get_current_timezone())
-                        
-                        # 授業枠を作成
                         LessonSlot.objects.create(
                             title=title,
                             start_time=lesson_start_dt,
