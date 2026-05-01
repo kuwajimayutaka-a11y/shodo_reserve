@@ -6,8 +6,8 @@ register = template.Library()
 
 @register.filter
 def get_item(dictionary, key):
-    """辞書からキーに対応する値を取得する"""
-    return dictionary.get(key)
+    """辞書からキーに対応する値を取得する（なければ空set）"""
+    return dictionary.get(key, set())
 
 @register.filter
 def make_list(value):

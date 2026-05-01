@@ -129,6 +129,12 @@ def reservation_calendar(request):
     family = get_object_or_404(Family, user=request.user)
     students = Student.objects.filter(family=family)
     lessons = LessonSlot.objects.filter(start_time__gte=timezone.now()).order_by('start_time')
+
+    # 自分の生徒の予約: {lesson_id: set(student_id)}
+    my_reserved = {}
+    for res in Reservation.objects.filter(student__in=students).select_related('student'):
+        my_reserved.setdefault(res.lesson_slot_id, set()).add(res.student_id)
+
     lessons_by_date = defaultdict(list)
     for lesson in lessons:
         lessons_by_date[lesson.start_time.date()].append(lesson)
@@ -136,6 +142,7 @@ def reservation_calendar(request):
         'family': family,
         'students': students,
         'lessons_by_date': sorted(lessons_by_date.items()),
+        'my_reserved': my_reserved,
     })
 
 

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load booking_extras %}
 
 {% block title %}予約カレンダー{% endblock %}
 
@@ -167,29 +168,48 @@ document.addEventListener("DOMContentLoaded", function() {
         </div>
         <div class="card-body p-3">
             {% for lesson in lessons %}
+            {% with booked_ids=my_reserved|get_item:lesson.id %}
             <div class="lesson-card border rounded-3 p-3 mb-3" style="background:white;" data-lesson-id="{{ lesson.id }}">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <h6 class="fw-bold mb-0">{{ lesson.title|default:"書道教室" }}</h6>
+
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                    <div class="fw-bold" style="font-size:1.1rem;">
+                        <i class="bi bi-clock me-1 text-muted"></i>{{ lesson.start_time|date:"H:i" }} - {{ lesson.end_time|date:"H:i" }}
+                    </div>
                     {% if lesson.available_slots > 0 %}
                         <span class="badge bg-success js-available-badge">残り{{ lesson.available_slots }}枠</span>
                     {% else %}
                         <span class="badge bg-danger js-available-badge">満席</span>
                     {% endif %}
                 </div>
+
                 <div class="text-muted small mb-2">
-                    <i class="bi bi-clock me-1"></i>{{ lesson.start_time|date:"H:i" }} - {{ lesson.end_time|date:"H:i" }}
-                    <span class="ms-3"><i class="bi bi-people me-1"></i>定員{{ lesson.capacity }}名</span>
+                    {{ lesson.title|default:"書道教室" }}
+                    <span class="ms-2"><i class="bi bi-people me-1"></i>定員{{ lesson.capacity }}名</span>
                 </div>
+
+                {% for student in students %}
+                    {% if student.id in booked_ids %}
+                    <span class="badge bg-light text-success border border-success me-1 mb-1">
+                        <i class="bi bi-check-circle me-1"></i>{{ student.name }} 予約済み
+                    </span>
+                    {% endif %}
+                {% endfor %}
+
                 {% if not lesson.is_reservable and lesson.available_slots > 0 %}
-                    <div class="text-muted small"><i class="bi bi-lock me-1"></i>予約開始: {{ lesson.reservation_start_time|date:"m月d日 H:i" }}</div>
+                    <div class="text-muted small mt-1"><i class="bi bi-lock me-1"></i>予約開始: {{ lesson.reservation_start_time|date:"m月d日 H:i" }}</div>
                 {% endif %}
+
                 {% if students %}
+                    {# 未予約の生徒が1人以上いる場合のみフォームを表示 #}
+                    {% with unbooked_count=students|length %}
                     {% if lesson.is_reservable %}
                     <form method="post" action="{% url 'reserve_lesson' lesson.id %}" class="reserve-form-inline d-flex flex-wrap gap-2 align-items-center mt-2 js-reserve-form" data-lesson-id="{{ lesson.id }}">
                         {% csrf_token %}
                         <select name="student_id" class="form-select form-select-sm" style="max-width:160px;" required>
                             {% for student in students %}
-                            <option value="{{ student.id }}">{{ student.name }}</option>
+                                {% if not student.id in booked_ids %}
+                                <option value="{{ student.id }}">{{ student.name }}</option>
+                                {% endif %}
                             {% endfor %}
                         </select>
                         <button type="submit" class="btn btn-success btn-sm">
@@ -201,7 +221,9 @@ document.addEventListener("DOMContentLoaded", function() {
                         {% csrf_token %}
                         <select name="student_id" class="form-select form-select-sm" style="max-width:160px;" required>
                             {% for student in students %}
-                            <option value="{{ student.id }}">{{ student.name }}</option>
+                                {% if not student.id in booked_ids %}
+                                <option value="{{ student.id }}">{{ student.name }}</option>
+                                {% endif %}
                             {% endfor %}
                         </select>
                         <button type="submit" class="btn btn-warning btn-sm">
@@ -209,8 +231,10 @@ document.addEventListener("DOMContentLoaded", function() {
                         </button>
                     </form>
                     {% endif %}
+                    {% endwith %}
                 {% endif %}
             </div>
+            {% endwith %}
             {% endfor %}
         </div>
     </div>
