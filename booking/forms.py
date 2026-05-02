@@ -63,7 +63,7 @@ class LessonSlotCreateForm(forms.Form):
     capacity = forms.IntegerField(
         label="定員",
         min_value=1,
-        initial=5,
+        initial=16,
         widget=forms.NumberInput(attrs={'min': 1})
     )
     reservation_start_datetime = forms.DateTimeField(
