@@ -41,13 +41,24 @@ def admin_dashboard(request):
         )
 
     context = {
-        'total_lessons': total_lessons,
-        'upcoming_lessons': upcoming_lessons,
-        'total_reservations': total_reservations,
-        'total_students': total_students,
-        'total_families': total_families,
         'next_lesson': next_lesson,
         'next_day_lessons': next_day_lessons,
+        'stats': [
+            ('総授業枠', total_lessons),
+            ('今後の授業', upcoming_lessons),
+            ('総予約数', total_reservations),
+            ('生徒数', total_students),
+            ('保護者数', total_families),
+        ],
+        'menu_items': [
+            ('bi bi-calendar-plus', '/admin-dashboard/create-lesson/', '授業枠を一括作成', '期間と曜日を指定して一括作成'),
+            ('bi bi-plus-circle', '/admin-dashboard/create-lesson-single/', '授業枠を個別作成', '1つの授業枠を個別に作成'),
+            ('bi bi-list-ul', '/admin-dashboard/lessons/', '授業枠一覧・編集', '授業枠を確認・編集・削除'),
+            ('bi bi-ticket-perforated', '/admin-dashboard/reservations/', '予約一覧', '全体の予約状況を確認'),
+            ('bi bi-people', '/admin-dashboard/students/', '生徒管理', '保護者と生徒の情報を管理'),
+            ('bi bi-calendar-range', '/admin-dashboard/calendar/', '予約カレンダー', 'カレンダー形式で予約を確認・作成'),
+            ('bi bi-database', '/admin/', 'DB管理画面', '全データの閲覧・編集（Django管理）'),
+        ],
     }
     return render(request, 'booking/admin/dashboard.html', context)
 
