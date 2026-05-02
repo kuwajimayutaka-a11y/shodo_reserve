@@ -172,6 +172,8 @@ def reserve_lesson(request, lesson_id):
                         'message': message,
                         'lesson_id': lesson.id,
                         'available_slots': lesson.available_slots(),
+                        'student_id': student.id,
+                        'student_name': student.name,
                     })
                 messages.success(request, message)
             except IntegrityError:

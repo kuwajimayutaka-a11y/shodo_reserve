@@ -257,6 +257,35 @@ function initReservationAjax() {
         setTimeout(function () { el.remove(); }, 3000);
     }
 
+    function addBookedBadge(lessonId, studentId, studentName) {
+        const card = document.querySelector('.lesson-card[data-lesson-id="' + lessonId + '"]');
+        if (!card) return;
+        // 既にバッジがあれば追加しない
+        if (card.querySelector('[data-booked-student="' + studentId + '"]')) return;
+        const badge = document.createElement('span');
+        badge.className = 'badge bg-light text-success border border-success me-1 mb-1';
+        badge.setAttribute('data-booked-student', studentId);
+        badge.innerHTML = '<i class="bi bi-check-circle me-1"></i>' + studentName + ' 予約済み';
+        // バッジをフォームの直前に挿入
+        const form = card.querySelector('.js-reserve-form');
+        if (form) {
+            card.insertBefore(badge, form);
+        } else {
+            card.appendChild(badge);
+        }
+    }
+
+    function removeStudentFromSelect(form, studentId) {
+        const select = form.querySelector('select[name="student_id"]');
+        if (!select) return;
+        const option = select.querySelector('option[value="' + studentId + '"]');
+        if (option) option.remove();
+        // 選択肢が空になったらフォームを非表示
+        if (select.options.length === 0) {
+            form.style.display = 'none';
+        }
+    }
+
     function updateAvailableSlots(lessonId, availableSlots) {
         const card = document.querySelector('.lesson-card[data-lesson-id="' + lessonId + '"]');
         if (!card) return;
@@ -310,6 +339,10 @@ function initReservationAjax() {
                 if (typeof payload.available_slots === 'number') {
                     updateAvailableSlots(payload.lesson_id, payload.available_slots);
                     updateReserveButtonState(payload.lesson_id, payload.available_slots);
+                }
+                if (payload.status_type === 'reserved' && payload.student_id) {
+                    addBookedBadge(payload.lesson_id, payload.student_id, payload.student_name);
+                    removeStudentFromSelect(form, payload.student_id);
                 }
             } catch (error) {
                 showSnackbar('通信エラーが発生しました。', 'error');
