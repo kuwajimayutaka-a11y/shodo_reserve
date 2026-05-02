@@ -29,7 +29,6 @@
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <a href="{% url 'admin_edit_family' family.id %}" class="btn btn-primary">保護者情報を編集</a>
-                <a href="{% url 'admin_add_student' family.id %}" class="add-student-btn" class="btn btn-success">+ 生徒を追加</a>
                 <a href="{% url 'admin_delete_family' family.id %}" class="btn btn-danger">保護者を削除</a>
             </div>
         </div>
@@ -67,6 +66,11 @@
                 <p style="margin: 0;">この保護者には生徒が登録されていません。</p>
             </div>
         {% endif %}
+        <div style="margin-top: 12px;">
+            <a href="{% url 'admin_add_student' family.id %}" class="btn btn-success btn-sm">
+                <i class="bi bi-person-plus me-1"></i>生徒を追加
+            </a>
+        </div>
     </div>
 {% empty %}
     <div style="margin-top: 20px; padding: 20px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; text-align: center; color: #6c757d;">
