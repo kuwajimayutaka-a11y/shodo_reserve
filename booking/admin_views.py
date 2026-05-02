@@ -27,9 +27,18 @@ def admin_dashboard(request):
         LessonSlot.objects
         .filter(start_time__gte=timezone.now())
         .order_by('start_time')
-        .prefetch_related('reservation_set__student__family__user')
         .first()
     )
+
+    next_day_lessons = []
+    if next_lesson:
+        next_date = next_lesson.start_time.date()
+        next_day_lessons = (
+            LessonSlot.objects
+            .filter(start_time__date=next_date)
+            .order_by('start_time')
+            .prefetch_related('reservation_set__student__family__user')
+        )
 
     context = {
         'total_lessons': total_lessons,
@@ -38,6 +47,7 @@ def admin_dashboard(request):
         'total_students': total_students,
         'total_families': total_families,
         'next_lesson': next_lesson,
+        'next_day_lessons': next_day_lessons,
     }
     return render(request, 'booking/admin/dashboard.html', context)
 

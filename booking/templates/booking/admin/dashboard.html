@@ -41,38 +41,36 @@
 
 <!-- 直近の授業 -->
 {% if next_lesson %}
-<div class="sec-head"><div class="sec-line"></div><span class="sec-title">直近の授業</span></div>
-<div class="wa-card mb-4">
+<div class="sec-head"><div class="sec-line"></div><span class="sec-title">直近の授業 ― {{ next_lesson.start_time|date:"Y年m月d日（D）" }}</span></div>
+{% for lesson in next_day_lessons %}
+<div class="wa-card mb-3">
     <div class="wa-card-head d-flex justify-content-between align-items-center">
-        <span class="wa-card-title">{{ next_lesson.title|default:"書道教室" }}</span>
-        <span style="font-size:11px;color:var(--wa3);">
-            残り {{ next_lesson.available_slots }} 枠 / 定員 {{ next_lesson.capacity }} 名
+        <span class="wa-card-title">
+            {{ lesson.start_time|date:"H:i" }} - {{ lesson.end_time|date:"H:i" }}
+            <span style="font-size:11px;color:var(--wa3);margin-left:8px;">{{ lesson.title|default:"書道教室" }}</span>
+        </span>
+        <span style="font-size:11px;color:{% if lesson.available_slots > 0 %}var(--ao){% else %}#8b3a3a{% endif %};">
+            残り {{ lesson.available_slots }} / {{ lesson.capacity }} 名
         </span>
     </div>
     <div class="wa-card-body">
-        <div class="meta-row">
-            <span class="meta-label">日時</span>
-            <span class="meta-val">{{ next_lesson.start_time|date:"Y年m月d日（D） H:i" }} - {{ next_lesson.end_time|date:"H:i" }}</span>
-        </div>
-        {% with reservations=next_lesson.reservation_set.all %}
+        {% with reservations=lesson.reservation_set.all %}
         {% if reservations %}
-        <div style="margin-top:12px;padding-top:12px;border-top:0.5px solid var(--border);">
-            <div style="font-size:11px;color:var(--wa3);letter-spacing:0.06em;margin-bottom:8px;">参加予定の生徒</div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                {% for res in reservations %}
-                <div style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--ao3);border-radius:3px;font-size:12px;">
-                    <span style="color:var(--ao);font-weight:500;">{{ res.student.name }}</span>
-                    <span style="color:var(--wa3);font-size:10px;">{{ res.student.family.user.name }}</span>
-                </div>
-                {% endfor %}
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            {% for res in reservations %}
+            <div style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--ao3);border-radius:3px;font-size:12px;">
+                <span style="color:var(--ao);font-weight:500;">{{ res.student.name }}</span>
+                <span style="color:var(--wa3);font-size:10px;">{{ res.student.family.user.name }}</span>
             </div>
+            {% endfor %}
         </div>
         {% else %}
-        <div style="margin-top:10px;font-size:12px;color:var(--wa3);">まだ予約がありません。</div>
+        <div style="font-size:12px;color:var(--wa3);">まだ予約がありません。</div>
         {% endif %}
         {% endwith %}
     </div>
 </div>
+{% endfor %}
 {% endif %}
 
 <!-- 統計 -->
