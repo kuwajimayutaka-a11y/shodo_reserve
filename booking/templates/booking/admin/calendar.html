@@ -121,7 +121,12 @@
         
         {% for lesson in lessons %}
             <div class="reservation-card" data-lesson-id="{{ lesson.id }}">
-                <h4>{{ lesson.title|default:"書道教室" }}</h4>
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                    <h4 style="margin:0 0 8px 0;">{{ lesson.title|default:"書道教室" }}</h4>
+                    <a href="{% url 'admin_delete_lesson_slot' lesson.id %}" class="btn btn-danger btn-sm" style="white-space:nowrap;flex-shrink:0;">
+                        <i class="bi bi-trash me-1"></i>この授業枠を削除
+                    </a>
+                </div>
                 <p><strong>時間:</strong> {{ lesson.start_time|date:"H:i" }} - {{ lesson.end_time|date:"H:i" }}</p>
                 <p><strong>定員:</strong> {{ lesson.capacity }} / <strong>残り枠:</strong> 
                     <span class="js-available-slots" style="color: {% if lesson.available_slots > 0 %}green{% else %}red{% endif %}; font-weight: bold;">{{ lesson.available_slots }}</span>
