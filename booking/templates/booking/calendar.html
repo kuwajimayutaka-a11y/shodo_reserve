@@ -326,7 +326,7 @@ function initReservationAjax() {
                     updateAvailableSlots(payload.lesson_id, payload.available_slots);
                     updateReserveButtonState(payload.lesson_id, payload.available_slots);
                 }
-                if (payload.status_type === 'reserved' && payload.student_id) {
+                if (payload.student_id) {
                     addBookedBadge(payload.lesson_id, payload.student_id, payload.student_name);
                     removeStudentFromSelect(form, payload.student_id);
                 }
