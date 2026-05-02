@@ -1,85 +1,128 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% block title %}管理者ダッシュボード{% endblock %}
 
 {% block content %}
-<h2>管理者ダッシュボード</h2>
-
 <style>
-/* 管理メニュー */
-.admin-menu, .stats-grid {
+.admin-menu {
     display: grid;
-    gap: 15px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
 }
-
 .admin-menu a {
-    padding: 20px;
-    background-color: white;
+    display: block;
+    padding: 16px 18px;
+    background: white;
+    border: 0.5px solid var(--border2);
     border-radius: 4px;
     text-decoration: none;
-    color: inherit;
-    border: 2px solid;
-    transition: all 0.3s;
+    color: var(--wa2);
+    transition: background 0.15s, box-shadow 0.15s;
+    box-shadow: 0 1px 4px rgba(61,43,31,0.05);
 }
-.admin-menu a h4 { margin: 0 0 10px 0; }
-.admin-menu a p { margin: 0; font-size: 0.9em; color: #6c757d; }
+.admin-menu a:hover { background: var(--wa6); color: var(--wa); box-shadow: 0 2px 8px rgba(61,43,31,0.1); }
+.admin-menu a .menu-icon { font-size: 18px; color: var(--ao2); margin-bottom: 8px; display: block; }
+.admin-menu a h5 { margin: 0 0 4px; font-size: 13px; font-family: 'Noto Serif JP', serif; color: var(--wa); letter-spacing: 0.04em; }
+.admin-menu a p { margin: 0; font-size: 11px; color: var(--wa3); line-height: 1.5; }
 
-/* 色ごとにボーダー設定 */
-.admin-menu a:nth-child(1) { border-color:#0d9488; color:#0d9488; }
-.admin-menu a:nth-child(2) { border-color:#0d9488; color:#0d9488; }
-.admin-menu a:nth-child(3) { border-color:#047857; color:#047857; }
-.admin-menu a:nth-child(4) { border-color:#ffc107; color:#ffc107; }
-.admin-menu a:nth-child(5) { border-color:#0d9488; color:#0d9488; }
-.admin-menu a:nth-child(6) { border-color:#6f42c1; color:#6f42c1; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.stat-card { padding: 14px 12px; background: white; border: 0.5px solid var(--border2); border-radius: 4px; text-align: center; }
+.stat-card .s-label { font-size: 10px; color: var(--wa3); letter-spacing: 0.06em; margin-bottom: 6px; }
+.stat-card .s-value { font-size: 1.6em; font-family: 'Noto Serif JP', serif; font-weight: 300; color: var(--wa); }
 
-/* 統計情報 */
-.stats-grid {
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-}
-.stats-grid .stat-card {
-    padding: 15px;
-    background-color: white;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    text-align: center;
-}
-.stats-grid .stat-card p.label { margin:0; font-size:0.8em; color:#6c757d; }
-.stats-grid .stat-card p.value { margin:10px 0 0; font-size:1.4em; font-weight:bold; }
-
-/* レスポンシブ */
 @media(max-width:600px){
-    .admin-menu {
-        grid-template-columns: 1fr;
-    }
-    .section-block { padding: 12px !important; }
-    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .admin-menu { grid-template-columns: 1fr 1fr; }
+    .stats-grid { grid-template-columns: repeat(3, 1fr); }
 }
 </style>
 
-<div class="section-block" style="margin: 30px 0; padding: 20px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;">
-    <h3 style="margin-top: 0; color: #495057;">管理メニュー</h3>
-    <div class="admin-menu" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
-        <a href="{% url 'admin_create_lesson_slots' %}"><h4><i class="bi bi-calendar-plus me-1"></i>授業枠を一括作成</h4><p>期間と曜日を指定して授業枠を一括作成</p></a>
-        <a href="{% url 'admin_create_lesson_single' %}"><h4><i class="bi bi-plus-circle me-1"></i>授業枠を個別作成</h4><p>1つの授業枠を個別に作成</p></a>
-        <a href="{% url 'admin_lesson_list' %}"><h4><i class="bi bi-list-ul me-1"></i>授業枠一覧・編集</h4><p>授業枠を確認・編集・削除</p></a>
-        <a href="{% url 'admin_reservation_list' %}"><h4><i class="bi bi-ticket-perforated me-1"></i>予約一覧</h4><p>全体の予約状況を確認</p></a>
-        <a href="{% url 'admin_student_management' %}"><h4><i class="bi bi-people me-1"></i>生徒管理</h4><p>保護者と生徒の情報を管理</p></a>
-        <a href="{% url 'admin_reservation_calendar' %}"><h4><i class="bi bi-calendar-range me-1"></i>予約カレンダー</h4><p>カレンダー形式で予約を確認・作成</p></a>
-        <a href="/admin/" target="_blank"><h4><i class="bi bi-database me-1"></i>DB管理画面</h4><p>全データの閲覧・編集・削除（Django管理画面）</p></a>
-    </div>
+<div class="page-title-area">
+    <h1 class="page-title">管理者<em>ダッシュボード</em></h1>
 </div>
 
-<div class="section-block" style="margin: 30px 0; padding: 20px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;">
-    <h3 style="margin-top: 0; color: #495057;">統計情報</h3>
-    <div class="stats-grid">
-        <div class="stat-card"><p class="label">総授業枠数</p><p class="value" style="color:#0d9488">{{ total_lessons }}</p></div>
-        <div class="stat-card"><p class="label">今後の授業枠数</p><p class="value" style="color:#047857">{{ upcoming_lessons }}</p></div>
-        <div class="stat-card"><p class="label">総予約数</p><p class="value" style="color:#ffc107">{{ total_reservations }}</p></div>
-        <div class="stat-card"><p class="label">総生徒数</p><p class="value" style="color:#0d9488">{{ total_students }}</p></div>
-        <div class="stat-card"><p class="label">保護者数</p><p class="value" style="color:#6f42c1">{{ total_families }}</p></div>
+<!-- 直近の授業 -->
+{% if next_lesson %}
+<div class="sec-head"><div class="sec-line"></div><span class="sec-title">直近の授業</span></div>
+<div class="wa-card mb-4">
+    <div class="wa-card-head d-flex justify-content-between align-items-center">
+        <span class="wa-card-title">{{ next_lesson.title|default:"書道教室" }}</span>
+        <span style="font-size:11px;color:var(--wa3);">
+            残り {{ next_lesson.available_slots }} 枠 / 定員 {{ next_lesson.capacity }} 名
+        </span>
+    </div>
+    <div class="wa-card-body">
+        <div class="meta-row">
+            <span class="meta-label">日時</span>
+            <span class="meta-val">{{ next_lesson.start_time|date:"Y年m月d日（D） H:i" }} - {{ next_lesson.end_time|date:"H:i" }}</span>
+        </div>
+        {% with reservations=next_lesson.reservation_set.all %}
+        {% if reservations %}
+        <div style="margin-top:12px;padding-top:12px;border-top:0.5px solid var(--border);">
+            <div style="font-size:11px;color:var(--wa3);letter-spacing:0.06em;margin-bottom:8px;">参加予定の生徒</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                {% for res in reservations %}
+                <div style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--ao3);border-radius:3px;font-size:12px;">
+                    <span style="color:var(--ao);font-weight:500;">{{ res.student.name }}</span>
+                    <span style="color:var(--wa3);font-size:10px;">{{ res.student.family.user.name }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div style="margin-top:10px;font-size:12px;color:var(--wa3);">まだ予約がありません。</div>
+        {% endif %}
+        {% endwith %}
     </div>
 </div>
+{% endif %}
 
-<div style="margin: 30px 0; padding: 20px; background-color: #f0fdfa; border: 1px solid #99f6e4; border-radius: 4px;">
-    <p style="margin: 0;"><a href="{% url 'reservation_calendar' %}" style="color: #0d9488; text-decoration: none;">← 生徒用予約ページへ</a></p>
+<!-- 統計 -->
+<div class="sec-head"><div class="sec-line"></div><span class="sec-title">統計</span></div>
+<div class="stats-grid mb-4">
+    <div class="stat-card"><div class="s-label">総授業枠</div><div class="s-value">{{ total_lessons }}</div></div>
+    <div class="stat-card"><div class="s-label">今後の授業</div><div class="s-value">{{ upcoming_lessons }}</div></div>
+    <div class="stat-card"><div class="s-label">総予約数</div><div class="s-value">{{ total_reservations }}</div></div>
+    <div class="stat-card"><div class="s-label">生徒数</div><div class="s-value">{{ total_students }}</div></div>
+    <div class="stat-card"><div class="s-label">保護者数</div><div class="s-value">{{ total_families }}</div></div>
 </div>
+
+<!-- 管理メニュー -->
+<div class="sec-head"><div class="sec-line"></div><span class="sec-title">管理メニュー</span></div>
+<div class="admin-menu mb-4">
+    <a href="{% url 'admin_create_lesson_slots' %}">
+        <span class="menu-icon"><i class="bi bi-calendar-plus"></i></span>
+        <h5>授業枠を一括作成</h5>
+        <p>期間と曜日を指定して一括作成</p>
+    </a>
+    <a href="{% url 'admin_create_lesson_single' %}">
+        <span class="menu-icon"><i class="bi bi-plus-circle"></i></span>
+        <h5>授業枠を個別作成</h5>
+        <p>1つの授業枠を個別に作成</p>
+    </a>
+    <a href="{% url 'admin_lesson_list' %}">
+        <span class="menu-icon"><i class="bi bi-list-ul"></i></span>
+        <h5>授業枠一覧・編集</h5>
+        <p>授業枠を確認・編集・削除</p>
+    </a>
+    <a href="{% url 'admin_reservation_list' %}">
+        <span class="menu-icon"><i class="bi bi-ticket-perforated"></i></span>
+        <h5>予約一覧</h5>
+        <p>全体の予約状況を確認</p>
+    </a>
+    <a href="{% url 'admin_student_management' %}">
+        <span class="menu-icon"><i class="bi bi-people"></i></span>
+        <h5>生徒管理</h5>
+        <p>保護者と生徒の情報を管理</p>
+    </a>
+    <a href="{% url 'admin_reservation_calendar' %}">
+        <span class="menu-icon"><i class="bi bi-calendar-range"></i></span>
+        <h5>予約カレンダー</h5>
+        <p>カレンダー形式で予約を確認・作成</p>
+    </a>
+    <a href="/admin/" target="_blank">
+        <span class="menu-icon"><i class="bi bi-database"></i></span>
+        <h5>DB管理画面</h5>
+        <p>全データの閲覧・編集（Django管理）</p>
+    </a>
+</div>
+
 {% endblock %}

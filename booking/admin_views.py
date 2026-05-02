@@ -22,13 +22,22 @@ def admin_dashboard(request):
     total_reservations = Reservation.objects.count()
     total_students = Student.objects.count()
     total_families = Family.objects.count()
-    
+
+    next_lesson = (
+        LessonSlot.objects
+        .filter(start_time__gte=timezone.now())
+        .order_by('start_time')
+        .prefetch_related('reservation_set__student__family__user')
+        .first()
+    )
+
     context = {
         'total_lessons': total_lessons,
         'upcoming_lessons': upcoming_lessons,
         'total_reservations': total_reservations,
         'total_students': total_students,
         'total_families': total_families,
+        'next_lesson': next_lesson,
     }
     return render(request, 'booking/admin/dashboard.html', context)
 
