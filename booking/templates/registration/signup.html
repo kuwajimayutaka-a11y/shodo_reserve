@@ -25,7 +25,18 @@
             <div class="mb-3">
                 <label for="{{ form.password1.id_for_label }}" class="form-label fw-semibold">パスワード</label>
                 {{ form.password1 }}
-                {% if form.password1.errors %}<div class="text-danger small mt-1">{{ form.password1.errors.0 }}</div>{% endif %}
+                {% if form.password1.errors %}
+                    <div class="text-danger small mt-1">{{ form.password1.errors.0 }}</div>
+                {% endif %}
+                <div class="mt-2 p-2 rounded small" style="background:#f8f9fa; color:#6c757d; font-size:0.8rem;">
+                    <i class="bi bi-info-circle me-1"></i>パスワードのルール
+                    <ul class="mb-0 mt-1 ps-3">
+                        <li>8文字以上</li>
+                        <li>数字だけは不可</li>
+                        <li>よく使われるパスワードは不可</li>
+                        <li>氏名・メールアドレスに似たものは不可</li>
+                    </ul>
+                </div>
             </div>
 
             <div class="mb-4">
