@@ -134,23 +134,23 @@
 
     <nav>
         {% if user.is_authenticated %}
-            <span class="hdr-user">{{ user.name }} さん</span>
+            <span class="hdr-user"><i class="bi bi-person me-1"></i>{{ user.name }}</span>
             {% if not user.is_staff %}
-                <a href="{% url 'reservation_calendar' %}">予約カレンダー</a>
-                <a href="{% url 'view_students' %}">生徒情報</a>
+                <a href="{% url 'reservation_calendar' %}"><i class="bi bi-calendar-check me-1"></i>予約</a>
+                <a href="{% url 'view_students' %}"><i class="bi bi-people me-1"></i>生徒情報</a>
             {% else %}
-                <a href="{% url 'admin_dashboard' %}">ダッシュボード</a>
-                <a href="{% url 'admin_reservation_calendar' %}">カレンダー</a>
-                <a href="{% url 'admin_create_lesson_slots' %}">授業枠作成</a>
-                <a href="{% url 'admin_student_management' %}">生徒管理</a>
+                <a href="{% url 'admin_dashboard' %}"><i class="bi bi-speedometer2 me-1"></i>ダッシュボード</a>
+                <a href="{% url 'admin_reservation_calendar' %}"><i class="bi bi-calendar-range me-1"></i>カレンダー</a>
+                <a href="{% url 'admin_create_lesson_slots' %}"><i class="bi bi-calendar-plus me-1"></i>授業枠作成</a>
+                <a href="{% url 'admin_student_management' %}"><i class="bi bi-mortarboard me-1"></i>生徒管理</a>
             {% endif %}
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
-                <button type="submit" class="logout-btn">ログアウト</button>
+                <button type="submit" class="logout-btn"><i class="bi bi-box-arrow-right me-1"></i>ログアウト</button>
             </form>
         {% else %}
-            <a href="{% url 'login' %}">ログイン</a>
-            <a href="{% url 'signup' %}">新規登録</a>
+            <a href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right me-1"></i>ログイン</a>
+            <a href="{% url 'signup' %}"><i class="bi bi-person-plus me-1"></i>新規登録</a>
         {% endif %}
     </nav>
 </header>
