@@ -216,20 +216,6 @@ document.addEventListener("DOMContentLoaded", function() {
                             <i class="bi bi-check-circle me-1"></i>予約する
                         </button>
                     </form>
-                    {% elif lesson.available_slots <= 0 %}
-                    <form method="post" action="{% url 'reserve_lesson' lesson.id %}" class="d-flex gap-2 align-items-center mt-2 js-reserve-form" data-lesson-id="{{ lesson.id }}">
-                        {% csrf_token %}
-                        <select name="student_id" class="form-select form-select-sm" style="max-width:160px;" required>
-                            {% for student in students %}
-                                {% if not student.id in booked_ids %}
-                                <option value="{{ student.id }}">{{ student.name }}</option>
-                                {% endif %}
-                            {% endfor %}
-                        </select>
-                        <button type="submit" class="btn btn-warning btn-sm">
-                            <i class="bi bi-clock me-1"></i>補欠登録
-                        </button>
-                    </form>
                     {% endif %}
                     {% endwith %}
                 {% endif %}

@@ -12,7 +12,7 @@ from django.conf import settings
 from collections import defaultdict
 from datetime import timedelta
 from django.db import IntegrityError
-from .models import Family, Student, LessonSlot, Reservation, Waitlist
+from .models import Family, Student, LessonSlot, Reservation
 from .forms import SignUpForm, StudentForm
 from django.utils import timezone
 
@@ -168,7 +168,6 @@ def reserve_lesson(request, lesson_id):
                 if wants_json:
                     return JsonResponse({
                         'success': True,
-                        'status_type': 'reserved',
                         'message': message,
                         'lesson_id': lesson.id,
                         'available_slots': lesson.available_slots(),
@@ -182,23 +181,10 @@ def reserve_lesson(request, lesson_id):
                     return JsonResponse({'success': False, 'message': message}, status=400)
                 messages.error(request, message)
         else:
-            try:
-                Waitlist.objects.create(lesson_slot=lesson, student=student)
-                message = f'{student.name}を補欠登録しました。'
-                if wants_json:
-                    return JsonResponse({
-                        'success': True,
-                        'status_type': 'waitlist',
-                        'message': message,
-                        'lesson_id': lesson.id,
-                        'available_slots': lesson.available_slots(),
-                    })
-                messages.info(request, message)
-            except IntegrityError:
-                message = '補欠登録に失敗しました。すでに登録済みの可能性があります。'
-                if wants_json:
-                    return JsonResponse({'success': False, 'message': message}, status=400)
-                messages.error(request, message)
+            message = '満席のため予約できません。'
+            if wants_json:
+                return JsonResponse({'success': False, 'message': message}, status=400)
+            messages.error(request, message)
     return redirect('reservation_calendar')
 
 
