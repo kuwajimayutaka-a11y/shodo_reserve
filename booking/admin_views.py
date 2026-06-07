@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
 from django.contrib import messages
+from django.db.models import Q
 from datetime import timedelta, datetime
 from .forms import LessonSlotCreateForm, LessonSlotEditForm, StudentForm, FamilyEditForm
 from .models import LessonSlot, Reservation, Waitlist, Family, Student
@@ -245,10 +246,18 @@ def reservation_list(request):
 @user_passes_test(is_staff)
 def student_management(request):
     """生徒管理一覧"""
+    query = request.GET.get('q', '').strip()
     families = Family.objects.all().select_related('user').prefetch_related('student_set')
-    
+    if query:
+        families = families.filter(
+            Q(user__name__icontains=query) |
+            Q(phone_number__icontains=query) |
+            Q(student__name__icontains=query)
+        ).distinct()
+
     context = {
-        'families': families
+        'families': families,
+        'query': query,
     }
     return render(request, 'booking/admin/student_management.html', context)
 

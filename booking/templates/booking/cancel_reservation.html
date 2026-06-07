@@ -13,7 +13,14 @@
     <h3 style="margin-top: 0; color: #856404;"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>以下の予約をキャンセルしますか?</h3>
     
     <div style="margin: 20px 0; padding: 15px; background-color: white; border: 1px solid #ffc107; border-radius: 4px;">
-        <p style="margin: 5px 0;"><strong>授業名:</strong> {% if reservation.lesson_slot.title %}{{ reservation.lesson_slot.title }}{% else %}書道教室{% endif %}</p>
+        <p style="margin: 5px 0;">
+            <strong>授業名:</strong> {% if reservation.lesson_slot.title %}{{ reservation.lesson_slot.title }}{% else %}書道教室{% endif %}
+            {% if reservation.lesson_slot.classroom == 'ishihara' %}
+                <span class="badge ms-1" style="background:#7c3aed;color:white;font-size:0.72em;">石原</span>
+            {% else %}
+                <span class="badge ms-1" style="background:#0d9488;color:white;font-size:0.72em;">横川</span>
+            {% endif %}
+        </p>
         <p style="margin: 5px 0;"><strong>生徒名:</strong> {{ reservation.student.name }}</p>
         <p style="margin: 5px 0;"><strong>授業日時:</strong> {{ reservation.lesson_slot.start_time|date:"Y年m月d日 H:i" }} - {{ reservation.lesson_slot.end_time|date:"H:i" }}</p>
         <p style="margin: 5px 0;"><strong>予約日時:</strong> {{ reservation.reserved_at|date:"Y年m月d日 H:i:s" }}</p>

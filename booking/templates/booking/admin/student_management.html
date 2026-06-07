@@ -16,6 +16,17 @@
     <a href="{% url 'admin_dashboard' %}" style="color: #0d9488; text-decoration: none;">← 管理者ダッシュボードに戻る</a>
 </div>
 
+<form method="get" style="margin-bottom: 20px; display: flex; gap: 8px; max-width: 420px;">
+    <input type="text" name="q" value="{{ query }}" placeholder="保護者名・生徒名・電話番号で検索"
+           style="flex: 1; padding: 8px 12px; border: 1px solid #dee2e6; border-radius: 6px;">
+    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> 検索</button>
+    {% if query %}
+        <a href="{% url 'admin_student_management' %}" class="btn btn-outline-secondary">クリア</a>
+    {% endif %}
+</form>
+{% if query %}
+    <p style="color: #6c757d; margin-bottom: 12px;">「{{ query }}」の検索結果: {{ families|length }}件</p>
+{% endif %}
 
 
 {% for family in families %}
@@ -82,7 +93,11 @@
     </div>
 {% empty %}
     <div style="margin-top: 20px; padding: 20px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; text-align: center; color: #6c757d;">
-        <p>保護者アカウントがありません。</p>
+        {% if query %}
+            <p>「{{ query }}」に一致する保護者・生徒が見つかりませんでした。</p>
+        {% else %}
+            <p>保護者アカウントがありません。</p>
+        {% endif %}
     </div>
 {% endfor %}
 {% endblock %}
