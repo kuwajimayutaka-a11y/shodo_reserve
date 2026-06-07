@@ -23,6 +23,14 @@
         {% endif %}
     </div>
 
+    <div style="margin-bottom: 20px;">
+        <label for="{{ form.classroom.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">{{ form.classroom.label }}</label>
+        {{ form.classroom }}
+        {% if form.classroom.errors %}
+            <div class="text-danger small mt-1">{{ form.classroom.errors }}</div>
+        {% endif %}
+    </div>
+
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
         <div>
             <label for="{{ form.start_time.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">開始日時</label>

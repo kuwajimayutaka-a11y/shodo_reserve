@@ -128,7 +128,17 @@ def reservation_calendar(request):
         return redirect('admin_dashboard')
     family = get_object_or_404(Family, user=request.user)
     students = Student.objects.filter(family=family)
-    lessons = LessonSlot.objects.filter(start_time__gte=timezone.now()).order_by('start_time')
+
+    # 保護者の教室アクセス権に基づいてフィルタリング
+    allowed_classrooms = []
+    if family.access_yokogawa:
+        allowed_classrooms.append('yokogawa')
+    if family.access_ishihara:
+        allowed_classrooms.append('ishihara')
+    lessons = LessonSlot.objects.filter(
+        start_time__gte=timezone.now(),
+        classroom__in=allowed_classrooms,
+    ).order_by('start_time')
 
     # 自分の生徒の予約: {lesson_id: set(student_id)}
     my_reserved = {}
@@ -157,6 +167,20 @@ def reserve_lesson(request, lesson_id):
     lesson = get_object_or_404(LessonSlot, pk=lesson_id)
     family = get_object_or_404(Family, user=request.user)
     wants_json = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+
+    # 教室アクセス権チェック
+    allowed_classrooms = []
+    if family.access_yokogawa:
+        allowed_classrooms.append('yokogawa')
+    if family.access_ishihara:
+        allowed_classrooms.append('ishihara')
+    if lesson.classroom not in allowed_classrooms:
+        message = 'この教室の授業は予約できません。'
+        if wants_json:
+            return JsonResponse({'success': False, 'message': message}, status=403)
+        messages.error(request, message)
+        return redirect('reservation_calendar')
+
     if request.method == 'POST':
         student = get_object_or_404(Student, pk=request.POST.get('student_id'), family=family)
         if timezone.now() < lesson.reservation_start_time:

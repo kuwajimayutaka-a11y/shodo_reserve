@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import CustomUser, LessonSlot, Student
+from .models import CustomUser, LessonSlot, Student, CLASSROOM_CHOICES
 
 
 class SignUpForm(UserCreationForm):
@@ -71,6 +71,12 @@ class LessonSlotCreateForm(forms.Form):
         widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
         help_text="この日時から予約を受け付けます。"
     )
+    classroom = forms.ChoiceField(
+        choices=CLASSROOM_CHOICES,
+        label='教室',
+        initial='yokogawa',
+        widget=forms.Select(),
+    )
 
     def clean(self):
         cleaned_data = super().clean()
@@ -91,7 +97,7 @@ class LessonSlotCreateForm(forms.Form):
 class LessonSlotEditForm(forms.ModelForm):
     class Meta:
         model = LessonSlot
-        fields = ['title', 'start_time', 'end_time', 'capacity', 'reservation_start_time']
+        fields = ['title', 'classroom', 'start_time', 'end_time', 'capacity', 'reservation_start_time']
         widgets = {
             'title': forms.TextInput(attrs={'placeholder': '任意'}),
             'start_time': forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
@@ -125,4 +131,12 @@ class FamilyEditForm(forms.Form):
     phone_number = forms.CharField(
         max_length=15, required=False, label='電話番号',
         widget=forms.TextInput(attrs={'placeholder': '例: 090-1234-5678'})
+    )
+    access_yokogawa = forms.BooleanField(
+        required=False, label='通常教室（横川）',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+    )
+    access_ishihara = forms.BooleanField(
+        required=False, label='石原教室',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
     )

@@ -168,6 +168,13 @@ button.submit-btn:hover { background:#0f766e; transform:translateY(-1px); }
         {% if form.title.errors %}<div class="error-text">{{ form.title.errors }}</div>{% endif %}
     </div>
 
+    <!-- 教室 -->
+    <div class="form-group">
+        <label>{{ form.classroom.label }}</label>
+        {{ form.classroom }}
+        {% if form.classroom.errors %}<div class="error-text">{{ form.classroom.errors }}</div>{% endif %}
+    </div>
+
     <!-- 開始日・終了日 -->
     <div class="grid-2 form-group">
         <div>

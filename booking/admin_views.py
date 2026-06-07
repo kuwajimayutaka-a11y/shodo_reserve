@@ -12,19 +12,32 @@ def is_staff(user):
     """管理者権限チェック"""
     return user.is_staff
 
+
+def _allowed_classrooms(user):
+    """スタッフのアクセス可能な教室リストを返す（superuserは全教室）"""
+    if user.is_superuser:
+        return ['ishihara', 'yokogawa']
+    classroom = getattr(user, 'classroom', 'all')
+    if not classroom or classroom == 'all':
+        return ['ishihara', 'yokogawa']
+    return [classroom]
+
 # 管理者トップページ
 @login_required
 @user_passes_test(is_staff)
 def admin_dashboard(request):
     """管理者ダッシュボード"""
-    total_lessons = LessonSlot.objects.count()
-    upcoming_lessons = LessonSlot.objects.filter(start_time__gte=timezone.now()).count()
-    total_reservations = Reservation.objects.count()
+    allowed = _allowed_classrooms(request.user)
+    lesson_qs = LessonSlot.objects.filter(classroom__in=allowed)
+
+    total_lessons = lesson_qs.count()
+    upcoming_lessons = lesson_qs.filter(start_time__gte=timezone.now()).count()
+    total_reservations = Reservation.objects.filter(lesson_slot__classroom__in=allowed).count()
     total_students = Student.objects.count()
     total_families = Family.objects.count()
 
     next_lesson = (
-        LessonSlot.objects
+        lesson_qs
         .filter(start_time__gte=timezone.now())
         .order_by('start_time')
         .first()
@@ -34,7 +47,7 @@ def admin_dashboard(request):
     if next_lesson:
         next_date = next_lesson.start_time.date()
         next_day_lessons = (
-            LessonSlot.objects
+            lesson_qs
             .filter(start_time__date=next_date)
             .order_by('start_time')
             .prefetch_related('reservation_set__student__family__user')
@@ -79,6 +92,7 @@ def create_lesson_slots(request):
             capacity = data["capacity"]
             title = data["title"]
             reservation_start_datetime = data["reservation_start_datetime"]
+            classroom = data["classroom"]
 
             # 授業名が空の場合のデフォルト設定
             if not title:
@@ -118,10 +132,11 @@ def create_lesson_slots(request):
                         lesson_end_dt = datetime.combine(current_date, end_time, tzinfo=timezone.get_current_timezone())
                         LessonSlot.objects.create(
                             title=title,
+                            classroom=classroom,
                             start_time=lesson_start_dt,
                             end_time=lesson_end_dt,
                             capacity=capacity,
-                            reservation_start_time=reservation_start_datetime
+                            reservation_start_time=reservation_start_datetime,
                         )
                         created_count += 1
                 
@@ -143,8 +158,9 @@ def create_lesson_slots(request):
 @user_passes_test(is_staff)
 def lesson_list(request):
     """授業枠一覧"""
-    lessons = LessonSlot.objects.all().order_by('-start_time')
-    
+    allowed = _allowed_classrooms(request.user)
+    lessons = LessonSlot.objects.filter(classroom__in=allowed).order_by('-start_time')
+
     context = {
         'lessons': lessons
     }
@@ -214,8 +230,11 @@ def create_lesson_single(request):
 @user_passes_test(is_staff)
 def reservation_list(request):
     """予約一覧"""
-    reservations = Reservation.objects.all().order_by('-reserved_at')
-    
+    allowed = _allowed_classrooms(request.user)
+    reservations = Reservation.objects.filter(
+        lesson_slot__classroom__in=allowed
+    ).order_by('-reserved_at')
+
     context = {
         'reservations': reservations
     }
@@ -324,11 +343,18 @@ def edit_family_admin(request, family_id):
             family.user.name = form.cleaned_data['name']
             family.user.save()
             family.phone_number = form.cleaned_data['phone_number']
+            family.access_yokogawa = form.cleaned_data['access_yokogawa']
+            family.access_ishihara = form.cleaned_data['access_ishihara']
             family.save()
             messages.success(request, f"保護者「{family.user.name}」の情報を更新しました。")
             return redirect('admin_student_management')
     else:
-        form = FamilyEditForm(initial={'name': family.user.name, 'phone_number': family.phone_number})
+        form = FamilyEditForm(initial={
+            'name': family.user.name,
+            'phone_number': family.phone_number,
+            'access_yokogawa': family.access_yokogawa,
+            'access_ishihara': family.access_ishihara,
+        })
     return render(request, 'booking/admin/edit_family.html', {'form': form, 'family': family})
 
 
@@ -359,8 +385,12 @@ def admin_reservation_calendar(request):
     """管理者用予約カレンダー"""
     from collections import defaultdict
     
-    # 今後の授業枠を取得
-    lessons = LessonSlot.objects.filter(start_time__gte=timezone.now()).order_by('start_time')
+    # 今後の授業枠を取得（担当教室でフィルタリング）
+    allowed = _allowed_classrooms(request.user)
+    lessons = LessonSlot.objects.filter(
+        start_time__gte=timezone.now(),
+        classroom__in=allowed,
+    ).order_by('start_time')
     
     # 日付ごとにグループ化
     lessons_by_date = defaultdict(list)

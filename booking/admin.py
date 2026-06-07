@@ -45,6 +45,7 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (None,       {'fields': ('email', 'password')}),
         ('個人情報', {'fields': ('name',)}),
+        ('担当教室', {'fields': ('classroom',)}),
         ('権限',     {'fields': ('is_staff', 'is_active', 'is_superuser', 'groups', 'user_permissions')}),
         ('日付',     {'fields': ('last_login', 'date_joined')}),
     )
@@ -67,9 +68,14 @@ class StudentInline(admin.TabularInline):
 
 @admin.register(Family)
 class FamilyAdmin(admin.ModelAdmin):
-    list_display = ('get_name', 'get_email', 'phone_number', 'get_student_count')
+    list_display = ('get_name', 'get_email', 'phone_number', 'access_yokogawa', 'access_ishihara', 'get_student_count')
+    list_filter = ('access_yokogawa', 'access_ishihara')
     search_fields = ('user__email', 'user__name', 'phone_number')
     inlines = [StudentInline]
+    fieldsets = (
+        (None, {'fields': ('user', 'phone_number')}),
+        ('教室アクセス権', {'fields': ('access_yokogawa', 'access_ishihara')}),
+    )
 
     @admin.display(description='保護者名')
     def get_name(self, obj):
@@ -100,8 +106,8 @@ class StudentAdmin(admin.ModelAdmin):
 
 @admin.register(LessonSlot)
 class LessonSlotAdmin(admin.ModelAdmin):
-    list_display = ('title', 'start_time', 'end_time', 'capacity', 'available_slots', 'reservation_start_time')
-    list_filter = ('title',)
+    list_display = ('title', 'classroom', 'start_time', 'end_time', 'capacity', 'available_slots', 'reservation_start_time')
+    list_filter = ('classroom', 'title')
     search_fields = ('title',)
     date_hierarchy = 'start_time'
     ordering = ('-start_time',)

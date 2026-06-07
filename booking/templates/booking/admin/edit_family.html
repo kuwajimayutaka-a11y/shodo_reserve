@@ -30,6 +30,24 @@
         {% if form.phone_number.errors %}<div class="text-danger small mt-1">{{ form.phone_number.errors }}</div>{% endif %}
     </div>
 
+    <div style="margin-bottom: 20px; padding: 16px; background: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6;">
+        <p style="margin: 0 0 10px 0; font-weight: 600; color: #495057;">教室アクセス権</p>
+        <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+            <div class="form-check">
+                {{ form.access_yokogawa }}
+                <label class="form-check-label" for="{{ form.access_yokogawa.id_for_label }}">
+                    <span class="badge" style="background:#0d9488;color:white;margin-right:4px;">横川</span>{{ form.access_yokogawa.label }}
+                </label>
+            </div>
+            <div class="form-check">
+                {{ form.access_ishihara }}
+                <label class="form-check-label" for="{{ form.access_ishihara.id_for_label }}">
+                    <span class="badge" style="background:#7c3aed;color:white;margin-right:4px;">石原</span>{{ form.access_ishihara.label }}
+                </label>
+            </div>
+        </div>
+    </div>
+
     <div style="margin-top: 30px;">
         <button type="submit" class="btn btn-primary me-2">更新</button>
         <a href="{% url 'admin_student_management' %}" class="btn btn-secondary">キャンセル</a>

@@ -3,6 +3,19 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.conf import settings
 from django.utils import timezone
 
+# 教室選択肢
+CLASSROOM_CHOICES = [
+    ('yokogawa', '通常教室（横川）'),
+    ('ishihara', '石原教室'),
+]
+
+# スタッフ担当教室選択肢
+CLASSROOM_STAFF_CHOICES = [
+    ('all', '全教室'),
+    ('yokogawa', '通常教室（横川）のみ'),
+    ('ishihara', '石原教室のみ'),
+]
+
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, name, password=None, **extra_fields):
@@ -26,6 +39,14 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True, verbose_name='メールアドレス')
     name = models.CharField(max_length=100, verbose_name='氏名')
 
+    classroom = models.CharField(
+        max_length=20,
+        choices=CLASSROOM_STAFF_CHOICES,
+        default='all',
+        blank=True,
+        verbose_name='担当教室',
+    )
+
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
@@ -46,6 +67,8 @@ class Family(models.Model):
         verbose_name="保護者アカウント"
     )
     phone_number = models.CharField(max_length=15, blank=True, verbose_name="連絡先電話番号")
+    access_yokogawa = models.BooleanField(default=True, verbose_name='通常教室（横川）')
+    access_ishihara = models.BooleanField(default=False, verbose_name='石原教室')
 
     class Meta:
         verbose_name = "家族/保護者"
@@ -69,6 +92,12 @@ class Student(models.Model):
 
 class LessonSlot(models.Model):
     title = models.CharField(max_length=200, verbose_name="授業名")
+    classroom = models.CharField(
+        max_length=20,
+        choices=CLASSROOM_CHOICES,
+        default='yokogawa',
+        verbose_name='教室',
+    )
     start_time = models.DateTimeField(verbose_name="開始日時")
     end_time = models.DateTimeField(verbose_name="終了日時")
     capacity = models.PositiveIntegerField(default=1, verbose_name="定員")
