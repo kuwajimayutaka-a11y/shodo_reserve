@@ -132,8 +132,11 @@ def reservation_calendar(request):
 
     # 自分の生徒の予約: {lesson_id: set(student_id)}
     my_reserved = {}
-    for res in Reservation.objects.filter(student__in=students).select_related('student'):
+    upcoming_reservations = defaultdict(list)
+    for res in Reservation.objects.filter(student__in=students).select_related('student', 'lesson_slot').order_by('lesson_slot__start_time'):
         my_reserved.setdefault(res.lesson_slot_id, set()).add(res.student_id)
+        if res.lesson_slot.end_time >= timezone.now():
+            upcoming_reservations[res.student_id].append(res)
 
     lessons_by_date = defaultdict(list)
     for lesson in lessons:
@@ -143,6 +146,7 @@ def reservation_calendar(request):
         'students': students,
         'lessons_by_date': sorted(lessons_by_date.items()),
         'my_reserved': my_reserved,
+        'upcoming_reservations': dict(upcoming_reservations),
     })
 
 
