@@ -45,38 +45,6 @@
     {% endfor %}
 </div>
 
-<!-- 生徒数の推移 -->
-{% if student_chart %}
-<div class="card-wa" style="margin-top:1rem;">
-    <div class="card-wa-head" style="justify-content:space-between;">
-        <span class="h"><i class="bi bi-graph-up-arrow me-1" style="color:var(--navy);"></i>生徒数の推移</span>
-        <span class="pill pill-navy">現在 {{ student_chart.latest }} 名</span>
-    </div>
-    <div class="card-wa-body">
-        <div style="overflow-x:auto;">
-        <svg viewBox="0 0 {{ student_chart.width }} {{ student_chart.height }}" width="100%" preserveAspectRatio="xMidYMid meet" style="min-width:520px;display:block;" role="img" aria-label="生徒数の推移グラフ">
-            <defs>
-                <linearGradient id="growthFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="var(--blue)" stop-opacity="0.22"/>
-                    <stop offset="100%" stop-color="var(--blue)" stop-opacity="0"/>
-                </linearGradient>
-            </defs>
-            {% for g in student_chart.gridlines %}
-            <line x1="{{ g.x1 }}" y1="{{ g.y }}" x2="{{ g.x2 }}" y2="{{ g.y }}" stroke="var(--border)" stroke-width="1"/>
-            <text x="{{ g.x1|add:'-8' }}" y="{{ g.y|add:'4' }}" text-anchor="end" font-size="11" fill="var(--muted)">{{ g.value }}</text>
-            {% endfor %}
-            <path d="{{ student_chart.area }}" fill="url(#growthFill)"/>
-            <polyline points="{{ student_chart.line }}" fill="none" stroke="var(--blue)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-            {% for p in student_chart.points %}
-            <circle cx="{{ p.x }}" cy="{{ p.y }}" r="3.5" fill="#fff" stroke="var(--blue)" stroke-width="2"/>
-            <text x="{{ p.x }}" y="{{ student_chart.height|add:'-10' }}" text-anchor="middle" font-size="11" fill="var(--muted)">{{ p.label }}</text>
-            {% endfor %}
-        </svg>
-        </div>
-    </div>
-</div>
-{% endif %}
-
 <!-- 管理メニュー -->
 <h2 class="section-title"><i class="bi bi-grid"></i>管理メニュー</h2>
 <div class="menu-grid">

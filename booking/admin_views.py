@@ -23,56 +23,6 @@ def _allowed_classrooms(user):
         return ['ishihara', 'yokogawa']
     return [classroom]
 
-def _build_growth_chart(series, width=720, height=240):
-    """月次の累計生徒数リストからSVG折れ線グラフ用の座標を組み立てる。"""
-    pl, pr, pt, pb = 40, 14, 18, 30
-    plot_w = width - pl - pr
-    plot_h = height - pt - pb
-    n = len(series)
-    counts = [p['count'] for p in series]
-    raw_max = max(counts) if counts else 0
-    # 目盛りが整うよう上限に少し余裕を持たせる
-    y_max = max(raw_max, 1)
-    if y_max <= 5:
-        y_max = 5
-    else:
-        y_max = ((y_max + 4) // 5) * 5  # 5刻みに切り上げ
-
-    points = []
-    for i, p in enumerate(series):
-        x = pl + (plot_w * i / (n - 1) if n > 1 else 0)
-        yv = pt + plot_h * (1 - p['count'] / y_max)
-        points.append({
-            'x': round(x, 1), 'y': round(yv, 1),
-            'label': p['label'], 'year': p['year'], 'count': p['count'],
-        })
-
-    baseline = pt + plot_h
-    line = ' '.join(f"{pt_['x']},{pt_['y']}" for pt_ in points)
-    if points:
-        area = (
-            f"M {points[0]['x']},{baseline} "
-            + 'L ' + ' L '.join(f"{pt_['x']},{pt_['y']}" for pt_ in points)
-            + f" L {points[-1]['x']},{baseline} Z"
-        )
-    else:
-        area = ''
-
-    # Y軸グリッド線（0 / 中間 / 上限）
-    gridlines = []
-    for frac in (0, 0.5, 1):
-        val = round(y_max * frac)
-        gy = pt + plot_h * (1 - frac)
-        gridlines.append({'y': round(gy, 1), 'value': val, 'x1': pl, 'x2': pl + plot_w})
-
-    return {
-        'width': width, 'height': height,
-        'points': points, 'line': line, 'area': area,
-        'gridlines': gridlines,
-        'latest': points[-1]['count'] if points else 0,
-    }
-
-
 # 管理者トップページ
 @login_required
 @user_passes_test(is_staff)
@@ -104,40 +54,9 @@ def admin_dashboard(request):
             .prefetch_related('reservation_set__student__family__user')
         )
 
-    # 生徒数の推移（直近12ヶ月・月末時点の累計）
-    now = timezone.localtime(timezone.now())
-    months = []
-    y, m = now.year, now.month
-    for _ in range(12):
-        months.append((y, m))
-        m -= 1
-        if m == 0:
-            y, m = y - 1, 12
-    months.reverse()
-
-    created_dates = list(
-        Student.objects.filter(created_at__isnull=False)
-        .values_list('created_at', flat=True)
-    )
-    created_dates = [timezone.localtime(d) for d in created_dates]
-
-    series = []
-    for y, m in months:
-        # その月末までに登録された生徒の累計
-        if m == 12:
-            next_month_start = datetime(y + 1, 1, 1)
-        else:
-            next_month_start = datetime(y, m + 1, 1)
-        next_month_start = timezone.make_aware(next_month_start)
-        count = sum(1 for d in created_dates if d < next_month_start)
-        series.append({'label': f'{m}月', 'year': y, 'count': count})
-
-    student_chart = _build_growth_chart(series)
-
     context = {
         'next_lesson': next_lesson,
         'next_day_lessons': next_day_lessons,
-        'student_chart': student_chart,
         'stats': [
             ('総授業枠', total_lessons),
             ('今後の授業', upcoming_lessons),
