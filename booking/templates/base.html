@@ -99,6 +99,8 @@
     main input:not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]):not([type=file]):not([type=hidden]),
     main textarea, main select{width:100%;padding:11px 13px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);font-size:15px;color:var(--ink);background:var(--surface);font-family:inherit;transition:border-color .15s,box-shadow .15s;}
     main input:focus,main textarea:focus,main select:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 3px rgba(59,130,246,.15);}
+    /* iOS Safari の date/datetime-local/time はネイティブ装飾で固有の最小幅を持ち、width:100%を無視してはみ出す・値が中央寄せになる。正規化して他の入力欄と揃える。 */
+    main input[type=date],main input[type=datetime-local],main input[type=time]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;min-height:44px;text-align:left;}
     .back-link{display:inline-flex;align-items:center;gap:.3em;color:var(--blue);text-decoration:none;font-size:14px;margin-bottom:1.25rem;}
     .back-link:hover{color:var(--blue-hover);}
     .form-narrow{max-width:520px;}
