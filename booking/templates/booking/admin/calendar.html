@@ -2,9 +2,30 @@
 {% block title %}管理者用予約カレンダー{% endblock %}
 
 {% block content %}
-<!-- Select2用CDN -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<style>
+/* ===== 生徒選択ボトムシート ===== */
+.picker-overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:3000;display:none;}
+.picker-overlay.show{display:block;}
+.picker-sheet{position:fixed;left:0;right:0;bottom:0;z-index:3001;background:var(--surface);border-radius:16px 16px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.25);display:flex;flex-direction:column;max-height:85vh;transform:translateY(100%);transition:transform .22s ease;}
+.picker-sheet.show{transform:translateY(0);}
+@media(min-width:600px){.picker-sheet{left:50%;right:auto;bottom:auto;top:50%;width:440px;max-width:92vw;max-height:80vh;transform:translate(-50%,-46%);border-radius:16px;}.picker-sheet.show{transform:translate(-50%,-50%);}}
+.picker-head{padding:14px 16px 12px;border-bottom:1px solid var(--border);}
+.picker-title{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:.6rem;}
+.picker-title .t{font-weight:800;font-size:14px;color:var(--ink);}
+.picker-close{background:none;border:none;font-size:24px;line-height:1;color:var(--muted);cursor:pointer;padding:0 4px;}
+.picker-search{width:100%;padding:12px 14px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);font-size:16px;color:var(--ink);background:var(--surface);font-family:inherit;}
+.picker-search:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 3px rgba(59,130,246,.15);}
+.picker-count{font-size:12px;color:var(--muted);margin-top:.5rem;}
+.picker-list{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;}
+.picker-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:15px 16px;border-bottom:1px solid var(--border);cursor:pointer;font-size:15px;color:var(--ink);background:none;border-left:none;border-right:none;border-top:none;width:100%;text-align:left;font-family:inherit;}
+.picker-item:active{background:var(--surface-2);}
+.picker-item .nm{font-weight:600;}
+.picker-item .fam{color:var(--muted);font-size:12px;margin-left:6px;font-weight:400;}
+.picker-item.reserved{opacity:.5;cursor:default;pointer-events:none;}
+.picker-item .done{font-size:12px;color:var(--success);font-weight:700;white-space:nowrap;}
+.picker-item .chev{color:var(--border-strong);flex-shrink:0;}
+.picker-empty{padding:28px 16px;text-align:center;color:var(--muted);font-size:14px;}
+</style>
 
 {% include "booking/partials/_page_head.html" with title="管理者用予約カレンダー" sub="日付を選んで授業枠の予約を作成・確認" %}
 
@@ -38,16 +59,14 @@
                         <div class="field-hint" style="margin-bottom:.6rem;"><i class="bi bi-unlock me-1"></i>予約開始: {{ lesson.reservation_start_time|date:"Y年m月d日 H:i" }}</div>
 
                         {% if all_students %}
-                            <form method="post" action="{% url 'admin_reserve_lesson' lesson.id %}" class="reserve-form-inline js-admin-reserve-form" data-lesson-id="{{ lesson.id }}">
-                                {% csrf_token %}
-                                <select name="student_id" id="student_{{ lesson.id }}" required class="select2 select">
-                                    <option value="">-- 生徒を選択 --</option>
-                                    {% for student in all_students %}
-                                        <option value="{{ student.id }}">{{ student.name }} ({{ student.family.user.name }})</option>
-                                    {% endfor %}
-                                </select>
-                                <button type="submit" class="btn-wa btn-primary-wa">予約する</button>
-                            </form>
+                            <button type="button"
+                                    class="btn-wa btn-primary-wa js-open-picker"
+                                    data-lesson-id="{{ lesson.id }}"
+                                    data-action="{% url 'admin_reserve_lesson' lesson.id %}"
+                                    data-label="{{ lesson.start_time|date:'n月j日 H:i' }}–{{ lesson.end_time|date:'H:i' }} {{ lesson.title|default:'書道教室' }}"
+                                    data-reserved="{% for r in lesson.reservation_set.all %}{{ r.student.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                                <i class="bi bi-person-plus"></i>予約を追加
+                            </button>
                         {% else %}
                             <p style="color:var(--muted);">生徒が登録されていません。</p>
                         {% endif %}
@@ -70,15 +89,41 @@
 {% empty %}
     {% include "booking/partials/_empty_state.html" with icon="bi-calendar-x" text="現在、授業枠はありません。" %}
 {% endfor %}
+
 <div id="snackbar-wrap" class="snackbar-wrap"></div>
+
+{# ===== 生徒選択ボトムシート（全カード共通・1つだけ） ===== #}
+<form id="admin-csrf-holder" style="display:none;">{% csrf_token %}</form>
+<script type="application/json" id="students-data">[{% for s in all_students %}{"id":{{ s.id }},"n":"{{ s.name|escapejs }}","f":"{{ s.family.user.name|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
+
+<div class="picker-overlay" id="picker-overlay"></div>
+<div class="picker-sheet" id="picker-sheet" role="dialog" aria-modal="true" aria-label="生徒を選択">
+    <div class="picker-head">
+        <div class="picker-title">
+            <span class="t" id="picker-lesson-label"></span>
+            <button type="button" class="picker-close" id="picker-close" aria-label="閉じる">&times;</button>
+        </div>
+        <input type="text" class="picker-search" id="picker-search" placeholder="生徒名・保護者名で検索" autocomplete="off">
+        <div class="picker-count" id="picker-count"></div>
+    </div>
+    <div class="picker-list" id="picker-list"></div>
+</div>
 
 <script>
     function initAdminReservationAjax() {
-        if (window.$ && typeof window.$.fn.select2 === 'function') {
-            document.querySelectorAll('.select2').forEach(function(select) {
-                window.$(select).select2({ width: '100%' });
-            });
-        }
+        const students = JSON.parse(document.getElementById('students-data').textContent);
+        const csrfToken = document.querySelector('#admin-csrf-holder [name=csrfmiddlewaretoken]').value;
+
+        const overlay = document.getElementById('picker-overlay');
+        const sheet = document.getElementById('picker-sheet');
+        const searchInput = document.getElementById('picker-search');
+        const listEl = document.getElementById('picker-list');
+        const countEl = document.getElementById('picker-count');
+        const labelEl = document.getElementById('picker-lesson-label');
+
+        let currentLessonId = null;
+        let currentAction = null;
+        let currentReserved = [];
 
         function showSnackbar(message, tone) {
             const wrap = document.getElementById('snackbar-wrap');
@@ -93,15 +138,13 @@
             const card = document.querySelector('.reservation-card[data-lesson-id="' + lessonId + '"]');
             if (!card) return;
             const slotsEl = card.querySelector('.js-available-slots');
-            if (!slotsEl) return;
-            slotsEl.textContent = availableSlots;
+            if (slotsEl) slotsEl.textContent = availableSlots;
         }
 
         function appendCurrentReservation(lessonId, studentName, familyName) {
             const card = document.querySelector('.reservation-card[data-lesson-id="' + lessonId + '"]');
             if (!card) return;
             let box = card.querySelector('.js-current-reservations');
-            let list;
             if (!box) {
                 box = document.createElement('div');
                 box.className = 'js-current-reservations';
@@ -112,7 +155,7 @@
                 box.innerHTML = '<strong style="font-size:14px;">現在の予約:</strong><ul class="js-current-reservation-list" style="margin:.35rem 0 0; padding-left:1.25rem;"></ul>';
                 card.appendChild(box);
             }
-            list = box.querySelector('.js-current-reservation-list');
+            const list = box.querySelector('.js-current-reservation-list');
             if (!list) return;
             const label = studentName + ' (' + familyName + ')';
             const exists = Array.from(list.querySelectorAll('li')).some(function (li) { return li.textContent === label; });
@@ -122,35 +165,108 @@
             list.appendChild(li);
         }
 
-        document.querySelectorAll('.js-admin-reserve-form').forEach(function(form) {
-            form.addEventListener('submit', async function(event) {
-                event.preventDefault();
-                const submitBtn = form.querySelector('button[type="submit"]');
-                if (submitBtn) submitBtn.disabled = true;
-                try {
-                    const response = await fetch(form.action, {
-                        method: 'POST',
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                        body: new FormData(form),
-                    });
-                    const payload = await response.json();
-                    if (!response.ok || !payload.success) {
-                        showSnackbar(payload.message || '予約に失敗しました。', 'error');
-                        return;
-                    }
-                    showSnackbar(payload.message || '予約が完了しました。', 'success');
-                    if (typeof payload.available_slots === 'number') {
-                        updateAvailableSlots(payload.lesson_id, payload.available_slots);
-                    }
-                    if (payload.student_name && payload.family_name) {
-                        appendCurrentReservation(payload.lesson_id, payload.student_name, payload.family_name);
-                    }
-                } catch (error) {
-                    showSnackbar('通信エラーが発生しました。', 'error');
-                } finally {
-                    if (submitBtn) submitBtn.disabled = false;
-                }
+        function renderList(query) {
+            const q = query.trim().toLowerCase();
+            const matches = students.filter(function (s) {
+                return !q || s.n.toLowerCase().indexOf(q) !== -1 || s.f.toLowerCase().indexOf(q) !== -1;
             });
+            listEl.innerHTML = '';
+            if (matches.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'picker-empty';
+                empty.textContent = '該当する生徒がいません。';
+                listEl.appendChild(empty);
+                countEl.textContent = '';
+                return;
+            }
+            const frag = document.createDocumentFragment();
+            matches.forEach(function (s) {
+                const reserved = currentReserved.indexOf(String(s.id)) !== -1;
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'picker-item' + (reserved ? ' reserved' : '');
+                const left = '<span><span class="nm">' + escapeHtml(s.n) + '</span><span class="fam">' + escapeHtml(s.f) + '</span></span>';
+                const right = reserved
+                    ? '<span class="done"><i class="bi bi-check-circle"></i>予約済み</span>'
+                    : '<i class="bi bi-chevron-right chev"></i>';
+                item.innerHTML = left + right;
+                if (!reserved) {
+                    item.addEventListener('click', function () { selectStudent(s); });
+                }
+                frag.appendChild(item);
+            });
+            listEl.appendChild(frag);
+            countEl.textContent = matches.length + ' 名' + (q ? '（絞り込み中）' : '');
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+
+        function openPicker(btn) {
+            currentLessonId = btn.dataset.lessonId;
+            currentAction = btn.dataset.action;
+            currentReserved = (btn.dataset.reserved || '').split(',').filter(Boolean);
+            labelEl.textContent = btn.dataset.label || '';
+            searchInput.value = '';
+            renderList('');
+            overlay.classList.add('show');
+            requestAnimationFrame(function () { sheet.classList.add('show'); });
+            setTimeout(function () { searchInput.focus(); }, 120);
+        }
+
+        function closePicker() {
+            sheet.classList.remove('show');
+            overlay.classList.remove('show');
+        }
+
+        async function selectStudent(student) {
+            const lessonId = currentLessonId;
+            const action = currentAction;
+            closePicker();
+            try {
+                const fd = new FormData();
+                fd.append('student_id', student.id);
+                fd.append('csrfmiddlewaretoken', csrfToken);
+                const response = await fetch(action, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: fd,
+                });
+                const payload = await response.json();
+                if (!response.ok || !payload.success) {
+                    showSnackbar(payload.message || '予約に失敗しました。', 'error');
+                    return;
+                }
+                showSnackbar(payload.message || '予約が完了しました。', 'success');
+                if (typeof payload.available_slots === 'number') {
+                    updateAvailableSlots(payload.lesson_id, payload.available_slots);
+                }
+                if (payload.student_name && payload.family_name) {
+                    appendCurrentReservation(payload.lesson_id, payload.student_name, payload.family_name);
+                }
+                // 予約済みとして記録（同じ授業を再度開いたとき反映）
+                const btn = document.querySelector('.js-open-picker[data-lesson-id="' + lessonId + '"]');
+                if (btn) {
+                    const set = (btn.dataset.reserved || '').split(',').filter(Boolean);
+                    if (set.indexOf(String(student.id)) === -1) set.push(String(student.id));
+                    btn.dataset.reserved = set.join(',');
+                }
+            } catch (error) {
+                showSnackbar('通信エラーが発生しました。', 'error');
+            }
+        }
+
+        document.querySelectorAll('.js-open-picker').forEach(function (btn) {
+            btn.addEventListener('click', function () { openPicker(btn); });
+        });
+        overlay.addEventListener('click', closePicker);
+        document.getElementById('picker-close').addEventListener('click', closePicker);
+        searchInput.addEventListener('input', function () { renderList(searchInput.value); });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && overlay.classList.contains('show')) closePicker();
         });
     }
 
