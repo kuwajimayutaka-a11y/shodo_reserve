@@ -12,6 +12,7 @@ from django.conf import settings
 from collections import defaultdict
 from datetime import timedelta
 from django.db import IntegrityError
+from django.db.models import Count, Q
 from .models import Family, Student, LessonSlot, Reservation
 from .forms import SignUpForm, StudentForm
 from django.utils import timezone
@@ -71,7 +72,16 @@ def view_students(request):
     if request.user.is_staff:
         return redirect('admin_dashboard')
     family = get_object_or_404(Family, user=request.user)
-    students = Student.objects.filter(family=family)
+    now = timezone.localtime(timezone.now())
+    students = Student.objects.filter(family=family).annotate(
+        month_reservation_count=Count(
+            'reservation',
+            filter=Q(
+                reservation__lesson_slot__start_time__year=now.year,
+                reservation__lesson_slot__start_time__month=now.month,
+            ),
+        )
+    )
     return render(request, 'booking/view_students.html', {
         'students': students, 'family': family,
     })

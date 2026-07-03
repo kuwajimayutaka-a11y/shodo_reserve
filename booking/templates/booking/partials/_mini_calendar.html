@@ -12,14 +12,12 @@
     const todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
     let currentYear, currentMonth, selectedDate = null;
 
-    if (lessonDates.size > 0) {
-        const first = Array.from(lessonDates).sort()[0];
-        currentYear = parseInt(first.slice(0,4));
-        currentMonth = parseInt(first.slice(5,7)) - 1;
-    } else {
-        currentYear = today.getFullYear();
-        currentMonth = today.getMonth();
-    }
+    // 初期表示は「今日以降で最初に授業がある月」。無ければ今月。
+    // （過去分を含むカレンダーでも今月付近から開き、前月ボタンで遡れる）
+    const upcoming = Array.from(lessonDates).sort().find(function(d){ return d >= todayStr; });
+    const startDate = upcoming || todayStr;
+    currentYear = parseInt(startDate.slice(0,4));
+    currentMonth = parseInt(startDate.slice(5,7)) - 1;
 
     function renderCal() {
         const container = document.getElementById('mini-calendar');

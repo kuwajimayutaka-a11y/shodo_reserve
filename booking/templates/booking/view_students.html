@@ -23,7 +23,7 @@
             <div class="card-wa pad h-100" style="display:flex;justify-content:space-between;align-items:center;gap:.75rem;margin-bottom:0;">
                 <div>
                     <div style="font-size:17px;font-weight:800;margin-bottom:.4rem;">{{ student.name }}</div>
-                    <span class="pill pill-muted"><i class="bi bi-calendar-check"></i>予約数 {{ student.reservation_set.count }}</span>
+                    <span class="pill pill-muted"><i class="bi bi-calendar-check"></i>今月の予約数 {{ student.month_reservation_count }}</span>
                 </div>
                 <a href="{% url 'edit_student' student.id %}" class="btn-wa btn-outline-wa btn-sm-wa">
                     <i class="bi bi-pencil"></i>編集

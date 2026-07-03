@@ -25,7 +25,7 @@
       --danger:#e11d48;--danger-soft:#fff1f2;
       --warning:#d97706;--warning-soft:#fffbeb;
       /* 曜日 */
-      --sat:#3b82f6;--sun:#ef4444;
+      --sat:#7089b0;--sun:#c98686;
       /* 教室 */
       --room-yokogawa:#0d9488;--room-yokogawa-soft:#ccfbf1;
       --room-ishihara:#7c3aed;--room-ishihara-soft:#ede9fe;
@@ -38,10 +38,12 @@
 
     /* ===== Header ===== */
     .hdr{background:url("{% static 'booking/img/header.png' %}") center 40%/100% auto no-repeat;background-color:#1a1535;padding:0.5rem 1.25rem;display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;right:0;z-index:1000;height:64px;}
-    .hdr-logo{color:#ffffff;font-family:'Noto Serif JP',serif;font-size:13px;font-weight:300;letter-spacing:0.12em;display:flex;align-items:center;gap:8px;text-decoration:none;text-shadow:0 1px 4px rgba(0,0,0,0.5);}
+    .hdr-title{display:flex;align-items:center;gap:8px;min-width:0;}
+    .hdr-logo{color:#ffffff;font-family:'Noto Serif JP',serif;font-size:16px;font-weight:400;letter-spacing:0.12em;display:flex;align-items:center;gap:8px;text-decoration:none;text-shadow:0 1px 4px rgba(0,0,0,0.5);}
     .hdr-logo:hover{color:rgba(255,255,255,0.85);}
     .hdr-brush{width:2px;height:16px;background:rgba(255,255,255,0.5);border-radius:1px;flex-shrink:0;}
     .hdr-user{font-size:11px;color:rgba(255,255,255,0.75);letter-spacing:0.06em;padding:0 8px;text-shadow:0 1px 3px rgba(0,0,0,0.4);}
+    .hdr-admin-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#fff;background:var(--danger);border-radius:999px;padding:3px 9px;letter-spacing:0.06em;margin-right:4px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,0.3);}
     nav{display:flex;align-items:center;gap:2px;}
     nav a{font-size:12px;color:#ffffff;text-decoration:none;padding:5px 9px;border-radius:2px;letter-spacing:0.05em;transition:background 0.15s;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,0.4);}
     nav a:hover{background:rgba(255,255,255,0.15);color:#ffffff;}
@@ -185,7 +187,7 @@
     .cal-cell.has-lesson{cursor:pointer;font-weight:800;}
     .cal-cell.has-lesson:hover{background:var(--blue-soft);}
     .cal-cell.today{box-shadow:inset 0 0 0 1.5px var(--border-strong);}
-    .cal-cell.selected{background:var(--blue)!important;color:#fff!important;box-shadow:0 6px 16px rgba(59,130,246,.35);}
+    .cal-cell.selected{background:var(--blue)!important;color:#fff!important;box-shadow:0 2px 6px rgba(59,130,246,.22);}
     .cal-cell.selected .cal-dot-yokogawa,.cal-cell.selected .cal-dot-ishihara{background:#fff;}
     .cal-dots{position:absolute;bottom:6px;left:0;right:0;display:flex;gap:3px;justify-content:center;}
     .cal-dot{width:6px;height:6px;border-radius:50%;}
@@ -254,10 +256,15 @@
 <body>
 
 <header class="hdr">
-    <a href="/" class="hdr-logo">
-        <div class="hdr-brush"></div>
-        秀雪書道教室　予約システム
-    </a>
+    <div class="hdr-title">
+        <a href="/" class="hdr-logo">
+            <div class="hdr-brush"></div>
+            秀雪書道教室　予約システム
+        </a>
+        {% if user.is_staff %}
+            <span class="hdr-admin-badge"><i class="bi bi-shield-lock-fill"></i>管理者</span>
+        {% endif %}
+    </div>
 
     <button class="menu-btn" onclick="document.querySelector('nav').classList.toggle('show')" aria-label="メニュー">
         <span></span><span></span><span></span>

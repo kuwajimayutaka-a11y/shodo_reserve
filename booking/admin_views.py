@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q, Count, Prefetch
 from datetime import timedelta, datetime
 from .forms import LessonSlotCreateForm, LessonSlotEditForm, StudentForm, FamilyEditForm
 from .models import LessonSlot, Reservation, Waitlist, Family, Student
@@ -247,7 +247,19 @@ def reservation_list(request):
 def student_management(request):
     """生徒管理一覧"""
     query = request.GET.get('q', '').strip()
-    families = Family.objects.all().select_related('user').prefetch_related('student_set')
+    now = timezone.localtime(timezone.now())
+    students_qs = Student.objects.annotate(
+        month_reservation_count=Count(
+            'reservation',
+            filter=Q(
+                reservation__lesson_slot__start_time__year=now.year,
+                reservation__lesson_slot__start_time__month=now.month,
+            ),
+        )
+    )
+    families = Family.objects.all().select_related('user').prefetch_related(
+        Prefetch('student_set', queryset=students_qs)
+    )
     if query:
         families = families.filter(
             Q(user__name__icontains=query) |
@@ -394,10 +406,9 @@ def admin_reservation_calendar(request):
     """管理者用予約カレンダー"""
     from collections import defaultdict
     
-    # 今後の授業枠を取得（担当教室でフィルタリング）
+    # 全授業枠を取得（過去分も含む・担当教室でフィルタリング）
     allowed = _allowed_classrooms(request.user)
     lessons = LessonSlot.objects.filter(
-        start_time__gte=timezone.now(),
         classroom__in=allowed,
     ).order_by('start_time')
     
