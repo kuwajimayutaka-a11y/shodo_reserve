@@ -1,0 +1,54 @@
+{# params: lessons_by_date — (date, [lesson,...]) タプルの iterable / all_students — 生徒リスト（存在チェックと選択肢に使用） #}
+{# 管理者カレンダーの日付ブロック。初回描画とオンデマンド読み込み（過去月）の両方で使う。 #}
+{% for date, lessons in lessons_by_date %}
+    <div class="date-block" data-date="{{ date|date:'Y-m-d' }}" style="display:none;">
+        <div class="card-wa">
+            <div class="card-wa-head"><span class="h"><i class="bi bi-calendar-day me-1" style="color:var(--navy);"></i>{{ date|date:"Y年m月d日 (D)" }}</span></div>
+            <div class="card-wa-body">
+                {% for lesson in lessons %}
+                    <div class="lesson-card-wa reservation-card" data-lesson-id="{{ lesson.id }}">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:.5rem;">
+                            <div style="font-weight:800;font-size:16px;">
+                                {{ lesson.title|default:"書道教室" }}
+                                {% include "booking/partials/_classroom_badge.html" with classroom=lesson.classroom %}
+                            </div>
+                            <a href="{% url 'admin_delete_lesson_slot' lesson.id %}" class="btn-wa btn-outline-danger-wa btn-sm-wa" style="flex-shrink:0;"><i class="bi bi-trash"></i>削除</a>
+                        </div>
+                        <div class="lc-meta">
+                            <span class="meta"><i class="bi bi-clock"></i>{{ lesson.start_time|date:"H:i" }}–{{ lesson.end_time|date:"H:i" }}</span>
+                            <span class="meta"><i class="bi bi-people"></i>定員 <b>{{ lesson.capacity }}</b></span>
+                            <span class="pill {% if lesson.available_slots > 0 %}pill-success{% else %}pill-danger{% endif %}">残り <span class="js-available-slots">{{ lesson.available_slots }}</span> 枠</span>
+                        </div>
+                        <div class="field-hint" style="margin-bottom:.6rem;"><i class="bi bi-unlock me-1"></i>予約開始: {{ lesson.reservation_start_time|date:"Y年m月d日 H:i" }}</div>
+
+                        {% if all_students %}
+                            <form method="post" action="{% url 'admin_reserve_lesson' lesson.id %}" class="reserve-form-inline js-admin-reserve-form" data-lesson-id="{{ lesson.id }}">
+                                {% csrf_token %}
+                                <select name="student_id" id="student_{{ lesson.id }}" required class="select2 select">
+                                    <option value="">-- 生徒を選択 --</option>
+                                    {% for student in all_students %}
+                                        <option value="{{ student.id }}">{{ student.name }} ({{ student.family.user.name }})</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn-wa btn-primary-wa">予約する</button>
+                            </form>
+                        {% else %}
+                            <p style="color:var(--muted);">生徒が登録されていません。</p>
+                        {% endif %}
+
+                        {% if lesson.reservation_set.all %}
+                            <div class="js-current-reservations" style="margin-top:.9rem;padding:.75rem;background:var(--surface-2);border-radius:var(--radius-sm);">
+                                <strong style="font-size:14px;">現在の予約:</strong>
+                                <ul class="js-current-reservation-list" style="margin:.35rem 0 0;padding-left:1.25rem;">
+                                    {% for reservation in lesson.reservation_set.all %}
+                                        <li>{{ reservation.student.name }} ({{ reservation.student.family.user.name }})</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endfor %}

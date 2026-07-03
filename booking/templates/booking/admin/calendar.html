@@ -16,69 +16,28 @@
 <h2 class="section-title"><i class="bi bi-calendar3"></i>授業枠一覧と予約作成</h2>
 {% include "booking/partials/_mini_calendar.html" with dates=lessons_by_date %}
 
-{% for date, lessons in lessons_by_date %}
-    <div class="date-block" data-date="{{ date|date:'Y-m-d' }}" style="display:none;">
-        <div class="card-wa">
-            <div class="card-wa-head"><span class="h"><i class="bi bi-calendar-day me-1" style="color:var(--navy);"></i>{{ date|date:"Y年m月d日 (D)" }}</span></div>
-            <div class="card-wa-body">
-                {% for lesson in lessons %}
-                    <div class="lesson-card-wa reservation-card" data-lesson-id="{{ lesson.id }}">
-                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:.5rem;">
-                            <div style="font-weight:800;font-size:16px;">
-                                {{ lesson.title|default:"書道教室" }}
-                                {% include "booking/partials/_classroom_badge.html" with classroom=lesson.classroom %}
-                            </div>
-                            <a href="{% url 'admin_delete_lesson_slot' lesson.id %}" class="btn-wa btn-outline-danger-wa btn-sm-wa" style="flex-shrink:0;"><i class="bi bi-trash"></i>削除</a>
-                        </div>
-                        <div class="lc-meta">
-                            <span class="meta"><i class="bi bi-clock"></i>{{ lesson.start_time|date:"H:i" }}–{{ lesson.end_time|date:"H:i" }}</span>
-                            <span class="meta"><i class="bi bi-people"></i>定員 <b>{{ lesson.capacity }}</b></span>
-                            <span class="pill {% if lesson.available_slots > 0 %}pill-success{% else %}pill-danger{% endif %}">残り <span class="js-available-slots">{{ lesson.available_slots }}</span> 枠</span>
-                        </div>
-                        <div class="field-hint" style="margin-bottom:.6rem;"><i class="bi bi-unlock me-1"></i>予約開始: {{ lesson.reservation_start_time|date:"Y年m月d日 H:i" }}</div>
-
-                        {% if all_students %}
-                            <form method="post" action="{% url 'admin_reserve_lesson' lesson.id %}" class="reserve-form-inline js-admin-reserve-form" data-lesson-id="{{ lesson.id }}">
-                                {% csrf_token %}
-                                <select name="student_id" id="student_{{ lesson.id }}" required class="select2 select">
-                                    <option value="">-- 生徒を選択 --</option>
-                                    {% for student in all_students %}
-                                        <option value="{{ student.id }}">{{ student.name }} ({{ student.family.user.name }})</option>
-                                    {% endfor %}
-                                </select>
-                                <button type="submit" class="btn-wa btn-primary-wa">予約する</button>
-                            </form>
-                        {% else %}
-                            <p style="color:var(--muted);">生徒が登録されていません。</p>
-                        {% endif %}
-
-                        {% if lesson.reservation_set.all %}
-                            <div class="js-current-reservations" style="margin-top:.9rem;padding:.75rem;background:var(--surface-2);border-radius:var(--radius-sm);">
-                                <strong style="font-size:14px;">現在の予約:</strong>
-                                <ul class="js-current-reservation-list" style="margin:.35rem 0 0;padding-left:1.25rem;">
-                                    {% for reservation in lesson.reservation_set.all %}
-                                        <li>{{ reservation.student.name }} ({{ reservation.student.family.user.name }})</li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        {% endif %}
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-{% empty %}
+<div id="date-blocks" data-month-url="{% url 'admin_calendar_month' %}" data-coverage-start="{{ since|date:'Y-m' }}">
+{% if lessons_by_date %}
+    {% include "booking/partials/_calendar_date_blocks.html" %}
+{% else %}
     {% include "booking/partials/_empty_state.html" with icon="bi-calendar-x" text="現在、授業枠はありません。" %}
-{% endfor %}
+{% endif %}
+</div>
 <div id="snackbar-wrap" class="snackbar-wrap"></div>
 
 <script>
-    function initAdminReservationAjax() {
-        if (window.$ && typeof window.$.fn.select2 === 'function') {
-            document.querySelectorAll('.select2').forEach(function(select) {
+    // root 配下の未初期化 select2 を初期化する（初回・オンデマンド読み込み共通）
+    function initSelect2(root) {
+        if (!(window.$ && typeof window.$.fn.select2 === 'function')) return;
+        (root || document).querySelectorAll('.select2').forEach(function(select) {
+            if (!window.$(select).hasClass('select2-hidden-accessible')) {
                 window.$(select).select2({ width: '100%' });
-            });
-        }
+            }
+        });
+    }
+
+    function initAdminReservationAjax() {
+        initSelect2(document);
 
         function showSnackbar(message, tone) {
             const wrap = document.getElementById('snackbar-wrap');
@@ -122,36 +81,67 @@
             list.appendChild(li);
         }
 
-        document.querySelectorAll('.js-admin-reserve-form').forEach(function(form) {
-            form.addEventListener('submit', async function(event) {
-                event.preventDefault();
-                const submitBtn = form.querySelector('button[type="submit"]');
-                if (submitBtn) submitBtn.disabled = true;
-                try {
-                    const response = await fetch(form.action, {
-                        method: 'POST',
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                        body: new FormData(form),
-                    });
-                    const payload = await response.json();
-                    if (!response.ok || !payload.success) {
-                        showSnackbar(payload.message || '予約に失敗しました。', 'error');
-                        return;
-                    }
-                    showSnackbar(payload.message || '予約が完了しました。', 'success');
-                    if (typeof payload.available_slots === 'number') {
-                        updateAvailableSlots(payload.lesson_id, payload.available_slots);
-                    }
-                    if (payload.student_name && payload.family_name) {
-                        appendCurrentReservation(payload.lesson_id, payload.student_name, payload.family_name);
-                    }
-                } catch (error) {
-                    showSnackbar('通信エラーが発生しました。', 'error');
-                } finally {
-                    if (submitBtn) submitBtn.disabled = false;
+        // 動的に差し込まれる過去月のフォームにも効くよう submit をデリゲート
+        document.addEventListener('submit', async function(event) {
+            const form = event.target.closest('.js-admin-reserve-form');
+            if (!form) return;
+            event.preventDefault();
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) submitBtn.disabled = true;
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: new FormData(form),
+                });
+                const payload = await response.json();
+                if (!response.ok || !payload.success) {
+                    showSnackbar(payload.message || '予約に失敗しました。', 'error');
+                    return;
                 }
-            });
+                showSnackbar(payload.message || '予約が完了しました。', 'success');
+                if (typeof payload.available_slots === 'number') {
+                    updateAvailableSlots(payload.lesson_id, payload.available_slots);
+                }
+                if (payload.student_name && payload.family_name) {
+                    appendCurrentReservation(payload.lesson_id, payload.student_name, payload.family_name);
+                }
+            } catch (error) {
+                showSnackbar('通信エラーが発生しました。', 'error');
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
+            }
         });
+
+        // ミニカレンダーで過去の月へ移動したとき、その月ぶんをオンデマンド取得する。
+        // coverage-start（前月頭）以降は初回描画で既にDOMに存在するため取得しない。
+        const blocksEl = document.getElementById('date-blocks');
+        const monthUrl = blocksEl ? blocksEl.dataset.monthUrl : null;
+        const coverageStart = blocksEl ? blocksEl.dataset.coverageStart : null;
+        const loadedPastMonths = new Set();
+
+        if (monthUrl && coverageStart) {
+            window.__calendarMonthLoader = function(year, month0, lessonRooms, lessonDates) {
+                const key = year + '-' + String(month0 + 1).padStart(2, '0');
+                if (key >= coverageStart) return;            // 初回描画で取得済み
+                if (loadedPastMonths.has(key)) return;       // 取得済み
+                loadedPastMonths.add(key);
+                return fetch(monthUrl + '?year=' + year + '&month=' + (month0 + 1), {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                }).then(function(r) { return r.json(); }).then(function(data) {
+                    Object.assign(lessonRooms, data.rooms || {});
+                    Object.keys(data.rooms || {}).forEach(function(d) { lessonDates.add(d); });
+                    if (data.html && data.html.trim()) {
+                        const empty = blocksEl.querySelector('.empty-state');
+                        if (empty) empty.remove();
+                        blocksEl.insertAdjacentHTML('beforeend', data.html);
+                        initSelect2(blocksEl);
+                    }
+                }).catch(function() {
+                    loadedPastMonths.delete(key);            // 失敗時は再試行できるように
+                });
+            };
+        }
     }
 
     if (document.readyState === 'loading') {

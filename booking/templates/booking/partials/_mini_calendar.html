@@ -19,6 +19,25 @@
     currentYear = parseInt(startDate.slice(0,4));
     currentMonth = parseInt(startDate.slice(5,7)) - 1;
 
+    let loadingMonth = false;
+
+    // 月移動。ページ側が window.__calendarMonthLoader を定義していれば、
+    // 表示範囲外の月に移動したタイミングでオンデマンド取得を行う。
+    function navigate(delta) {
+        currentMonth += delta;
+        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+        const loader = window.__calendarMonthLoader;
+        const result = loader ? loader(currentYear, currentMonth, lessonRooms, lessonDates) : null;
+        if (result && typeof result.then === 'function') {
+            loadingMonth = true;
+            renderCal();
+            result.then(function() { loadingMonth = false; renderCal(); });
+        } else {
+            renderCal();
+        }
+    }
+
     function renderCal() {
         const container = document.getElementById('mini-calendar');
         const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
@@ -28,7 +47,7 @@
 
         let html = '<div class="cal"><div class="cal-header">'
             + '<button class="cal-nav" id="mc-prev" aria-label="前月">&#8249;</button>'
-            + '<span class="cal-title">' + currentYear + '年 ' + monthNames[currentMonth] + '</span>'
+            + '<span class="cal-title">' + currentYear + '年 ' + monthNames[currentMonth] + (loadingMonth ? ' <span style="font-size:11px;color:var(--muted);font-weight:400;">読み込み中…</span>' : '') + '</span>'
             + '<button class="cal-nav" id="mc-next" aria-label="翌月">&#8250;</button></div>'
             + '<div class="cal-grid">';
         dayNames.forEach(function(d, i) {
@@ -61,10 +80,10 @@
         container.innerHTML = html;
 
         document.getElementById('mc-prev').addEventListener('click', function() {
-            currentMonth--; if (currentMonth < 0) { currentMonth = 11; currentYear--; } renderCal();
+            if (!loadingMonth) navigate(-1);
         });
         document.getElementById('mc-next').addEventListener('click', function() {
-            currentMonth++; if (currentMonth > 11) { currentMonth = 0; currentYear++; } renderCal();
+            if (!loadingMonth) navigate(1);
         });
         container.querySelectorAll('.cal-cell.has-lesson').forEach(function(cell) {
             cell.addEventListener('click', function() {

@@ -43,6 +43,7 @@ admin_urlpatterns = [
     path('admin-dashboard/students/<int:student_id>/delete/', admin_views.delete_student_admin, name='admin_delete_student'),
     path('admin-dashboard/reservations/<int:reservation_id>/cancel/', admin_views.cancel_reservation_admin, name='admin_cancel_reservation'),
     path('admin-dashboard/calendar/', admin_views.admin_reservation_calendar, name='admin_reservation_calendar'),
+    path('admin-dashboard/calendar/month/', admin_views.admin_calendar_month, name='admin_calendar_month'),
     path('admin-dashboard/reserve/<int:lesson_id>/', admin_views.admin_reserve_lesson, name='admin_reserve_lesson'),
 ]
 

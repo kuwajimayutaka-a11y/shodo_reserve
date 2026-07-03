@@ -417,22 +417,18 @@ def cancel_reservation_admin(request, reservation_id):
     return render(request, 'booking/admin/cancel_reservation.html', context)
 
 
-# 管理者用予約カレンダー
-@login_required
-@user_passes_test(is_staff)
-def admin_reservation_calendar(request):
-    """管理者用予約カレンダー"""
+def _calendar_lessons_by_date(allowed, start=None, end=None):
+    """カレンダー用に授業枠を [start, end) で取得し、日付ごとにまとめて返す。
+    予約の N+1 を避けるため予約・生徒・保護者をまとめて取得し、
+    残り枠数はアノテーション(_reserved_count)で算出する。"""
     from collections import defaultdict
-    
-    # 授業枠を取得（過去1ヶ月〜未来・担当教室でフィルタリング）
-    # 予約の N+1 を避けるため予約・生徒・保護者をまとめて取得し、
-    # 残り枠数はアノテーションで算出する。
-    allowed = _allowed_classrooms(request.user)
-    since = timezone.now() - timedelta(days=30)
-    lessons = LessonSlot.objects.filter(
-        classroom__in=allowed,
-        start_time__gte=since,
-    ).prefetch_related(
+
+    lessons = LessonSlot.objects.filter(classroom__in=allowed)
+    if start is not None:
+        lessons = lessons.filter(start_time__gte=start)
+    if end is not None:
+        lessons = lessons.filter(start_time__lt=end)
+    lessons = lessons.prefetch_related(
         Prefetch(
             'reservation_set',
             queryset=Reservation.objects.select_related('student__family__user'),
@@ -440,24 +436,80 @@ def admin_reservation_calendar(request):
     ).annotate(
         _reserved_count=Count('reservation'),
     ).order_by('start_time')
-    
-    # 日付ごとにグループ化
+
     lessons_by_date = defaultdict(list)
     for lesson in lessons:
-        date_key = lesson.start_time.date()
-        lessons_by_date[date_key].append(lesson)
-    
-    # 日付順にソート
-    sorted_lessons_by_date = sorted(lessons_by_date.items())
-    
+        lessons_by_date[lesson.start_time.date()].append(lesson)
+    return sorted(lessons_by_date.items())
+
+
+# 管理者用予約カレンダー
+@login_required
+@user_passes_test(is_staff)
+def admin_reservation_calendar(request):
+    """管理者用予約カレンダー。
+
+    初回描画は前月頭〜未来のみ（軽量化のため）。それより過去は
+    ミニカレンダーの月移動時に admin_calendar_month で月単位に取得する。
+    """
+    allowed = _allowed_classrooms(request.user)
+
+    # 表示開始を「前月の1日」に揃える。オンデマンド取得の境界を月単位に
+    # 合わせることで、境界月の取りこぼしを防ぐ。
+    now = timezone.now()
+    first_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    since = (first_of_month - timedelta(days=1)).replace(day=1)
+
+    sorted_lessons_by_date = _calendar_lessons_by_date(allowed, start=since)
+
     # 全生徒を取得
     all_students = Student.objects.all().select_related('family__user').order_by('family__user__name', 'name')
-    
+
     context = {
         'lessons_by_date': sorted_lessons_by_date,
         'all_students': all_students,
+        'since': since,
     }
     return render(request, 'booking/admin/calendar.html', context)
+
+
+@login_required
+@user_passes_test(is_staff)
+def admin_calendar_month(request):
+    """指定した年月の授業枠を、カレンダー日付ブロックのHTMLとして返す（過去月のオンデマンド読み込み用）。"""
+    from django.template.loader import render_to_string
+
+    allowed = _allowed_classrooms(request.user)
+    try:
+        year = int(request.GET.get('year'))
+        month = int(request.GET.get('month'))
+    except (TypeError, ValueError):
+        return JsonResponse({'error': 'invalid parameters'}, status=400)
+    if not (1 <= month <= 12):
+        return JsonResponse({'error': 'invalid month'}, status=400)
+
+    start = timezone.make_aware(datetime(year, month, 1))
+    if month == 12:
+        end = timezone.make_aware(datetime(year + 1, 1, 1))
+    else:
+        end = timezone.make_aware(datetime(year, month + 1, 1))
+
+    sorted_lessons_by_date = _calendar_lessons_by_date(allowed, start=start, end=end)
+
+    rooms = {
+        date.strftime('%Y-%m-%d'): [lesson.classroom for lesson in lessons]
+        for date, lessons in sorted_lessons_by_date
+    }
+    all_students = Student.objects.all().select_related('family__user').order_by('family__user__name', 'name')
+    html = render_to_string(
+        'booking/partials/_calendar_date_blocks.html',
+        {
+            'lessons_by_date': sorted_lessons_by_date,
+            'all_students': all_students,
+        },
+        request=request,
+    )
+    return JsonResponse({'rooms': rooms, 'html': html})
 
 # 管理者による予約作成
 @login_required
