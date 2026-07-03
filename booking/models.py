@@ -115,6 +115,10 @@ class LessonSlot(models.Model):
         return timezone.now() >= self.reservation_start_time and self.available_slots() > 0
 
     def available_slots(self):
+        # ビューで annotate(_reserved_count=Count('reservation')) されていれば
+        # 追加クエリを発行せずにそれを使う（N+1回避）
+        if hasattr(self, '_reserved_count'):
+            return self.capacity - self._reserved_count
         return self.capacity - self.reservation_set.count()
 
 

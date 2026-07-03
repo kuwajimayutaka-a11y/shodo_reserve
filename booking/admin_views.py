@@ -424,10 +424,21 @@ def admin_reservation_calendar(request):
     """管理者用予約カレンダー"""
     from collections import defaultdict
     
-    # 全授業枠を取得（過去分も含む・担当教室でフィルタリング）
+    # 授業枠を取得（過去1ヶ月〜未来・担当教室でフィルタリング）
+    # 予約の N+1 を避けるため予約・生徒・保護者をまとめて取得し、
+    # 残り枠数はアノテーションで算出する。
     allowed = _allowed_classrooms(request.user)
+    since = timezone.now() - timedelta(days=30)
     lessons = LessonSlot.objects.filter(
         classroom__in=allowed,
+        start_time__gte=since,
+    ).prefetch_related(
+        Prefetch(
+            'reservation_set',
+            queryset=Reservation.objects.select_related('student__family__user'),
+        ),
+    ).annotate(
+        _reserved_count=Count('reservation'),
     ).order_by('start_time')
     
     # 日付ごとにグループ化
