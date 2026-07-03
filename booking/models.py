@@ -81,6 +81,7 @@ class Family(models.Model):
 class Student(models.Model):
     family = models.ForeignKey(Family, on_delete=models.CASCADE, verbose_name="保護者")
     name = models.CharField(max_length=100, verbose_name="生徒氏名")
+    created_at = models.DateTimeField(auto_now_add=True, null=True, verbose_name="登録日時")
 
     class Meta:
         verbose_name = "生徒"
