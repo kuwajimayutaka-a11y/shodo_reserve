@@ -32,6 +32,7 @@ admin_urlpatterns = [
     path('admin-dashboard/create-lesson/', admin_views.create_lesson_slots, name='admin_create_lesson_slots'),
     path('admin-dashboard/create-lesson-single/', admin_views.create_lesson_single, name='admin_create_lesson_single'),
     path('admin-dashboard/lessons/', admin_views.lesson_list, name='admin_lesson_list'),
+    path('admin-dashboard/lessons/bulk-delete/', admin_views.bulk_delete_lesson_slots, name='admin_bulk_delete_lesson_slots'),
     path('admin-dashboard/lessons/<int:lesson_id>/edit/', admin_views.edit_lesson_slot, name='admin_edit_lesson_slot'),
     path('admin-dashboard/lessons/<int:lesson_id>/delete/', admin_views.delete_lesson_slot, name='admin_delete_lesson_slot'),
     path('admin-dashboard/reservations/', admin_views.reservation_list, name='admin_reservation_list'),

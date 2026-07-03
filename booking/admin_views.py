@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
 from django.contrib import messages
 from django.db.models import Q, Count, Prefetch
+from django.db.models.functions import ExtractHour, ExtractMinute
 from datetime import timedelta, datetime
 from .forms import LessonSlotCreateForm, LessonSlotEditForm, StudentForm, FamilyEditForm
 from .models import LessonSlot, Reservation, Waitlist, Family, Student
@@ -176,14 +178,69 @@ def create_lesson_slots(request):
 @login_required
 @user_passes_test(is_staff)
 def lesson_list(request):
-    """授業枠一覧"""
+    """授業枠一覧。既定は今日以降のみ表示（過去は scope=past で切替）。
+
+    間違って作成した枠をチェックボックスで選び、一括削除できる。
+    予約数は annotate で取得し行ごとの N+1 を避ける。
+    """
     allowed = _allowed_classrooms(request.user)
-    lessons = LessonSlot.objects.filter(classroom__in=allowed).order_by('-start_time')
+    scope = request.GET.get('scope', 'upcoming')
+
+    lessons = LessonSlot.objects.filter(classroom__in=allowed).annotate(
+        reserved_count=Count('reservation'),
+    )
+
+    today = timezone.localtime(timezone.now()).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+    if scope == 'past':
+        lessons = lessons.filter(start_time__lt=today).order_by('-start_time')
+    else:
+        scope = 'upcoming'
+        lessons = lessons.filter(start_time__gte=today).order_by('start_time')
 
     context = {
-        'lessons': lessons
+        'lessons': lessons,
+        'scope': scope,
     }
     return render(request, 'booking/admin/lesson_list.html', context)
+
+
+# 授業枠一括削除
+@login_required
+@user_passes_test(is_staff)
+def bulk_delete_lesson_slots(request):
+    """選択された授業枠をまとめて削除する（予約も CASCADE で削除）。
+
+    権限のある教室の枠のみを対象にする。scope はメッセージ後の
+    リダイレクト先タブを保つために引き継ぐ。
+    """
+    scope = request.POST.get('scope') or request.GET.get('scope') or 'upcoming'
+    redirect_url = f"{reverse('admin_lesson_list')}?scope={scope}"
+
+    if request.method != 'POST':
+        return redirect(redirect_url)
+
+    allowed = _allowed_classrooms(request.user)
+    ids = request.POST.getlist('lesson_ids')
+    lessons = LessonSlot.objects.filter(pk__in=ids, classroom__in=allowed)
+
+    lesson_count = lessons.count()
+    if lesson_count == 0:
+        messages.error(request, "削除する授業枠が選択されていません。")
+        return redirect(redirect_url)
+
+    reservation_count = Reservation.objects.filter(lesson_slot__in=lessons).count()
+    lessons.delete()  # 予約は CASCADE で削除
+
+    if reservation_count:
+        messages.success(
+            request,
+            f"授業枠 {lesson_count} 件を削除しました（予約 {reservation_count} 件も削除されました）。",
+        )
+    else:
+        messages.success(request, f"授業枠 {lesson_count} 件を削除しました。")
+    return redirect(redirect_url)
 
 # 授業枠個別編集
 @login_required
@@ -251,26 +308,78 @@ def reservation_list(request):
     """予約一覧。授業枠ごとにまとめ、授業日順に表示する。
 
     既定では「今日以降の授業」のみ表示（過去の予約は溜まる一方なので
-    scope=past で切り替える）。予約は授業日時の昇順・同一授業内は生徒名順。
+    scope=past で切り替える）。生徒名/保護者名・日付・時間で絞り込め、
+    絞り込み中は scope をまたいで（過去も含めて）検索する。
+    予約は授業日時の昇順・同一授業内は生徒名順。
     """
     allowed = _allowed_classrooms(request.user)
     scope = request.GET.get('scope', 'upcoming')
+    q = request.GET.get('q', '').strip()
+    date_str = request.GET.get('date', '').strip()
+    time_str = request.GET.get('time', '').strip()
 
-    reservations = Reservation.objects.filter(
+    base_qs = Reservation.objects.filter(
         lesson_slot__classroom__in=allowed
     ).select_related('lesson_slot', 'student__family__user')
 
-    today = timezone.localtime(timezone.now()).replace(
-        hour=0, minute=0, second=0, microsecond=0
-    )
-    if scope == 'past':
-        reservations = reservations.filter(lesson_slot__start_time__lt=today)
-        # 過去は新しい授業が上に来るよう降順
-        reservations = reservations.order_by('-lesson_slot__start_time', 'student__name')
-    else:
-        scope = 'upcoming'
-        reservations = reservations.filter(lesson_slot__start_time__gte=today)
+    # プルダウンの選択肢は「予約が入っている日／時間」だけを提示する
+    # （空振りする日時を選べないようにする）。ローカルタイムゾーンで抽出。
+    date_options = list(base_qs.dates('lesson_slot__start_time', 'day', order='ASC'))
+    time_options = [
+        '%02d:%02d' % (h, m)
+        for h, m in base_qs.annotate(
+            _h=ExtractHour('lesson_slot__start_time'),
+            _m=ExtractMinute('lesson_slot__start_time'),
+        ).values_list('_h', '_m').distinct().order_by('_h', '_m')
+    ]
+
+    reservations = base_qs
+
+    # 名前で絞り込み（生徒名 or 保護者名）
+    if q:
+        reservations = reservations.filter(
+            Q(student__name__icontains=q) |
+            Q(student__family__user__name__icontains=q)
+        )
+
+    # 日付で絞り込み（授業の開催日）
+    date_val = None
+    if date_str:
+        try:
+            date_val = datetime.strptime(date_str, '%Y-%m-%d').date()
+            reservations = reservations.filter(lesson_slot__start_time__date=date_val)
+        except ValueError:
+            date_str = ''
+
+    # 時間で絞り込み（授業の開始時刻 HH:MM）
+    time_val = None
+    if time_str:
+        try:
+            time_val = datetime.strptime(time_str, '%H:%M').time()
+            reservations = reservations.filter(
+                lesson_slot__start_time__hour=time_val.hour,
+                lesson_slot__start_time__minute=time_val.minute,
+            )
+        except ValueError:
+            time_str = ''
+
+    filters_active = bool(q or date_val or time_val)
+
+    if filters_active:
+        # 絞り込み時は scope を無視し、全期間から昇順で表示
         reservations = reservations.order_by('lesson_slot__start_time', 'student__name')
+    else:
+        today = timezone.localtime(timezone.now()).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        if scope == 'past':
+            reservations = reservations.filter(lesson_slot__start_time__lt=today)
+            # 過去は新しい授業が上に来るよう降順
+            reservations = reservations.order_by('-lesson_slot__start_time', 'student__name')
+        else:
+            scope = 'upcoming'
+            reservations = reservations.filter(lesson_slot__start_time__gte=today)
+            reservations = reservations.order_by('lesson_slot__start_time', 'student__name')
 
     # 授業枠ごとにグルーピング（クエリ順を保つため通常の dict を使う）
     groups = {}
@@ -283,6 +392,12 @@ def reservation_list(request):
     context = {
         'lesson_groups': list(groups.values()),
         'scope': scope,
+        'q': q,
+        'date': date_str,
+        'time': time_str,
+        'date_options': date_options,
+        'time_options': time_options,
+        'filters_active': filters_active,
         'total_count': len(reservations),
     }
     return render(request, 'booking/admin/reservation_list.html', context)

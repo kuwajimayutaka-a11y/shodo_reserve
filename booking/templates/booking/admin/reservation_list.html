@@ -6,10 +6,17 @@
 {% include "booking/partials/_page_head.html" with title="予約一覧" sub="授業ごとの予約を確認・キャンセルできます" %}
 
 <style>
-    .seg{display:inline-flex;border:1px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:1.25rem;}
+    .seg{display:inline-flex;border:1px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden;}
     .seg a{padding:8px 16px;font-size:14px;font-weight:600;color:var(--ink-2);text-decoration:none;background:var(--surface);border-right:1px solid var(--border);}
     .seg a:last-child{border-right:none;}
     .seg a.active{background:var(--blue);color:#fff;}
+    .seg.dim a.active{background:var(--surface);color:var(--ink-2);}
+    .filter-bar{display:flex;flex-wrap:wrap;gap:.6rem;align-items:flex-end;margin-bottom:1.25rem;}
+    .filter-bar .fld{display:flex;flex-direction:column;gap:.25rem;}
+    .filter-bar .fld label{font-size:12px;font-weight:600;color:var(--muted);}
+    .filter-bar .input{padding:8px 11px;font-size:14px;}
+    .filter-bar .input.name{min-width:180px;}
+    .filter-note{display:flex;align-items:center;gap:.5rem;font-size:13px;color:var(--ink-2);margin-bottom:1rem;}
     .res-row{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.7rem 0;border-bottom:1px solid var(--border);}
     .res-row:last-child{border-bottom:none;}
     .res-row .who{display:flex;flex-direction:column;gap:2px;min-width:0;}
@@ -22,10 +29,48 @@
 
 <form style="display:none;">{% csrf_token %}</form>
 
-<div class="seg">
-    <a href="?scope=upcoming" class="{% if scope == 'upcoming' %}active{% endif %}">今日以降</a>
-    <a href="?scope=past" class="{% if scope == 'past' %}active{% endif %}">過去</a>
+<div style="margin-bottom:1.25rem;">
+    <div class="seg {% if filters_active %}dim{% endif %}">
+        <a href="?scope=upcoming" class="{% if scope == 'upcoming' and not filters_active %}active{% endif %}">今日以降</a>
+        <a href="?scope=past" class="{% if scope == 'past' and not filters_active %}active{% endif %}">過去</a>
+    </div>
 </div>
+
+<form method="get" class="filter-bar">
+    <div class="fld">
+        <label for="f-q">生徒名・保護者名</label>
+        <input type="text" id="f-q" name="q" value="{{ q }}" placeholder="名前で検索" class="input name">
+    </div>
+    <div class="fld">
+        <label for="f-date">日付（予約のある日）</label>
+        <select id="f-date" name="date" class="input select">
+            <option value="">すべての日</option>
+            {% for d in date_options %}
+                <option value="{{ d|date:'Y-m-d' }}" {% if d|date:'Y-m-d' == date %}selected{% endif %}>{{ d|date:'n月j日 (D)' }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="fld">
+        <label for="f-time">開始時間（授業のある時間）</label>
+        <select id="f-time" name="time" class="input select">
+            <option value="">すべての時間</option>
+            {% for t in time_options %}
+                <option value="{{ t }}" {% if t == time %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn-wa btn-primary-wa"><i class="bi bi-search"></i>絞り込む</button>
+    {% if filters_active %}
+        <a href="{% url 'admin_reservation_list' %}" class="btn-wa btn-outline-wa"><i class="bi bi-x-lg"></i>クリア</a>
+    {% endif %}
+</form>
+
+{% if filters_active %}
+<div class="filter-note">
+    <i class="bi bi-funnel-fill" style="color:var(--blue);"></i>
+    絞り込み中（過去・今後すべての予約が対象）— {{ total_count }} 件
+</div>
+{% endif %}
 
 {% if lesson_groups %}
     <div id="reservation-groups">
@@ -61,7 +106,9 @@
     </div>
 {% else %}
     <div class="card-wa">
-        {% if scope == 'past' %}
+        {% if filters_active %}
+            {% include "booking/partials/_empty_state.html" with icon="bi-funnel" text="条件に一致する予約はありません。" %}
+        {% elif scope == 'past' %}
             {% include "booking/partials/_empty_state.html" with icon="bi-clock-history" text="過去の予約はありません。" %}
         {% else %}
             {% include "booking/partials/_empty_state.html" with icon="bi-clipboard-x" text="今日以降の予約はありません。" %}

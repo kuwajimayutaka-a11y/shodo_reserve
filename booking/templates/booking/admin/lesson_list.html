@@ -3,17 +3,42 @@
 {% block title %}授業枠一覧{% endblock %}
 
 {% block content %}
-{% include "booking/partials/_page_head.html" with title="授業枠一覧" %}
+{% include "booking/partials/_page_head.html" with title="授業枠一覧" sub="チェックを入れて複数の授業枠をまとめて削除できます" %}
 
-<div class="mb-4">
+<style>
+    .seg{display:inline-flex;border:1px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden;}
+    .seg a{padding:8px 16px;font-size:14px;font-weight:600;color:var(--ink-2);text-decoration:none;background:var(--surface);border-right:1px solid var(--border);}
+    .seg a:last-child{border-right:none;}
+    .seg a.active{background:var(--blue);color:#fff;}
+    .list-toolbar{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;justify-content:space-between;margin-bottom:1.25rem;}
+    .wtable td.chk,.wtable th.chk{text-align:center;width:44px;}
+    .wtable input[type=checkbox]{width:17px;height:17px;cursor:pointer;accent-color:var(--blue);}
+    .wtable tr.row-selected td{background:var(--blue-soft);}
+    /* 一括操作バー：選択があるとき下部に固定表示 */
+    .bulk-bar{position:sticky;bottom:0;z-index:30;display:none;align-items:center;justify-content:space-between;gap:1rem;
+        background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--radius-card);
+        box-shadow:var(--shadow-pop);padding:.85rem 1.15rem;margin-top:1rem;}
+    .bulk-bar.show{display:flex;}
+    .bulk-bar .cnt{font-weight:700;color:var(--ink);}
+</style>
+
+<div class="list-toolbar">
+    <div class="seg">
+        <a href="?scope=upcoming" class="{% if scope == 'upcoming' %}active{% endif %}">今日以降</a>
+        <a href="?scope=past" class="{% if scope == 'past' %}active{% endif %}">過去</a>
+    </div>
     <a href="{% url 'admin_create_lesson_slots' %}" class="btn-wa btn-primary-wa"><i class="bi bi-plus-lg"></i>授業枠を一括作成</a>
 </div>
 
 {% if lessons %}
+<form id="bulk-form" method="post" action="{% url 'admin_bulk_delete_lesson_slots' %}">
+    {% csrf_token %}
+    <input type="hidden" name="scope" value="{{ scope }}">
     <div class="table-wrap">
         <table class="wtable">
             <thead>
                 <tr>
+                    <th class="chk"><input type="checkbox" id="check-all" aria-label="すべて選択"></th>
                     <th>授業名</th><th>教室</th><th>開始日時</th><th>終了日時</th>
                     <th style="text-align:center;">定員</th><th style="text-align:center;">予約数</th><th style="text-align:center;">操作</th>
                 </tr>
@@ -21,13 +46,17 @@
             <tbody>
                 {% for lesson in lessons %}
                 <tr>
+                    <td class="chk">
+                        <input type="checkbox" class="row-check" name="lesson_ids" value="{{ lesson.id }}"
+                               data-reserved="{{ lesson.reserved_count }}" aria-label="選択">
+                    </td>
                     <td><strong>{{ lesson.title|default:"書道教室" }}</strong></td>
                     <td>{% include "booking/partials/_classroom_badge.html" with classroom=lesson.classroom %}</td>
                     <td>{{ lesson.start_time|date:"Y/m/d H:i" }}</td>
                     <td>{{ lesson.end_time|date:"Y/m/d H:i" }}</td>
                     <td style="text-align:center;">{{ lesson.capacity }}</td>
                     <td style="text-align:center;">
-                        <span class="pill {% if lesson.available_slots > 0 %}pill-success{% else %}pill-danger{% endif %}">{{ lesson.reservation_set.count }}</span>
+                        <span class="pill {% if lesson.reserved_count > 0 %}pill-navy{% else %}pill-muted{% endif %}">{{ lesson.reserved_count }}</span>
                     </td>
                     <td style="text-align:center;white-space:nowrap;">
                         <a href="{% url 'admin_edit_lesson_slot' lesson.id %}" class="btn-wa btn-outline-wa btn-sm-wa">編集</a>
@@ -38,12 +67,65 @@
             </tbody>
         </table>
     </div>
+
+    <div class="bulk-bar" id="bulk-bar">
+        <span class="cnt"><span id="sel-count">0</span> 件を選択中</span>
+        <button type="submit" class="btn-wa btn-danger-wa" id="bulk-delete-btn"><i class="bi bi-trash"></i>選択した授業枠を削除</button>
+    </div>
+</form>
 {% else %}
     <div class="card-wa">
-        {% include "booking/partials/_empty_state.html" with icon="bi-calendar-x" text="授業枠がありません。" %}
-        <div class="text-center" style="padding-bottom:2rem;">
-            <a href="{% url 'admin_create_lesson_slots' %}" class="btn-wa btn-primary-wa">授業枠を作成する</a>
-        </div>
+        {% if scope == 'past' %}
+            {% include "booking/partials/_empty_state.html" with icon="bi-clock-history" text="過去の授業枠はありません。" %}
+        {% else %}
+            {% include "booking/partials/_empty_state.html" with icon="bi-calendar-x" text="今日以降の授業枠はありません。" %}
+            <div class="text-center" style="padding-bottom:2rem;">
+                <a href="{% url 'admin_create_lesson_slots' %}" class="btn-wa btn-primary-wa">授業枠を作成する</a>
+            </div>
+        {% endif %}
     </div>
 {% endif %}
+
+<script>
+(function() {
+    const form = document.getElementById('bulk-form');
+    if (!form) return;
+    const checkAll = document.getElementById('check-all');
+    const rowChecks = Array.from(form.querySelectorAll('.row-check'));
+    const bar = document.getElementById('bulk-bar');
+    const selCount = document.getElementById('sel-count');
+
+    function selected() { return rowChecks.filter(function(c) { return c.checked; }); }
+
+    function refresh() {
+        const sel = selected();
+        selCount.textContent = sel.length;
+        bar.classList.toggle('show', sel.length > 0);
+        checkAll.checked = sel.length > 0 && sel.length === rowChecks.length;
+        checkAll.indeterminate = sel.length > 0 && sel.length < rowChecks.length;
+        rowChecks.forEach(function(c) { c.closest('tr').classList.toggle('row-selected', c.checked); });
+    }
+
+    checkAll.addEventListener('change', function() {
+        rowChecks.forEach(function(c) { c.checked = checkAll.checked; });
+        refresh();
+    });
+    rowChecks.forEach(function(c) { c.addEventListener('change', refresh); });
+
+    form.addEventListener('submit', function(event) {
+        const sel = selected();
+        if (sel.length === 0) { event.preventDefault(); return; }
+        const reserved = sel.reduce(function(sum, c) { return sum + (parseInt(c.dataset.reserved, 10) || 0); }, 0);
+        let msg = '選択した ' + sel.length + ' 件の授業枠を削除します。よろしいですか?';
+        if (reserved > 0) {
+            msg = '⚠️ 選択した授業枠には予約が ' + reserved + ' 件含まれています。\n'
+                + '削除すると、これらの予約も同時に取り消されます。\n\n'
+                + sel.length + ' 件の授業枠を削除してよろしいですか?';
+        }
+        if (!window.confirm(msg)) { event.preventDefault(); }
+    });
+
+    refresh();
+})();
+</script>
 {% endblock %}
