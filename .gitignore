@@ -13,3 +13,6 @@ db.sqlite3.*
 
 # OS
 .DS_Store
+
+# DBバックアップ（個人情報を含むためコミット禁止）
+backups/
