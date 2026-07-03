@@ -31,11 +31,31 @@ def admin_dashboard(request):
     allowed = _allowed_classrooms(request.user)
     lesson_qs = LessonSlot.objects.filter(classroom__in=allowed)
 
-    total_lessons = lesson_qs.count()
-    upcoming_lessons = lesson_qs.filter(start_time__gte=timezone.now()).count()
-    total_reservations = Reservation.objects.filter(lesson_slot__classroom__in=allowed).count()
     total_students = Student.objects.count()
     total_families = Family.objects.count()
+
+    # 今月の増加数（保護者アカウントの登録日で集計。生徒は保護者の登録月で近似）
+    now = timezone.localtime(timezone.now())
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    new_families = Family.objects.filter(user__date_joined__gte=month_start).count()
+    new_students = Student.objects.filter(family__user__date_joined__gte=month_start).count()
+
+    # 今週（月曜〜日曜）の席の埋まり具合（予約席数 / 総定員）
+    week_start = (now - timedelta(days=now.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
+    week_end = week_start + timedelta(days=7)
+    week_lessons = lesson_qs.filter(
+        start_time__gte=week_start, start_time__lt=week_end
+    ).annotate(res_count=Count('reservation'))
+    week_capacity = 0
+    week_booked = 0
+    for lesson in week_lessons:
+        week_capacity += lesson.capacity
+        week_booked += lesson.res_count
+    week_occupancy = {
+        'booked': week_booked,
+        'capacity': week_capacity,
+        'percent': round(week_booked / week_capacity * 100) if week_capacity else 0,
+    }
 
     next_lesson = (
         lesson_qs
@@ -57,12 +77,10 @@ def admin_dashboard(request):
     context = {
         'next_lesson': next_lesson,
         'next_day_lessons': next_day_lessons,
+        'week_occupancy': week_occupancy,
         'stats': [
-            ('総授業枠', total_lessons),
-            ('今後の授業', upcoming_lessons),
-            ('総予約数', total_reservations),
-            ('生徒数', total_students),
-            ('保護者数', total_families),
+            {'label': '生徒数', 'value': total_students, 'delta': new_students},
+            {'label': '保護者数', 'value': total_families, 'delta': new_families},
         ],
         'menu_items': [
             ('bi bi-calendar-plus', '/admin-dashboard/create-lesson/', '授業枠を一括作成', '期間と曜日を指定して一括作成'),
