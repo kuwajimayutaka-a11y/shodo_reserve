@@ -110,7 +110,7 @@ function initReservationAjax() {
         const badge = card.querySelector('.js-available-badge');
         if (!badge) return;
         if (availableSlots > 0) {
-            badge.className = 'pill pill-danger js-available-badge';
+            badge.className = 'pill pill-open js-available-badge';
             badge.innerHTML = '<span class="dot"></span>残り ' + availableSlots + ' 枠';
         } else {
             badge.className = 'pill pill-muted js-available-badge';

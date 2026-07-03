@@ -1,6 +1,6 @@
 {# params: lesson (available_slots を持つ) #}
 {% if lesson.available_slots > 0 %}
-    <span class="pill pill-danger js-available-badge"><span class="dot"></span>残り {{ lesson.available_slots }} 枠</span>
+    <span class="pill pill-open js-available-badge"><span class="dot"></span>残り {{ lesson.available_slots }} 枠</span>
 {% else %}
     <span class="pill pill-muted js-available-badge">満席</span>
 {% endif %}
