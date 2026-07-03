@@ -3,36 +3,130 @@
 {% block title %}予約一覧{% endblock %}
 
 {% block content %}
-{% include "booking/partials/_page_head.html" with title="予約一覧" %}
+{% include "booking/partials/_page_head.html" with title="予約一覧" sub="授業ごとの予約を確認・キャンセルできます" %}
 
-{% if reservations %}
-    <div class="table-wrap">
-        <table class="wtable">
-            <thead>
-                <tr>
-                    <th>授業名</th><th>教室</th><th>開始日時</th><th>生徒名</th><th>保護者</th><th>予約日時</th><th style="text-align:center;">操作</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for reservation in reservations %}
-                <tr>
-                    <td><strong>{{ reservation.lesson_slot.title|default:"書道教室" }}</strong></td>
-                    <td>{% include "booking/partials/_classroom_badge.html" with classroom=reservation.lesson_slot.classroom %}</td>
-                    <td>{{ reservation.lesson_slot.start_time|date:"Y/m/d H:i" }}</td>
-                    <td>{{ reservation.student.name }}</td>
-                    <td>{{ reservation.student.family.user.name }}</td>
-                    <td style="color:var(--muted);font-size:13px;">{{ reservation.reserved_at|date:"Y/m/d H:i:s" }}</td>
-                    <td style="text-align:center;white-space:nowrap;">
-                        <a href="{% url 'admin_cancel_reservation' reservation.id %}" class="btn-wa btn-outline-danger-wa btn-sm-wa">キャンセル</a>
-                    </td>
-                </tr>
+<style>
+    .seg{display:inline-flex;border:1px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:1.25rem;}
+    .seg a{padding:8px 16px;font-size:14px;font-weight:600;color:var(--ink-2);text-decoration:none;background:var(--surface);border-right:1px solid var(--border);}
+    .seg a:last-child{border-right:none;}
+    .seg a.active{background:var(--blue);color:#fff;}
+    .res-row{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.7rem 0;border-bottom:1px solid var(--border);}
+    .res-row:last-child{border-bottom:none;}
+    .res-row .who{display:flex;flex-direction:column;gap:2px;min-width:0;}
+    .res-row .who .name{font-weight:700;color:var(--ink);font-size:15px;}
+    .res-row .who .meta-sm{font-size:12px;color:var(--muted);}
+    .res-card-head{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;justify-content:space-between;}
+    .res-card-head .when{font-size:15px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:.5rem;}
+    .res-card-head .when i{color:var(--navy);}
+</style>
+
+<form style="display:none;">{% csrf_token %}</form>
+
+<div class="seg">
+    <a href="?scope=upcoming" class="{% if scope == 'upcoming' %}active{% endif %}">今日以降</a>
+    <a href="?scope=past" class="{% if scope == 'past' %}active{% endif %}">過去</a>
+</div>
+
+{% if lesson_groups %}
+    <div id="reservation-groups">
+        {% for group in lesson_groups %}
+        <div class="card-wa js-lesson-group" data-lesson-id="{{ group.lesson.id }}">
+            <div class="card-wa-head res-card-head">
+                <span class="when">
+                    <i class="bi bi-calendar-day"></i>{{ group.lesson.start_time|date:"n月j日 (D) H:i" }}
+                    <span style="font-size:13px;color:var(--muted);font-weight:400;">{{ group.lesson.title|default:"書道教室" }}</span>
+                    {% include "booking/partials/_classroom_badge.html" with classroom=group.lesson.classroom %}
+                </span>
+                <span class="pill pill-muted js-count">{{ group.reservations|length }} 名</span>
+            </div>
+            <div class="card-wa-body" style="padding-top:.4rem;padding-bottom:.4rem;">
+                {% for reservation in group.reservations %}
+                <div class="res-row js-res-row" data-reservation-id="{{ reservation.id }}">
+                    <span class="who">
+                        <span class="name">{{ reservation.student.name }}</span>
+                        <span class="meta-sm">{{ reservation.student.family.user.name }} ・ 予約 {{ reservation.reserved_at|date:"n/j H:i" }}</span>
+                    </span>
+                    <button type="button"
+                            class="btn-wa btn-outline-danger-wa btn-sm-wa js-cancel-res"
+                            data-url="{% url 'admin_cancel_reservation' reservation.id %}"
+                            data-name="{{ reservation.student.name }}"
+                            data-lesson="{{ group.lesson.title|default:'書道教室' }}">
+                        <i class="bi bi-x-lg"></i>キャンセル
+                    </button>
+                </div>
                 {% endfor %}
-            </tbody>
-        </table>
+            </div>
+        </div>
+        {% endfor %}
     </div>
 {% else %}
     <div class="card-wa">
-        {% include "booking/partials/_empty_state.html" with icon="bi-clipboard-x" text="予約がありません。" %}
+        {% if scope == 'past' %}
+            {% include "booking/partials/_empty_state.html" with icon="bi-clock-history" text="過去の予約はありません。" %}
+        {% else %}
+            {% include "booking/partials/_empty_state.html" with icon="bi-clipboard-x" text="今日以降の予約はありません。" %}
+        {% endif %}
     </div>
 {% endif %}
+
+<div id="snackbar-wrap" class="snackbar-wrap"></div>
+
+<script>
+(function() {
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')
+        ? document.querySelector('[name=csrfmiddlewaretoken]').value
+        : (document.cookie.match(/csrftoken=([^;]+)/) || [])[1];
+
+    function showSnackbar(message, tone) {
+        const wrap = document.getElementById('snackbar-wrap');
+        const el = document.createElement('div');
+        el.className = 'snackbar-item snackbar-' + tone;
+        el.textContent = message;
+        wrap.appendChild(el);
+        setTimeout(function() { el.remove(); }, 3000);
+    }
+
+    document.addEventListener('click', async function(event) {
+        const btn = event.target.closest('.js-cancel-res');
+        if (!btn) return;
+
+        const name = btn.dataset.name;
+        const lesson = btn.dataset.lesson;
+        if (!window.confirm(name + 'の「' + lesson + '」への予約をキャンセルしますか?')) return;
+
+        btn.disabled = true;
+        try {
+            const response = await fetch(btn.dataset.url, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrftoken },
+            });
+            const payload = await response.json();
+            if (!response.ok || !payload.success) {
+                showSnackbar(payload.message || 'キャンセルに失敗しました。', 'error');
+                btn.disabled = false;
+                return;
+            }
+            showSnackbar(payload.message || 'キャンセルしました。', 'success');
+
+            const row = btn.closest('.js-res-row');
+            const group = btn.closest('.js-lesson-group');
+            row.remove();
+
+            // 残り件数を更新。0 になったら授業カードごと消す。
+            const remaining = group.querySelectorAll('.js-res-row').length;
+            const countEl = group.querySelector('.js-count');
+            if (countEl) countEl.textContent = remaining + ' 名';
+            if (remaining === 0) group.remove();
+
+            // すべて消えたら空状態を出すためリロード
+            if (!document.querySelector('.js-res-row')) {
+                window.location.reload();
+            }
+        } catch (error) {
+            showSnackbar('通信エラーが発生しました。', 'error');
+            btn.disabled = false;
+        }
+    });
+})();
+</script>
 {% endblock %}

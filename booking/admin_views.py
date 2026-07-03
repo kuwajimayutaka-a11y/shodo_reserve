@@ -248,14 +248,42 @@ def create_lesson_single(request):
 @login_required
 @user_passes_test(is_staff)
 def reservation_list(request):
-    """予約一覧"""
+    """予約一覧。授業枠ごとにまとめ、授業日順に表示する。
+
+    既定では「今日以降の授業」のみ表示（過去の予約は溜まる一方なので
+    scope=past で切り替える）。予約は授業日時の昇順・同一授業内は生徒名順。
+    """
     allowed = _allowed_classrooms(request.user)
+    scope = request.GET.get('scope', 'upcoming')
+
     reservations = Reservation.objects.filter(
         lesson_slot__classroom__in=allowed
-    ).order_by('-reserved_at')
+    ).select_related('lesson_slot', 'student__family__user')
+
+    today = timezone.localtime(timezone.now()).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+    if scope == 'past':
+        reservations = reservations.filter(lesson_slot__start_time__lt=today)
+        # 過去は新しい授業が上に来るよう降順
+        reservations = reservations.order_by('-lesson_slot__start_time', 'student__name')
+    else:
+        scope = 'upcoming'
+        reservations = reservations.filter(lesson_slot__start_time__gte=today)
+        reservations = reservations.order_by('lesson_slot__start_time', 'student__name')
+
+    # 授業枠ごとにグルーピング（クエリ順を保つため通常の dict を使う）
+    groups = {}
+    for reservation in reservations:
+        groups.setdefault(reservation.lesson_slot_id, {
+            'lesson': reservation.lesson_slot,
+            'reservations': [],
+        })['reservations'].append(reservation)
 
     context = {
-        'reservations': reservations
+        'lesson_groups': list(groups.values()),
+        'scope': scope,
+        'total_count': len(reservations),
     }
     return render(request, 'booking/admin/reservation_list.html', context)
 
@@ -401,16 +429,30 @@ def edit_family_admin(request, family_id):
 @login_required
 @user_passes_test(is_staff)
 def cancel_reservation_admin(request, reservation_id):
-    """管理者による予約キャンセル"""
+    """管理者による予約キャンセル。
+
+    予約一覧からは XHR で呼ばれ JSON を返す（インライン削除）。
+    それ以外は従来どおり確認ページ経由でリダイレクトする。
+    """
     reservation = get_object_or_404(Reservation, pk=reservation_id)
-    
+    wants_json = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+
     if request.method == 'POST':
         student_name = reservation.student.name
         lesson_title = reservation.lesson_slot.title or '書道教室'
+        lesson_id = reservation.lesson_slot_id
         reservation.delete()
-        messages.success(request, f'{student_name}の"{lesson_title}"への予約をキャンセルしました。')
+        message = f'{student_name}の"{lesson_title}"への予約をキャンセルしました。'
+        if wants_json:
+            return JsonResponse({
+                'success': True,
+                'message': message,
+                'reservation_id': reservation_id,
+                'lesson_id': lesson_id,
+            })
+        messages.success(request, message)
         return redirect('admin_reservation_list')
-    
+
     context = {
         'reservation': reservation
     }
