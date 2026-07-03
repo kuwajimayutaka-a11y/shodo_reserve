@@ -1,238 +1,75 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% block title %}授業枠一括作成{% endblock %}
 
 {% block content %}
+{% include "booking/partials/_page_head.html" with title="授業枠一括作成" sub="期間・曜日・時間帯から授業枠をまとめて作成" %}
 
-<style>
-/* ページタイトル */
-.page-title {
-    font-size: 26px;
-    font-weight: 700;
-    margin-bottom: 25px;
-    color: #2c3e50;
-    text-align:center;
-}
-
-/* 戻るリンク */
-.back-link {
-    text-decoration: none;
-    color: #0d9488;
-    font-weight: 500;
-    display:block;
-    margin-bottom:15px;
-    text-align:center;
-    transition:.2s;
-}
-.back-link:hover { text-decoration: underline; }
-
-/* フォームカード */
-.form-card {
-    background:white;
-    border-radius:12px;
-    padding:30px;
-    box-shadow:0 5px 20px rgba(0,0,0,.06);
-    margin:20px auto;
-    max-width:750px;
-    box-sizing:border-box;
-}
-
-/* フォームグループ */
-.form-group { margin-bottom:22px; }
-label {
-    display:block;
-    font-weight:600;
-    margin-bottom:6px;
-    color:#34495e;
-}
-
-/* 入力欄 */
-input, select, textarea {
-    width:100%;
-    padding:10px 12px;
-    border-radius:6px;
-    border:1px solid #cfd8dc;
-    font-size:15px;
-    transition:.2s;
-    box-sizing:border-box;
-}
-input:focus, select:focus, textarea:focus {
-    border-color:#0d9488;
-    box-shadow:0 0 0 3px rgba(30,136,229,.25);
-    outline:none;
-}
-
-/* グリッド */
-.grid-2 {
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:22px;
-    align-items: start;
-}
-.grid-2 > div {
-    min-width: 0;
-    overflow: hidden;
-}
-.grid-2 input {
-    width: 100%;
-    min-width: 0;
-}
-.grid-auto {
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
-    gap:10px;
-}
-
-/* チェックボックス */
-.checkbox-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-.checkbox-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.95em;
-    white-space: nowrap;
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
-    padding: 6px 12px;
-    cursor: pointer;
-}
-.checkbox-item input[type="checkbox"] {
-    width: auto;
-    margin: 0;
-}
-
-/* エラー表示 */
-.error-text { color:#d63031; font-size:.92em; margin-top:5px; }
-
-/* メッセージ */
-.msg { padding:12px 15px; border-radius:6px; margin-bottom:15px; font-weight:500; }
-.msg-success { background:#d4edda; border-left:5px solid #047857; }
-.msg-error   { background:#f8d7da; border-left:5px solid #e74c3c; }
-.msg-info    { background:#ccfbf1; border-left:5px solid #0d9488; }
-
-/* 送信ボタン */
-button.submit-btn {
-    width:100%;
-    padding:14px;
-    background:#0d9488;
-    color:white;
-    font-weight:700;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    transition:.2s;
-    font-size:16px;
-}
-button.submit-btn:hover { background:#0f766e; transform:translateY(-1px); }
-
-/* スマホ対応 */
-@media(max-width: 768px) {
-    .grid-2 { grid-template-columns:1fr !important; }
-    .form-card { padding:20px; }
-    .page-title { font-size:22px; margin-top:10px; }
-    small { font-size:13px; display:block; margin-top:5px; }
-    button.submit-btn { font-size:15px; padding:12px; }
-}
-@media(max-width: 480px) {
-    .grid-2 { grid-template-columns: 1fr !important; }
-}
-</style>
-
-<h2 class="page-title"><i class="bi bi-calendar-plus me-2"></i>授業枠一括作成</h2>
-<a href="{% url 'admin_dashboard' %}" class="back-link">← 管理者ダッシュボードに戻る</a>
-
-{% if messages %}
-    {% for message in messages %}
-        <div class="msg 
-            {% if message.tags == 'success' %}msg-success
-            {% elif message.tags == 'error' %}msg-error
-            {% else %}msg-info{% endif %}">
-            {{ message }}
-        </div>
-    {% endfor %}
-{% endif %}
-
-<div class="form-card">
+<div class="card-wa pad form-wide">
 <form method="post">
     {% csrf_token %}
 
-    <!-- タイトル -->
-    <div class="form-group">
-        <label>{{ form.title.label }}</label>
+    <div class="field">
+        <label class="label">{{ form.title.label }}</label>
         {{ form.title }}
-        <small>※未記入なら「書道教室」が自動使用されます</small>
-        {% if form.title.errors %}<div class="error-text">{{ form.title.errors }}</div>{% endif %}
+        <div class="field-hint">※未記入なら「書道教室」が自動使用されます</div>
+        {% for e in form.title.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
     </div>
 
-    <!-- 教室 -->
-    <div class="form-group">
-        <label>{{ form.classroom.label }}</label>
+    <div class="field">
+        <label class="label">{{ form.classroom.label }}</label>
         {{ form.classroom }}
-        {% if form.classroom.errors %}<div class="error-text">{{ form.classroom.errors }}</div>{% endif %}
+        {% for e in form.classroom.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
     </div>
 
-    <!-- 開始日・終了日 -->
-    <div class="grid-2 form-group">
-        <div>
-            <label>{{ form.start_date.label }}</label>
+    <div class="grid-2">
+        <div class="field">
+            <label class="label">{{ form.start_date.label }}</label>
             {{ form.start_date }}
-            {% if form.start_date.errors %}<div class="error-text">{{ form.start_date.errors }}</div>{% endif %}
+            {% for e in form.start_date.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
         </div>
-        <div>
-            <label>{{ form.end_date.label }}</label>
+        <div class="field">
+            <label class="label">{{ form.end_date.label }}</label>
             {{ form.end_date }}
-            {% if form.end_date.errors %}<div class="error-text">{{ form.end_date.errors }}</div>{% endif %}
+            {% for e in form.end_date.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
         </div>
     </div>
 
-    <!-- 曜日チェックボックス -->
-    <div class="form-group">
-        <label>{{ form.days_of_week.label }}</label>
+    <div class="field">
+        <label class="label">{{ form.days_of_week.label }}</label>
         <div class="checkbox-grid">
             {% for checkbox in form.days_of_week %}
-                <label class="checkbox-item">
-                    {{ checkbox.tag }} {{ checkbox.choice_label }}
-                </label>
+                <label class="checkbox-item">{{ checkbox.tag }} {{ checkbox.choice_label }}</label>
             {% endfor %}
         </div>
-        {% if form.days_of_week.errors %}<div class="error-text">{{ form.days_of_week.errors }}</div>{% endif %}
+        {% for e in form.days_of_week.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
     </div>
 
-    <!-- 時間枠 -->
-    <div class="form-group">
-        <label>{{ form.time_slots.label }}</label>
+    <div class="field">
+        <label class="label">{{ form.time_slots.label }}</label>
         {{ form.time_slots }}
-        <small>{{ form.time_slots.help_text }}</small>
-        {% if form.time_slots.errors %}<div class="error-text">{{ form.time_slots.errors }}</div>{% endif %}
+        <div class="field-hint">{{ form.time_slots.help_text }}</div>
+        {% for e in form.time_slots.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
     </div>
 
-    <!-- 定員・予約開始日時 -->
-    <div class="grid-2 form-group">
-        <div>
-            <label>{{ form.capacity.label }}</label>
+    <div class="grid-2">
+        <div class="field">
+            <label class="label">{{ form.capacity.label }}</label>
             {{ form.capacity }}
-            {% if form.capacity.errors %}<div class="error-text">{{ form.capacity.errors }}</div>{% endif %}
+            {% for e in form.capacity.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
         </div>
-        <div>
-            <label>{{ form.reservation_start_datetime.label }}</label>
+        <div class="field">
+            <label class="label">{{ form.reservation_start_datetime.label }}</label>
             {{ form.reservation_start_datetime }}
-            {% if form.reservation_start_datetime.errors %}<div class="error-text">{{ form.reservation_start_datetime.errors }}</div>{% endif %}
+            <div class="field-hint">{{ form.reservation_start_datetime.help_text }}</div>
+            {% for e in form.reservation_start_datetime.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
         </div>
     </div>
-
-    <small>{{ form.reservation_start_datetime.help_text }}</small>
 
     {% if form.non_field_errors %}
-        <div class="msg msg-error" style="margin-top:15px;">
-            {{ form.non_field_errors }}
-        </div>
+        <div class="alert-wa alert-wa-error"><i class="bi bi-exclamation-octagon-fill"></i><div>{{ form.non_field_errors }}</div></div>
     {% endif %}
 
-    <button type="submit" class="submit-btn" style="margin-top:25px;">＋ 作成する</button>
+    <button type="submit" class="btn-wa btn-primary-wa btn-block-wa" style="margin-top:1rem;"><i class="bi bi-plus-lg"></i>作成する</button>
 </form>
 </div>
 
@@ -240,7 +77,6 @@ button.submit-btn:hover { background:#0f766e; transform:translateY(-1px); }
 (function() {
     var WED = '10:00-11:30 @1,2\n14:30-15:20\n15:30-16:20\n16:30-17:20\n17:30-18:20\n18:30-19:20';
     var FRI = '16:00-16:50\n17:00-17:50\n18:00-18:50\n19:00-19:50\n20:00-20:50';
-
     function updateSlots() {
         var checked = Array.from(document.querySelectorAll('input[name="days_of_week"]:checked'));
         if (checked.length !== 1) return;
@@ -250,11 +86,9 @@ button.submit-btn:hover { background:#0f766e; transform:translateY(-1px); }
         if (val === '2') ta.value = WED;
         else if (val === '4') ta.value = FRI;
     }
-
     document.querySelectorAll('input[name="days_of_week"]').forEach(function(cb) {
         cb.addEventListener('change', updateSlots);
     });
 })();
 </script>
-
 {% endblock %}

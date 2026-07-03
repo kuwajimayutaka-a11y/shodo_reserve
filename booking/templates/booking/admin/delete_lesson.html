@@ -1,41 +1,32 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}授業枠削除{% endblock %}
 
 {% block content %}
-<h2>授業枠削除確認</h2>
+<a href="{% url 'admin_lesson_list' %}" class="back-link"><i class="bi bi-arrow-left"></i>授業枠一覧に戻る</a>
+{% include "booking/partials/_page_head.html" with title="授業枠削除確認" %}
 
-<div style="margin-bottom: 20px;">
-    <a href="{% url 'admin_lesson_list' %}" style="color: #0d9488; text-decoration: none;">← 授業枠一覧に戻る</a>
-</div>
-
-<div style="margin: 20px 0; padding: 20px; background-color: #fff3cd; border: 2px solid #ffc107; border-radius: 8px;">
-    <h3 style="margin-top: 0; color: #856404;"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>以下の授業枠を削除しますか?</h3>
-    
-    <div style="margin: 20px 0; padding: 15px; background-color: white; border: 1px solid #ffc107; border-radius: 4px;">
-        <p style="margin: 5px 0;"><strong>授業名:</strong> {% if lesson.title %}{{ lesson.title }}{% else %}書道教室{% endif %}</p>
-        <p style="margin: 5px 0;"><strong>開始日時:</strong> {{ lesson.start_time|date:"Y年m月d日 H:i" }}</p>
-        <p style="margin: 5px 0;"><strong>終了日時:</strong> {{ lesson.end_time|date:"Y年m月d日 H:i" }}</p>
-        <p style="margin: 5px 0;"><strong>定員:</strong> {{ lesson.capacity }}</p>
-        <p style="margin: 5px 0;"><strong>現在の予約数:</strong> 
-            <span style="color: {% if lesson.reservation_set.count > 0 %}#be123c{% else %}#047857{% endif %}; font-weight: bold;">
-                {{ lesson.reservation_set.count }}
-            </span>
-        </p>
+<div class="card-wa">
+    <div class="confirm-panel" style="margin:0;border-radius:var(--radius-card) var(--radius-card) 0 0;border-left:none;border-right:none;border-top:none;">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>以下の授業枠を削除しますか?
     </div>
-    
-    {% if lesson.reservation_set.count > 0 %}
-        <div style="padding: 10px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; color: #721c24; margin-bottom: 20px;">
-            <p style="margin: 0; font-weight: bold;"><i class="bi bi-exclamation-triangle-fill me-1"></i>この授業枠には予約が入っています。削除すると予約も削除されます。</p>
-        </div>
-    {% endif %}
+    <div class="card-wa-body">
+        <p class="mb-2"><strong>授業名:</strong> {{ lesson.title|default:"書道教室" }}
+            {% include "booking/partials/_classroom_badge.html" with classroom=lesson.classroom %}</p>
+        <p class="mb-2"><strong>開始日時:</strong> {{ lesson.start_time|date:"Y年m月d日 H:i" }}</p>
+        <p class="mb-2"><strong>終了日時:</strong> {{ lesson.end_time|date:"Y年m月d日 H:i" }}</p>
+        <p class="mb-2"><strong>定員:</strong> {{ lesson.capacity }}</p>
+        <p class="mb-0"><strong>現在の予約数:</strong>
+            <span style="font-weight:700;color:{% if lesson.reservation_set.count > 0 %}var(--danger){% else %}var(--success){% endif %};">{{ lesson.reservation_set.count }}</span>
+        </p>
+        {% if lesson.reservation_set.count > 0 %}
+            <div class="alert-wa alert-wa-error mt-3 mb-0"><i class="bi bi-exclamation-triangle-fill"></i><div>この授業枠には予約が入っています。削除すると予約も削除されます。</div></div>
+        {% endif %}
+    </div>
 </div>
 
-<div style="margin-top: 30px;">
-    <form method="post" style="display: inline;">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger me-2">削除する</button>
-    </form>
-    <a href="{% url 'admin_lesson_list' %}" class="btn btn-secondary">キャンセル</a>
+<div class="form-actions">
+    <form method="post" style="display:inline;">{% csrf_token %}<button type="submit" class="btn-wa btn-danger-wa">削除する</button></form>
+    <a href="{% url 'admin_lesson_list' %}" class="btn-wa btn-outline-wa">キャンセル</a>
 </div>
 {% endblock %}

@@ -1,56 +1,35 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}保護者情報編集{% endblock %}
 
 {% block content %}
-<h2>保護者情報編集</h2>
+<a href="{% url 'admin_student_management' %}" class="back-link"><i class="bi bi-arrow-left"></i>生徒管理に戻る</a>
+{% include "booking/partials/_page_head.html" with title="保護者情報編集" %}
 
-<div style="margin-bottom: 20px;">
-    <a href="{% url 'admin_student_management' %}" style="color: #0d9488; text-decoration: none;">← 生徒管理に戻る</a>
-</div>
+<div class="alert-wa alert-wa-info"><i class="bi bi-envelope"></i><div><strong>メールアドレス:</strong> {{ family.user.email }}</div></div>
 
-<div style="margin: 20px 0; padding: 15px; background-color: #f0fdfa; border: 1px solid #99f6e4; border-radius: 4px;">
-    <p style="margin: 0;"><strong>メールアドレス:</strong> {{ family.user.email }}</p>
-</div>
-
-
-
-<form method="post" style="max-width: 500px; margin-top: 20px;">
+<div class="card-wa pad form-narrow">
+<form method="post">
     {% csrf_token %}
+    {% include "booking/partials/_field.html" with field=form.name %}
+    {% include "booking/partials/_field.html" with field=form.phone_number %}
 
-    <div style="margin-bottom: 20px;">
-        <label for="{{ form.name.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">{{ form.name.label }}</label>
-        {{ form.name }}
-        {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors }}</div>{% endif %}
-    </div>
-
-    <div style="margin-bottom: 20px;">
-        <label for="{{ form.phone_number.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">{{ form.phone_number.label }}</label>
-        {{ form.phone_number }}
-        {% if form.phone_number.errors %}<div class="text-danger small mt-1">{{ form.phone_number.errors }}</div>{% endif %}
-    </div>
-
-    <div style="margin-bottom: 20px; padding: 16px; background: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6;">
-        <p style="margin: 0 0 10px 0; font-weight: 600; color: #495057;">教室アクセス権</p>
-        <div style="display: flex; gap: 24px; flex-wrap: wrap;">
-            <div class="form-check">
-                {{ form.access_yokogawa }}
-                <label class="form-check-label" for="{{ form.access_yokogawa.id_for_label }}">
-                    <span class="badge" style="background:#0d9488;color:white;margin-right:4px;">横川</span>{{ form.access_yokogawa.label }}
-                </label>
-            </div>
-            <div class="form-check">
-                {{ form.access_ishihara }}
-                <label class="form-check-label" for="{{ form.access_ishihara.id_for_label }}">
-                    <span class="badge" style="background:#7c3aed;color:white;margin-right:4px;">石原</span>{{ form.access_ishihara.label }}
-                </label>
-            </div>
+    <div class="field">
+        <label class="label">教室アクセス権</label>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <label class="checkbox-item">{{ form.access_yokogawa }}<span class="pill pill-room-yokogawa">横川</span>{{ form.access_yokogawa.label }}</label>
+            <label class="checkbox-item">{{ form.access_ishihara }}<span class="pill pill-room-ishihara">石原</span>{{ form.access_ishihara.label }}</label>
         </div>
     </div>
 
-    <div style="margin-top: 30px;">
-        <button type="submit" class="btn btn-primary me-2">更新</button>
-        <a href="{% url 'admin_student_management' %}" class="btn btn-secondary">キャンセル</a>
+    {% if form.non_field_errors %}
+        <div class="alert-wa alert-wa-error"><i class="bi bi-exclamation-octagon-fill"></i><div>{{ form.non_field_errors }}</div></div>
+    {% endif %}
+
+    <div class="form-actions">
+        <button type="submit" class="btn-wa btn-primary-wa">更新</button>
+        <a href="{% url 'admin_student_management' %}" class="btn-wa btn-outline-wa">キャンセル</a>
     </div>
 </form>
+</div>
 {% endblock %}

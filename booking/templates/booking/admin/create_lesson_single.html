@@ -1,84 +1,61 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}授業枠個別作成{% endblock %}
 
 {% block content %}
-<h2>授業枠個別作成</h2>
+{% include "booking/partials/_page_head.html" with title="授業枠個別作成" %}
 
-<div style="margin-bottom: 20px;">
-    <a href="{% url 'admin_dashboard' %}" style="color: #0d9488; text-decoration: none;">← 管理者ダッシュボードに戻る</a>
-</div>
-
-
-
-<form method="post" style="max-width: 700px;">
+<div class="card-wa pad form-wide">
+<form method="post">
     {% csrf_token %}
-    
-    <div style="margin-bottom: 20px;">
-        <label for="{{ form.title.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">{{ form.title.label }}</label>
+
+    <div class="field">
+        <label class="label">{{ form.title.label }}</label>
         {{ form.title }}
-        <small style="color: #6c757d;">空欄の場合、「書道教室」がデフォルトで使用されます</small>
-        {% if form.title.errors %}
-            <div class="text-danger small mt-1">{{ form.title.errors }}</div>
-        {% endif %}
+        <div class="field-hint">空欄の場合、「書道教室」がデフォルトで使用されます</div>
+        {% for e in form.title.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
     </div>
 
-    <div style="margin-bottom: 20px;">
-        <label for="{{ form.classroom.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">{{ form.classroom.label }}</label>
+    <div class="field">
+        <label class="label">{{ form.classroom.label }}</label>
         {{ form.classroom }}
-        {% if form.classroom.errors %}
-            <div class="text-danger small mt-1">{{ form.classroom.errors }}</div>
-        {% endif %}
+        {% for e in form.classroom.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-        <div>
-            <label for="{{ form.start_time.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">開始日時</label>
+    <div class="grid-2">
+        <div class="field">
+            <label class="label">開始日時</label>
             {{ form.start_time }}
-            {% if form.start_time.errors %}
-                <div class="text-danger small mt-1">{{ form.start_time.errors }}</div>
-            {% endif %}
+            {% for e in form.start_time.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
         </div>
-        
-        <br>
-
-        <div>
-            <label for="{{ form.end_time.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">終了日時</label>
+        <div class="field">
+            <label class="label">終了日時</label>
             {{ form.end_time }}
-            {% if form.end_time.errors %}
-                <div class="text-danger small mt-1">{{ form.end_time.errors }}</div>
-            {% endif %}
+            {% for e in form.end_time.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-        <div>
-            <label for="{{ form.capacity.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">{{ form.capacity.label }}</label>
+    <div class="grid-2">
+        <div class="field">
+            <label class="label">{{ form.capacity.label }}</label>
             {{ form.capacity }}
-            {% if form.capacity.errors %}
-                <div class="text-danger small mt-1">{{ form.capacity.errors }}</div>
-            {% endif %}
+            {% for e in form.capacity.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
         </div>
-
-        <br>
-
-        <div>
-            <label for="{{ form.reservation_start_time.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">{{ form.reservation_start_time.label }}</label>
+        <div class="field">
+            <label class="label">{{ form.reservation_start_time.label }}</label>
             {{ form.reservation_start_time }}
-            {% if form.reservation_start_time.errors %}
-                <div class="text-danger small mt-1">{{ form.reservation_start_time.errors }}</div>
-            {% endif %}
+            {% for e in form.reservation_start_time.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
         </div>
     </div>
 
     {% if form.non_field_errors %}
-        <div style="color: #be123c; margin-bottom: 20px; padding: 10px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px;">
-            {{ form.non_field_errors }}
-        </div>
+        <div class="alert-wa alert-wa-error"><i class="bi bi-exclamation-octagon-fill"></i><div>{{ form.non_field_errors }}</div></div>
     {% endif %}
 
-    <div style="margin-top: 30px;">
-        <button type="submit" style="padding: 10px 20px; background-color: #0d9488; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">作成</button>
+    <div class="form-actions">
+        <button type="submit" class="btn-wa btn-primary-wa">作成</button>
+        <a href="{% url 'admin_dashboard' %}" class="btn-wa btn-outline-wa">キャンセル</a>
     </div>
 </form>
+</div>
 {% endblock %}

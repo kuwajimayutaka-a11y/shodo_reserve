@@ -1,0 +1,89 @@
+{# params: dates — (date, ...) タプルの iterable（開催日抽出に使用） #}
+{# ページ側に data-date="Y-m-d" を持つ .date-block 要素があること #}
+<div id="mini-calendar"></div>
+<script>
+(function() {
+    // 日付 -> その日に開催される教室コードの配列
+    const lessonRooms = {
+    {% for date, lessons in dates %}"{{ date|date:'Y-m-d' }}":[{% for l in lessons %}"{{ l.classroom }}"{% if not forloop.last %},{% endif %}{% endfor %}]{% if not forloop.last %},{% endif %}
+    {% endfor %}};
+    const lessonDates = new Set(Object.keys(lessonRooms));
+    const today = new Date();
+    const todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+    let currentYear, currentMonth, selectedDate = null;
+
+    if (lessonDates.size > 0) {
+        const first = Array.from(lessonDates).sort()[0];
+        currentYear = parseInt(first.slice(0,4));
+        currentMonth = parseInt(first.slice(5,7)) - 1;
+    } else {
+        currentYear = today.getFullYear();
+        currentMonth = today.getMonth();
+    }
+
+    function renderCal() {
+        const container = document.getElementById('mini-calendar');
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const firstDow = (new Date(currentYear, currentMonth, 1).getDay() + 6) % 7;
+        const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+        const dayNames = ['月','火','水','木','金','土','日'];
+
+        let html = '<div class="cal"><div class="cal-header">'
+            + '<button class="cal-nav" id="mc-prev" aria-label="前月">&#8249;</button>'
+            + '<span class="cal-title">' + currentYear + '年 ' + monthNames[currentMonth] + '</span>'
+            + '<button class="cal-nav" id="mc-next" aria-label="翌月">&#8250;</button></div>'
+            + '<div class="cal-grid">';
+        dayNames.forEach(function(d, i) {
+            let c = 'cal-dayname'; if (i === 5) c += ' sat'; if (i === 6) c += ' sun';
+            html += '<div class="' + c + '">' + d + '</div>';
+        });
+        for (let i = 0; i < firstDow; i++) html += '<div class="cal-cell empty"></div>';
+        for (let d = 1; d <= daysInMonth; d++) {
+            const ds = currentYear + '-' + String(currentMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+            const dow = new Date(currentYear, currentMonth, d).getDay();
+            let cls = 'cal-cell';
+            if (dow === 6) cls += ' sat';
+            if (dow === 0) cls += ' sun';
+            if (lessonDates.has(ds)) cls += ' has-lesson';
+            if (ds === todayStr) cls += ' today';
+            if (ds === selectedDate) cls += ' selected';
+            let dots = '';
+            if (lessonRooms[ds]) {
+                const rooms = lessonRooms[ds];
+                const hasYokogawa = rooms.some(function(r){ return r !== 'ishihara'; });
+                const hasIshihara = rooms.indexOf('ishihara') !== -1;
+                dots = '<div class="cal-dots">'
+                    + (hasYokogawa ? '<span class="cal-dot cal-dot-yokogawa"></span>' : '')
+                    + (hasIshihara ? '<span class="cal-dot cal-dot-ishihara"></span>' : '')
+                    + '</div>';
+            }
+            html += '<div class="' + cls + '" data-date="' + ds + '">' + d + dots + '</div>';
+        }
+        html += '</div></div>';
+        container.innerHTML = html;
+
+        document.getElementById('mc-prev').addEventListener('click', function() {
+            currentMonth--; if (currentMonth < 0) { currentMonth = 11; currentYear--; } renderCal();
+        });
+        document.getElementById('mc-next').addEventListener('click', function() {
+            currentMonth++; if (currentMonth > 11) { currentMonth = 0; currentYear++; } renderCal();
+        });
+        container.querySelectorAll('.cal-cell.has-lesson').forEach(function(cell) {
+            cell.addEventListener('click', function() {
+                const date = this.getAttribute('data-date');
+                selectedDate = date;
+                document.querySelectorAll('.date-block').forEach(function(b) { b.style.display = 'none'; });
+                const block = document.querySelector('.date-block[data-date="' + date + '"]');
+                if (block) { block.style.display = 'block'; setTimeout(function(){ block.scrollIntoView({behavior:'smooth', block:'start'}); }, 50); }
+                renderCal();
+            });
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', renderCal);
+    } else {
+        renderCal();
+    }
+})();
+</script>

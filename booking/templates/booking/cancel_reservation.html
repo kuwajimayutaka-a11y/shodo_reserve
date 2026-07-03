@@ -1,45 +1,38 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}予約キャンセル{% endblock %}
 
 {% block content %}
-<h2>予約キャンセル確認</h2>
+<a href="{% url 'reservation_calendar' %}" class="back-link"><i class="bi bi-arrow-left"></i>予約カレンダーに戻る</a>
+{% include "booking/partials/_page_head.html" with title="予約キャンセル確認" %}
 
-<div style="margin-bottom: 20px;">
-    <a href="{% url 'reservation_calendar' %}" style="color: #0d9488; text-decoration: none;">← 予約カレンダーに戻る</a>
-</div>
-
-<div style="margin: 20px 0; padding: 20px; background-color: #fff3cd; border: 2px solid #ffc107; border-radius: 8px;">
-    <h3 style="margin-top: 0; color: #856404;"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>以下の予約をキャンセルしますか?</h3>
-    
-    <div style="margin: 20px 0; padding: 15px; background-color: white; border: 1px solid #ffc107; border-radius: 4px;">
-        <p style="margin: 5px 0;">
-            <strong>授業名:</strong> {% if reservation.lesson_slot.title %}{{ reservation.lesson_slot.title }}{% else %}書道教室{% endif %}
-            {% if reservation.lesson_slot.classroom == 'ishihara' %}
-                <span class="badge ms-1" style="background:#7c3aed;color:white;font-size:0.72em;">石原</span>
-            {% else %}
-                <span class="badge ms-1" style="background:#0d9488;color:white;font-size:0.72em;">横川</span>
-            {% endif %}
-        </p>
-        <p style="margin: 5px 0;"><strong>生徒名:</strong> {{ reservation.student.name }}</p>
-        <p style="margin: 5px 0;"><strong>授業日時:</strong> {{ reservation.lesson_slot.start_time|date:"Y年m月d日 H:i" }} - {{ reservation.lesson_slot.end_time|date:"H:i" }}</p>
-        <p style="margin: 5px 0;"><strong>予約日時:</strong> {{ reservation.reserved_at|date:"Y年m月d日 H:i:s" }}</p>
-        <p style="margin: 5px 0;"><strong>キャンセル期限:</strong> {{ cancel_deadline|date:"Y年m月d日 H:i" }}</p>
+<div class="card-wa">
+    <div class="confirm-panel" style="margin:0;border-radius:var(--radius-card) var(--radius-card) 0 0;border-left:none;border-right:none;border-top:none;">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>以下の予約をキャンセルしますか?
     </div>
-    {% if not can_cancel %}
-        <div style="margin-top: 15px; padding: 12px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; color: #721c24; font-weight: 600;">
-            授業開始1時間前を過ぎているため、キャンセルできません。
+    <div class="card-wa-body">
+        <div class="meta-list">
+            <p class="mb-2"><strong>授業名:</strong> {{ reservation.lesson_slot.title|default:"書道教室" }}
+                {% include "booking/partials/_classroom_badge.html" with classroom=reservation.lesson_slot.classroom %}
+            </p>
+            <p class="mb-2"><strong>生徒名:</strong> {{ reservation.student.name }}</p>
+            <p class="mb-2"><strong>授業日時:</strong> {{ reservation.lesson_slot.start_time|date:"Y年m月d日 H:i" }} – {{ reservation.lesson_slot.end_time|date:"H:i" }}</p>
+            <p class="mb-2"><strong>予約日時:</strong> {{ reservation.reserved_at|date:"Y年m月d日 H:i:s" }}</p>
+            <p class="mb-0"><strong>キャンセル期限:</strong> {{ cancel_deadline|date:"Y年m月d日 H:i" }}</p>
         </div>
-    {% endif %}
+        {% if not can_cancel %}
+            <div class="alert-wa alert-wa-error mt-3 mb-0"><i class="bi bi-x-octagon-fill"></i><div>授業開始1時間前を過ぎているため、キャンセルできません。</div></div>
+        {% endif %}
+    </div>
 </div>
 
-<div style="margin-top: 30px;">
+<div class="form-actions">
     {% if can_cancel %}
-        <form method="post" style="display: inline;">
+        <form method="post" style="display:inline;">
             {% csrf_token %}
-            <button type="submit" class="btn btn-danger me-2">キャンセルする</button>
+            <button type="submit" class="btn-wa btn-danger-wa">キャンセルする</button>
         </form>
     {% endif %}
-    <a href="{% url 'reservation_calendar' %}" class="btn btn-secondary">戻る</a>
+    <a href="{% url 'reservation_calendar' %}" class="btn-wa btn-outline-wa">戻る</a>
 </div>
 {% endblock %}

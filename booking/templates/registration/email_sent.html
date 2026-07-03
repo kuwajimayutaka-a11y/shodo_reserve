@@ -1,22 +1,22 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}メール送信完了{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh; background-color: #f8f9fa;">
-    <div class="card shadow p-4 border text-center" style="width: 100%; max-width: 480px; border-radius: 10px; background: white;">
-        <i class="bi bi-envelope-check text-primary" style="font-size: 3rem; margin-bottom: 16px; display:block;"></i>
-        <h3 class="mb-3" style="color: #2c3e50;">確認メールを送信しました</h3>
-        <p style="color: #6c757d; line-height: 1.7;">
+<div class="auth-wrap">
+    <div class="auth-card card-wa pad text-center" style="max-width:480px;">
+        <i class="bi bi-envelope-check auth-icon" style="color:var(--blue);"></i>
+        <h1 style="font-size:20px;font-weight:800;margin-bottom:.75rem;">確認メールを送信しました</h1>
+        <p style="color:var(--ink-2);line-height:1.7;">
             ご登録のメールアドレスに確認メールを送信しました。<br>
             メール内のリンクをクリックして認証を完了してください。
         </p>
-        <hr>
-        <p class="small" style="color: #adb5bd;">
+        <hr class="auth-divider">
+        <p style="color:var(--muted);font-size:13px;">
             メールが届かない場合は迷惑メールフォルダをご確認ください。<br>
             リンクの有効期限は3日間です。
         </p>
-        <a href="{% url 'login' %}" class="btn btn-outline-primary mt-2">ログイン画面へ</a>
+        <a href="{% url 'login' %}" class="btn-wa btn-outline-wa mt-2">ログイン画面へ</a>
     </div>
 </div>
 {% endblock %}

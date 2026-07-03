@@ -1,39 +1,29 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}生徒削除{% endblock %}
 
 {% block content %}
-<h2>生徒削除確認</h2>
+<a href="{% url 'admin_student_management' %}" class="back-link"><i class="bi bi-arrow-left"></i>生徒管理に戻る</a>
+{% include "booking/partials/_page_head.html" with title="生徒削除確認" %}
 
-<div style="margin-bottom: 20px;">
-    <a href="{% url 'admin_student_management' %}" style="color: #0d9488; text-decoration: none;">← 生徒管理に戻る</a>
-</div>
-
-<div style="margin: 20px 0; padding: 20px; background-color: #fff3cd; border: 2px solid #ffc107; border-radius: 8px;">
-    <h3 style="margin-top: 0; color: #856404;"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>以下の生徒を削除しますか?</h3>
-    
-    <div style="margin: 20px 0; padding: 15px; background-color: white; border: 1px solid #ffc107; border-radius: 4px;">
-        <p style="margin: 5px 0;"><strong>生徒名:</strong> {{ student.name }}</p>
-        <p style="margin: 5px 0;"><strong>保護者:</strong> {{ student.family.user.name }}</p>
-        <p style="margin: 5px 0;"><strong>予約数:</strong> 
-            <span style="color: {% if student.reservation_set.count > 0 %}#be123c{% else %}#047857{% endif %}; font-weight: bold;">
-                {{ student.reservation_set.count }}
-            </span>
-        </p>
+<div class="card-wa">
+    <div class="confirm-panel" style="margin:0;border-radius:var(--radius-card) var(--radius-card) 0 0;border-left:none;border-right:none;border-top:none;">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>以下の生徒を削除しますか?
     </div>
-    
-    {% if student.reservation_set.count > 0 %}
-        <div style="padding: 10px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; color: #721c24; margin-bottom: 20px;">
-            <p style="margin: 0; font-weight: bold;"><i class="bi bi-exclamation-triangle-fill me-1"></i>この生徒には予約が入っています。削除すると予約も削除されます。</p>
-        </div>
-    {% endif %}
+    <div class="card-wa-body">
+        <p class="mb-2"><strong>生徒名:</strong> {{ student.name }}</p>
+        <p class="mb-2"><strong>保護者:</strong> {{ student.family.user.name }}</p>
+        <p class="mb-0"><strong>予約数:</strong>
+            <span style="font-weight:700;color:{% if student.reservation_set.count > 0 %}var(--danger){% else %}var(--success){% endif %};">{{ student.reservation_set.count }}</span>
+        </p>
+        {% if student.reservation_set.count > 0 %}
+            <div class="alert-wa alert-wa-error mt-3 mb-0"><i class="bi bi-exclamation-triangle-fill"></i><div>この生徒には予約が入っています。削除すると予約も削除されます。</div></div>
+        {% endif %}
+    </div>
 </div>
 
-<div style="margin-top: 30px;">
-    <form method="post" style="display: inline;">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger me-2">削除する</button>
-    </form>
-    <a href="{% url 'admin_student_management' %}" class="btn btn-secondary">キャンセル</a>
+<div class="form-actions">
+    <form method="post" style="display:inline;">{% csrf_token %}<button type="submit" class="btn-wa btn-danger-wa">削除する</button></form>
+    <a href="{% url 'admin_student_management' %}" class="btn-wa btn-outline-wa">キャンセル</a>
 </div>
 {% endblock %}

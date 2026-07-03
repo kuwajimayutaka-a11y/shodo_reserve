@@ -1,36 +1,22 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}生徒追加{% endblock %}
 
 {% block content %}
-<h2>生徒追加</h2>
+<a href="{% url 'view_students' %}" class="back-link"><i class="bi bi-arrow-left"></i>生徒情報に戻る</a>
+{% include "booking/partials/_page_head.html" with title="生徒追加" %}
 
-<div style="margin-bottom: 20px;">
-    <a href="{% url 'view_students' %}" style="color: #0d9488; text-decoration: none;">← 生徒情報に戻る</a>
-</div>
-
-
-
-<form method="post" style="max-width: 500px; margin-top: 20px;">
-    {% csrf_token %}
-    
-    <div style="margin-bottom: 20px;">
-        <label for="{{ form.name.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">{{ form.name.label }}</label>
-        {{ form.name }}
-        {% if form.name.errors %}
-            <div class="text-danger small mt-1">{{ form.name.errors }}</div>
+<div class="card-wa pad form-narrow">
+    <form method="post">
+        {% csrf_token %}
+        {% include "booking/partials/_field.html" with field=form.name %}
+        {% if form.non_field_errors %}
+            <div class="alert-wa alert-wa-error"><i class="bi bi-exclamation-octagon-fill"></i><div>{{ form.non_field_errors }}</div></div>
         {% endif %}
-    </div>
-
-    {% if form.non_field_errors %}
-        <div style="color: #be123c; margin-bottom: 20px; padding: 10px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px;">
-            {{ form.non_field_errors }}
+        <div class="form-actions">
+            <button type="submit" class="btn-wa btn-primary-wa">追加</button>
+            <a href="{% url 'view_students' %}" class="btn-wa btn-outline-wa">キャンセル</a>
         </div>
-    {% endif %}
-
-    <div style="margin-top: 30px;">
-        <button type="submit" class="btn btn-success me-2">追加</button>
-        <a href="{% url 'view_students' %}" class="btn btn-secondary">キャンセル</a>
-    </div>
-</form>
+    </form>
+</div>
 {% endblock %}

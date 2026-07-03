@@ -3,20 +3,16 @@
 {% block title %}生徒情報{% endblock %}
 
 {% block content %}
-<h2 class="fw-bold mb-4" style="color: #2c3e50;">
-    <i class="bi bi-people me-2"></i>生徒情報
-</h2>
+{% include "booking/partials/_page_head.html" with title="生徒情報" sub="登録中の生徒と予約状況" %}
 
-<div class="card shadow-sm mb-3" style="border-radius: 10px; border: none; background: #eef4ff;">
-    <div class="card-body py-3">
-        <span class="text-muted small"><i class="bi bi-person me-1"></i>保護者</span>
-        <strong class="ms-1">{{ user.name }}</strong>
-    </div>
+<div class="card-wa pad" style="display:flex;align-items:center;gap:.5rem;">
+    <span class="meta"><i class="bi bi-person"></i>保護者</span>
+    <strong>{{ user.name }}</strong>
 </div>
 
 <div class="mb-4">
-    <a href="{% url 'add_student' %}" class="btn btn-success">
-        <i class="bi bi-person-plus me-1"></i>生徒を追加
+    <a href="{% url 'add_student' %}" class="btn-wa btn-primary-wa">
+        <i class="bi bi-person-plus"></i>生徒を追加
     </a>
 </div>
 
@@ -24,31 +20,25 @@
     <div class="row g-3">
         {% for student in students %}
         <div class="col-12 col-md-6">
-            <div class="card shadow-sm h-100" style="border-radius: 10px; border: none;">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="fw-bold mb-1">{{ student.name }}</h5>
-                        <span class="badge bg-light text-secondary border">
-                            <i class="bi bi-calendar-check me-1"></i>予約数: {{ student.reservation_set.count }}
-                        </span>
-                    </div>
-                    <a href="{% url 'edit_student' student.id %}" class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-pencil me-1"></i>編集
-                    </a>
+            <div class="card-wa pad h-100" style="display:flex;justify-content:space-between;align-items:center;gap:.75rem;margin-bottom:0;">
+                <div>
+                    <div style="font-size:17px;font-weight:800;margin-bottom:.4rem;">{{ student.name }}</div>
+                    <span class="pill pill-muted"><i class="bi bi-calendar-check"></i>予約数 {{ student.reservation_set.count }}</span>
                 </div>
+                <a href="{% url 'edit_student' student.id %}" class="btn-wa btn-outline-wa btn-sm-wa">
+                    <i class="bi bi-pencil"></i>編集
+                </a>
             </div>
         </div>
         {% endfor %}
     </div>
 {% else %}
-    <div class="card shadow-sm text-center py-5" style="border-radius: 12px; border: none;">
-        <div class="card-body">
-            <i class="bi bi-person-plus text-muted" style="font-size: 3rem; margin-bottom: 12px; display:block;"></i>
-            <h5 class="text-muted">生徒が登録されていません</h5>
-            <p class="text-muted small mb-3">お子さんの情報を登録すると授業を予約できます</p>
-            <a href="{% url 'add_student' %}" class="btn btn-success">
-                <i class="bi bi-person-plus me-1"></i>生徒を追加する
-            </a>
+    <div class="card-wa">
+        <div class="empty-state">
+            <i class="bi bi-person-plus"></i>
+            <p style="font-weight:700;color:var(--ink-2);margin-bottom:.25rem;">生徒が登録されていません</p>
+            <p style="margin-bottom:1.25rem;">お子さんの情報を登録すると授業を予約できます</p>
+            <a href="{% url 'add_student' %}" class="btn-wa btn-primary-wa"><i class="bi bi-person-plus"></i>生徒を追加する</a>
         </div>
     </div>
 {% endif %}

@@ -1,0 +1,45 @@
+{% load booking_extras %}
+{# params: lesson, students, booked_ids (この授業を予約済みの student.id リスト) #}
+<div class="lesson-card-wa" data-lesson-id="{{ lesson.id }}">
+
+    <div class="lc-top">
+        <div class="lc-time">
+            <i class="bi bi-clock"></i>{{ lesson.start_time|date:"H:i" }}–{{ lesson.end_time|date:"H:i" }}
+        </div>
+        {% include "booking/partials/_availability_pill.html" with lesson=lesson %}
+    </div>
+
+    <div class="lc-meta">
+        <span class="pill pill-muted">{{ lesson.title|default:"書道教室" }}</span>
+        {% include "booking/partials/_classroom_badge.html" with classroom=lesson.classroom %}
+        <span class="meta ms-auto"><i class="bi bi-people"></i>定員 <b>{{ lesson.capacity }}</b> 名</span>
+    </div>
+
+    {% for student in students %}
+        {% if student.id in booked_ids %}
+        <span class="pill pill-success me-1 mb-1" data-booked-student="{{ student.id }}">
+            <i class="bi bi-check-circle"></i>{{ student.name }} 予約済み
+        </span>
+        {% endif %}
+    {% endfor %}
+
+    {% if not lesson.is_reservable and lesson.available_slots > 0 %}
+        <div class="field-hint mt-1"><i class="bi bi-lock me-1"></i>予約開始: {{ lesson.reservation_start_time|date:"m月d日 H:i" }}</div>
+    {% endif %}
+
+    {% if students and lesson.is_reservable %}
+    <form method="post" action="{% url 'reserve_lesson' lesson.id %}" class="reserve-form-inline js-reserve-form" data-lesson-id="{{ lesson.id }}">
+        {% csrf_token %}
+        <select name="student_id" class="select" required>
+            {% for student in students %}
+                {% if not student.id in booked_ids %}
+                <option value="{{ student.id }}">{{ student.name }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn-wa btn-primary-wa">
+            <i class="bi bi-check-circle"></i>予約する
+        </button>
+    </form>
+    {% endif %}
+</div>

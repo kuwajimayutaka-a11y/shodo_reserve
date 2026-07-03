@@ -1,41 +1,29 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}予約一覧{% endblock %}
 
 {% block content %}
-<h2>予約一覧</h2>
-
-<div style="margin-bottom: 20px;">
-    <a href="{% url 'admin_dashboard' %}" style="color: #0d9488; text-decoration: none;">← 管理者ダッシュボードに戻る</a>
-</div>
-
-
+{% include "booking/partials/_page_head.html" with title="予約一覧" %}
 
 {% if reservations %}
-    <div style="margin-top: 20px; overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse; background-color: white;">
+    <div class="table-wrap">
+        <table class="wtable">
             <thead>
-                <tr style="background-color: #f8f9fa; border-bottom: 2px solid #dee2e6;">
-                    <th style="padding: 12px; text-align: left; color: #495057; font-weight: 600;">授業名</th>
-                    <th style="padding: 12px; text-align: left; color: #495057; font-weight: 600;">開始日時</th>
-                    <th style="padding: 12px; text-align: left; color: #495057; font-weight: 600;">生徒名</th>
-                    <th style="padding: 12px; text-align: left; color: #495057; font-weight: 600;">保護者</th>
-                    <th style="padding: 12px; text-align: left; color: #495057; font-weight: 600;">予約日時</th>
-                    <th style="padding: 12px; text-align: center; color: #495057; font-weight: 600;">操作</th>
+                <tr>
+                    <th>授業名</th><th>教室</th><th>開始日時</th><th>生徒名</th><th>保護者</th><th>予約日時</th><th style="text-align:center;">操作</th>
                 </tr>
             </thead>
             <tbody>
                 {% for reservation in reservations %}
-                <tr style="border-bottom: 1px solid #dee2e6;">
-                    <td style="padding: 12px;">
-                        <strong>{% if reservation.lesson_slot.title %}{{ reservation.lesson_slot.title }}{% else %}書道教室{% endif %}</strong>
-                    </td>
-                    <td style="padding: 12px;">{{ reservation.lesson_slot.start_time|date:"Y/m/d H:i" }}</td>
-                    <td style="padding: 12px;">{{ reservation.student.name }}</td>
-                    <td style="padding: 12px;">{{ reservation.student.family.user.name }}</td>
-                    <td style="padding: 12px; color: #6c757d; font-size: 0.9em;">{{ reservation.reserved_at|date:"Y/m/d H:i:s" }}</td>
-                    <td style="padding: 12px; text-align: center;">
-                        <a href="{% url 'admin_cancel_reservation' reservation.id %}" style="padding: 6px 12px; background-color: #be123c; color: white; text-decoration: none; border-radius: 4px; font-size: 0.85em;">キャンセル</a>
+                <tr>
+                    <td><strong>{{ reservation.lesson_slot.title|default:"書道教室" }}</strong></td>
+                    <td>{% include "booking/partials/_classroom_badge.html" with classroom=reservation.lesson_slot.classroom %}</td>
+                    <td>{{ reservation.lesson_slot.start_time|date:"Y/m/d H:i" }}</td>
+                    <td>{{ reservation.student.name }}</td>
+                    <td>{{ reservation.student.family.user.name }}</td>
+                    <td style="color:var(--muted);font-size:13px;">{{ reservation.reserved_at|date:"Y/m/d H:i:s" }}</td>
+                    <td style="text-align:center;white-space:nowrap;">
+                        <a href="{% url 'admin_cancel_reservation' reservation.id %}" class="btn-wa btn-outline-danger-wa btn-sm-wa">キャンセル</a>
                     </td>
                 </tr>
                 {% endfor %}
@@ -43,8 +31,8 @@
         </table>
     </div>
 {% else %}
-    <div style="margin-top: 20px; padding: 20px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; text-align: center; color: #6c757d;">
-        <p>予約がありません。</p>
+    <div class="card-wa">
+        {% include "booking/partials/_empty_state.html" with icon="bi-clipboard-x" text="予約がありません。" %}
     </div>
 {% endif %}
 {% endblock %}
