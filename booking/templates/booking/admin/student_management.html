@@ -29,9 +29,9 @@
                     <p style="margin:0;color:var(--muted);font-size:14px;"><i class="bi bi-telephone me-1"></i>{{ family.phone_number }}</p>
                 {% endif %}
             </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <a href="{% url 'admin_edit_family' family.id %}" class="btn-wa btn-outline-wa btn-sm-wa">保護者情報を編集</a>
-                <a href="{% url 'admin_delete_family' family.id %}" class="btn-wa btn-outline-danger-wa btn-sm-wa">保護者を削除</a>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;">
+                <a href="{% url 'admin_edit_family' family.id %}" class="btn-wa btn-outline-wa btn-sm-wa btn-icon-wa" title="保護者情報を編集" aria-label="保護者情報を編集"><i class="bi bi-pencil"></i></a>
+                <a href="{% url 'admin_delete_family' family.id %}" class="btn-wa btn-outline-danger-wa btn-sm-wa btn-icon-wa" title="保護者を削除" aria-label="保護者を削除"><i class="bi bi-trash"></i></a>
             </div>
         </div>
 
@@ -47,8 +47,8 @@
                             <td>{{ student.name }}</td>
                             <td style="text-align:center;"><span class="pill pill-room-yokogawa">{{ student.month_reservation_count }}</span></td>
                             <td style="text-align:center;white-space:nowrap;">
-                                <a href="{% url 'admin_edit_student' student.id %}" class="btn-wa btn-outline-wa btn-sm-wa">編集</a>
-                                <a href="{% url 'admin_delete_student' student.id %}" class="btn-wa btn-outline-danger-wa btn-sm-wa">削除</a>
+                                <a href="{% url 'admin_edit_student' student.id %}" class="btn-wa btn-outline-wa btn-sm-wa btn-icon-wa" title="編集" aria-label="編集"><i class="bi bi-pencil"></i></a>
+                                <a href="{% url 'admin_delete_student' student.id %}" class="btn-wa btn-outline-danger-wa btn-sm-wa btn-icon-wa" title="削除" aria-label="削除"><i class="bi bi-trash"></i></a>
                             </td>
                         </tr>
                         {% endfor %}
