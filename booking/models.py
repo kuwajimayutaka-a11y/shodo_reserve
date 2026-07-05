@@ -90,6 +90,19 @@ class Student(models.Model):
         return self.name
 
 
+class StudentGroup(models.Model):
+    name = models.CharField(max_length=100, verbose_name="グループ名")
+    students = models.ManyToManyField(Student, blank=True, related_name="groups", verbose_name="生徒")
+
+    class Meta:
+        verbose_name = "生徒グループ"
+        verbose_name_plural = "生徒グループ"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class LessonSlot(models.Model):
     title = models.CharField(max_length=200, verbose_name="授業名")
     classroom = models.CharField(

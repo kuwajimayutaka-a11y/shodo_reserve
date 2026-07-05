@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}生徒グループ削除{% endblock %}
+
+{% block content %}
+<a href="{% url 'admin_student_group_list' %}" class="back-link"><i class="bi bi-arrow-left"></i>生徒グループ管理に戻る</a>
+{% include "booking/partials/_page_head.html" with title="生徒グループ削除確認" %}
+
+<div class="card-wa">
+    <div class="confirm-panel" style="margin:0;border-radius:var(--radius-card) var(--radius-card) 0 0;border-left:none;border-right:none;border-top:none;">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>以下のグループを削除しますか?
+    </div>
+    <div class="card-wa-body">
+        <p class="mb-2"><strong>グループ名:</strong> {{ group.name }}</p>
+        <p class="mb-0"><strong>登録生徒数:</strong> {{ group.students.count }}</p>
+        <div class="alert-wa alert-wa-info mt-3 mb-0"><i class="bi bi-info-circle-fill"></i><div>削除しても、これまでにこのグループから自動予約された予約は影響を受けません。</div></div>
+    </div>
+</div>
+
+<div class="form-actions">
+    <form method="post" style="display:inline;">{% csrf_token %}<button type="submit" class="btn-wa btn-danger-wa">削除する</button></form>
+    <a href="{% url 'admin_student_group_list' %}" class="btn-wa btn-outline-wa">キャンセル</a>
+</div>
+{% endblock %}

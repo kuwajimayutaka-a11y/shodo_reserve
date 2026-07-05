@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}生徒グループ管理{% endblock %}
+
+{% block content %}
+{% include "booking/partials/_page_head.html" with title="生徒グループ管理" sub="授業作成時に自動予約する生徒グループを管理" %}
+
+<div class="list-toolbar" style="display:flex;justify-content:flex-end;margin-bottom:1.25rem;">
+    <a href="{% url 'admin_add_student_group' %}" class="btn-wa btn-primary-wa"><i class="bi bi-plus-lg"></i>グループを追加</a>
+</div>
+
+{% if groups %}
+<div class="table-wrap">
+    <table class="wtable">
+        <thead>
+            <tr><th>グループ名</th><th>生徒</th><th style="text-align:center;">人数</th><th style="text-align:center;">操作</th></tr>
+        </thead>
+        <tbody>
+            {% for group in groups %}
+            <tr>
+                <td><strong>{{ group.name }}</strong></td>
+                <td>
+                    {% for student in group.students.all %}{{ student.name }}{% if not forloop.last %}、{% endif %}{% empty %}<span class="field-hint">未登録</span>{% endfor %}
+                </td>
+                <td style="text-align:center;">
+                    <span class="pill {% if group.student_count > 0 %}pill-navy{% else %}pill-muted{% endif %}">{{ group.student_count }}</span>
+                </td>
+                <td style="text-align:center;white-space:nowrap;">
+                    <a href="{% url 'admin_edit_student_group' group.id %}" class="btn-wa btn-outline-wa btn-sm-wa">編集</a>
+                    <a href="{% url 'admin_delete_student_group' group.id %}" class="btn-wa btn-outline-danger-wa btn-sm-wa">削除</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card-wa">
+    {% include "booking/partials/_empty_state.html" with icon="bi-collection" text="生徒グループがまだありません。" %}
+    <div class="text-center" style="padding-bottom:2rem;">
+        <a href="{% url 'admin_add_student_group' %}" class="btn-wa btn-primary-wa">グループを作成する</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

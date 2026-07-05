@@ -48,6 +48,13 @@
         </div>
     </div>
 
+    <div class="field">
+        <label class="label">{{ form.student_group.label }}</label>
+        {{ form.student_group }}
+        <div class="field-hint">{{ form.student_group.help_text }}</div>
+        {% for e in form.student_group.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+    </div>
+
     {% if form.non_field_errors %}
         <div class="alert-wa alert-wa-error"><i class="bi bi-exclamation-octagon-fill"></i><div>{{ form.non_field_errors }}</div></div>
     {% endif %}

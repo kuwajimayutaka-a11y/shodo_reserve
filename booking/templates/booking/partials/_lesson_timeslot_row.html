@@ -1,0 +1,33 @@
+{# params: tsform (LessonTimeSlotForm、通常フォームまたは formset.empty_form) #}
+<div class="card-wa pad timeslot-row" data-timeslot-row style="margin-bottom:.75rem;">
+    <div class="grid-2">
+        <div class="field">
+            <label class="label">{{ tsform.start_time.label }}</label>
+            {{ tsform.start_time }}
+            {% for e in tsform.start_time.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="field">
+            <label class="label">{{ tsform.end_time.label }}</label>
+            {{ tsform.end_time }}
+            {% for e in tsform.end_time.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+        </div>
+    </div>
+    <div class="grid-2">
+        <div class="field">
+            <label class="label">{{ tsform.weeks_of_month.label }}</label>
+            {{ tsform.weeks_of_month }}
+            <div class="field-hint">{{ tsform.weeks_of_month.help_text }}</div>
+            {% for e in tsform.weeks_of_month.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="field">
+            <label class="label">{{ tsform.student_group.label }}</label>
+            {{ tsform.student_group }}
+            {% for e in tsform.student_group.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+        </div>
+    </div>
+    {% if tsform.non_field_errors %}
+        <div class="alert-wa alert-wa-error"><i class="bi bi-exclamation-octagon-fill"></i><div>{{ tsform.non_field_errors }}</div></div>
+    {% endif %}
+    <div style="display:none;">{{ tsform.DELETE }}</div>
+    <button type="button" class="btn-wa btn-outline-danger-wa btn-sm-wa timeslot-remove-btn"><i class="bi bi-trash"></i>このコマを削除</button>
+</div>

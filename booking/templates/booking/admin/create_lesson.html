@@ -45,11 +45,21 @@
     </div>
 
     <div class="field">
-        <label class="label">{{ form.time_slots.label }}</label>
-        {{ form.time_slots }}
-        <div class="field-hint">{{ form.time_slots.help_text }}</div>
-        {% for e in form.time_slots.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+        <label class="label">コマ（授業時間・自動予約グループ）</label>
+        <div class="field-hint">曜日ごとに同じコマが繰り返し生成されます。コマごとに自動予約グループを紐づけると、生成される全ての回にそのグループの生徒が自動予約されます。</div>
+        {{ formset.management_form }}
+        <div id="timeslot-rows">
+            {% for tsform in formset %}
+                {% include "booking/partials/_lesson_timeslot_row.html" with tsform=tsform %}
+            {% endfor %}
+        </div>
+        <button type="button" id="add-timeslot-btn" class="btn-wa btn-outline-wa btn-sm-wa" style="margin-top:.25rem;"><i class="bi bi-plus-lg"></i>コマを追加</button>
+        {% if formset.non_form_errors %}
+            <div class="alert-wa alert-wa-error"><i class="bi bi-exclamation-octagon-fill"></i><div>{{ formset.non_form_errors }}</div></div>
+        {% endif %}
     </div>
+
+    <template id="empty-timeslot-template">{% include "booking/partials/_lesson_timeslot_row.html" with tsform=formset.empty_form %}</template>
 
     <div class="grid-2">
         <div class="field">
@@ -75,19 +85,66 @@
 
 <script>
 (function() {
-    var WED = '10:00-11:30 @1,2\n14:30-15:20\n15:30-16:20\n16:30-17:20\n17:30-18:20\n18:30-19:20';
-    var FRI = '16:00-16:50\n17:00-17:50\n18:00-18:50\n19:00-19:50\n20:00-20:50';
-    function updateSlots() {
+    var rowsContainer = document.getElementById('timeslot-rows');
+    var addBtn = document.getElementById('add-timeslot-btn');
+    var emptyTemplate = document.getElementById('empty-timeslot-template');
+    var totalFormsInput = document.getElementById('id_timeslot-TOTAL_FORMS');
+    if (!rowsContainer || !addBtn || !emptyTemplate || !totalFormsInput) return;
+
+    function bindRemove(rowEl) {
+        var btn = rowEl.querySelector('.timeslot-remove-btn');
+        var deleteInput = rowEl.querySelector('input[name$="-DELETE"]');
+        if (!btn || !deleteInput) return;
+        btn.addEventListener('click', function() {
+            deleteInput.checked = true;
+            rowEl.style.display = 'none';
+        });
+    }
+
+    function addRow(prefillStart, prefillEnd) {
+        var idx = parseInt(totalFormsInput.value, 10);
+        var html = emptyTemplate.innerHTML.split('__prefix__').join(idx);
+        var wrapper = document.createElement('div');
+        wrapper.innerHTML = html.trim();
+        var rowEl = wrapper.firstElementChild;
+        rowsContainer.appendChild(rowEl);
+        totalFormsInput.value = idx + 1;
+        bindRemove(rowEl);
+        if (prefillStart) {
+            var startInput = rowEl.querySelector('input[name$="-start_time"]');
+            var endInput = rowEl.querySelector('input[name$="-end_time"]');
+            if (startInput) startInput.value = prefillStart;
+            if (endInput) endInput.value = prefillEnd;
+        }
+        return rowEl;
+    }
+
+    function clearRows() {
+        Array.from(rowsContainer.children).forEach(function(rowEl) { rowEl.remove(); });
+    }
+
+    function applyPreset(times) {
+        clearRows();
+        totalFormsInput.value = 0;
+        times.forEach(function(t) { addRow(t[0], t[1]); });
+    }
+
+    // 曜日プリセット: 単一曜日選択時に代表的なコマの時間帯を提示（グループは手動選択が必要）
+    var WED_TIMES = [['10:00', '11:30'], ['14:30', '15:20'], ['15:30', '16:20'], ['16:30', '17:20'], ['17:30', '18:20'], ['18:30', '19:20']];
+    var FRI_TIMES = [['16:00', '16:50'], ['17:00', '17:50'], ['18:00', '18:50'], ['19:00', '19:50'], ['20:00', '20:50']];
+
+    function updateSlotsFromDay() {
         var checked = Array.from(document.querySelectorAll('input[name="days_of_week"]:checked'));
         if (checked.length !== 1) return;
         var val = checked[0].value;
-        var ta = document.querySelector('textarea[name="time_slots"]');
-        if (!ta) return;
-        if (val === '2') ta.value = WED;
-        else if (val === '4') ta.value = FRI;
+        if (val === '2') applyPreset(WED_TIMES);
+        else if (val === '4') applyPreset(FRI_TIMES);
     }
+
+    document.querySelectorAll('#timeslot-rows [data-timeslot-row]').forEach(bindRemove);
+    addBtn.addEventListener('click', function() { addRow(); });
     document.querySelectorAll('input[name="days_of_week"]').forEach(function(cb) {
-        cb.addEventListener('change', updateSlots);
+        cb.addEventListener('change', updateSlotsFromDay);
     });
 })();
 </script>

@@ -3,11 +3,15 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
 from django.contrib import messages
+from django.db import IntegrityError
 from django.db.models import Q, Count, Prefetch
 from django.db.models.functions import ExtractHour, ExtractMinute
 from datetime import timedelta, datetime
-from .forms import LessonSlotCreateForm, LessonSlotEditForm, StudentForm, FamilyEditForm
-from .models import LessonSlot, Reservation, Waitlist, Family, Student
+from .forms import (
+    LessonSlotCreateForm, LessonSlotEditForm, LessonSlotSingleCreateForm,
+    LessonTimeSlotFormSet, StudentForm, StudentGroupForm, FamilyEditForm,
+)
+from .models import LessonSlot, Reservation, Waitlist, Family, Student, StudentGroup
 from django.utils import timezone
 from django.contrib.auth import get_user_model  # noqa: F401
 
@@ -24,6 +28,26 @@ def _allowed_classrooms(user):
     if not classroom or classroom == 'all':
         return ['ishihara', 'yokogawa']
     return [classroom]
+
+
+def _reserve_group_for_lesson(lesson, group):
+    """指定グループの生徒をまとめて授業枠に予約する。
+
+    定員を超える分は予約せずスキップする（管理者操作のため予約開始時刻は無視）。
+    戻り値: (予約できた人数, 定員超過でスキップした人数)
+    """
+    reserved = 0
+    skipped = 0
+    for student in group.students.all():
+        if lesson.available_slots() <= 0:
+            skipped += 1
+            continue
+        try:
+            Reservation.objects.create(lesson_slot=lesson, student=student)
+            reserved += 1
+        except IntegrityError:
+            pass
+    return reserved, skipped
 
 # 管理者トップページ
 @login_required
@@ -90,6 +114,7 @@ def admin_dashboard(request):
             ('bi bi-list-ul', '/admin-dashboard/lessons/', '授業枠一覧・編集', '授業枠を確認・編集・削除'),
             ('bi bi-ticket-perforated', '/admin-dashboard/reservations/', '予約一覧', '全体の予約状況を確認'),
             ('bi bi-people', '/admin-dashboard/students/', '生徒管理', '保護者と生徒の情報を管理'),
+            ('bi bi-collection', '/admin-dashboard/student-groups/', '生徒グループ管理', '授業作成時に自動予約するグループを管理'),
             ('bi bi-calendar-range', '/admin-dashboard/calendar/', '予約カレンダー', 'カレンダー形式で予約を確認・作成'),
             ('bi bi-database', '/admin/', 'DB管理画面', '全データの閲覧・編集（Django管理）'),
         ],
@@ -100,58 +125,45 @@ def admin_dashboard(request):
 @login_required
 @user_passes_test(is_staff)
 def create_lesson_slots(request):
-    """授業枠一括作成"""
+    """授業枠一括作成。曜日×コマ（時間帯）の直積で授業枠をまとめて作成する。
+
+    コマごとに自動予約グループを紐づけられ、生成される全ての回にそのグループの
+    生徒を自動予約する（定員超過分はスキップし、まとめて警告表示）。
+    """
     if request.method == "POST":
         form = LessonSlotCreateForm(request.POST)
-        if form.is_valid():
+        formset = LessonTimeSlotFormSet(request.POST, prefix='timeslot')
+        if form.is_valid() and formset.is_valid():
             data = form.cleaned_data
-            
+
             start_date = data["start_date"]
             end_date = data["end_date"]
             days_of_week = [int(d) for d in data["days_of_week"]]
-            time_slots = data["time_slots"]
             capacity = data["capacity"]
-            title = data["title"]
+            title = data["title"] or "書道教室"
             reservation_start_datetime = data["reservation_start_datetime"]
             classroom = data["classroom"]
 
-            # 授業名が空の場合のデフォルト設定
-            if not title:
-                title = "書道教室"
+            time_rows = [
+                f.cleaned_data for f in formset.forms
+                if f.cleaned_data and not f.cleaned_data.get('DELETE')
+            ]
 
             current_date = start_date
             created_count = 0
-            
-            # 時間スロットをパース（@1,2 形式の週指定に対応）
-            import re
-            time_pairs = []
-            for line in time_slots.strip().split('\n'):
-                line = line.strip()
-                if not line or '-' not in line:
-                    continue
-                try:
-                    week_spec = None
-                    week_match = re.search(r'@([\d,]+)', line)
-                    if week_match:
-                        week_spec = [int(w) for w in week_match.group(1).split(',')]
-                        line = line[:week_match.start()].strip()
-                    start_str, end_str = line.split('-')
-                    start_time = datetime.strptime(start_str.strip(), '%H:%M').time()
-                    end_time = datetime.strptime(end_str.strip(), '%H:%M').time()
-                    time_pairs.append((start_time, end_time, week_spec))
-                except ValueError:
-                    continue
+            # グループごとの自動予約結果を集計してからまとめてメッセージ表示する
+            group_stats = {}  # group_name -> {'reserved': int, 'skipped': int}
 
-            # 期間内の日付を反復処理
             while current_date <= end_date:
                 if current_date.weekday() in days_of_week:
                     week_of_month = (current_date.day - 1) // 7 + 1
-                    for start_time, end_time, week_spec in time_pairs:
-                        if week_spec and week_of_month not in week_spec:
+                    for row in time_rows:
+                        weeks_of_month = row["weeks_of_month_list"]
+                        if weeks_of_month and week_of_month not in weeks_of_month:
                             continue
-                        lesson_start_dt = datetime.combine(current_date, start_time, tzinfo=timezone.get_current_timezone())
-                        lesson_end_dt = datetime.combine(current_date, end_time, tzinfo=timezone.get_current_timezone())
-                        LessonSlot.objects.create(
+                        lesson_start_dt = datetime.combine(current_date, row["start_time"], tzinfo=timezone.get_current_timezone())
+                        lesson_end_dt = datetime.combine(current_date, row["end_time"], tzinfo=timezone.get_current_timezone())
+                        lesson = LessonSlot.objects.create(
                             title=title,
                             classroom=classroom,
                             start_time=lesson_start_dt,
@@ -160,17 +172,31 @@ def create_lesson_slots(request):
                             reservation_start_time=reservation_start_datetime,
                         )
                         created_count += 1
-                
-                # 次の日へ
+
+                        group = row.get("student_group")
+                        if group:
+                            reserved, skipped = _reserve_group_for_lesson(lesson, group)
+                            stats = group_stats.setdefault(group.name, {'reserved': 0, 'skipped': 0})
+                            stats['reserved'] += reserved
+                            stats['skipped'] += skipped
+
                 current_date += timedelta(days=1)
 
             messages.success(request, f"授業枠を {created_count} 件作成しました。")
+            for group_name, stats in group_stats.items():
+                msg = f"「{group_name}」から合計{stats['reserved']}件の予約を自動作成しました。"
+                if stats['skipped']:
+                    messages.warning(request, msg + f" 定員超過のため{stats['skipped']}件は予約できませんでした。")
+                else:
+                    messages.success(request, msg)
             return redirect("admin_lesson_list")
     else:
         form = LessonSlotCreateForm()
+        formset = LessonTimeSlotFormSet(prefix='timeslot', initial=[{}])
 
     context = {
-        "form": form
+        "form": form,
+        "formset": formset,
     }
     return render(request, "booking/admin/create_lesson.html", context)
 
@@ -286,15 +312,23 @@ def delete_lesson_slot(request, lesson_id):
 @login_required
 @user_passes_test(is_staff)
 def create_lesson_single(request):
-    """授業枠個別作成"""
+    """授業枠個別作成。自動予約グループを選ぶと、作成した授業枠にその生徒を自動予約する。"""
     if request.method == "POST":
-        form = LessonSlotEditForm(request.POST)
+        form = LessonSlotSingleCreateForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, "授業枠を作成しました。")
+            lesson = form.save()
+            message = "授業枠を作成しました。"
+            group = form.cleaned_data.get("student_group")
+            skipped = 0
+            if group:
+                reserved, skipped = _reserve_group_for_lesson(lesson, group)
+                message += f" 「{group.name}」から{reserved}件の予約を自動作成しました。"
+            messages.success(request, message)
+            if skipped:
+                messages.warning(request, f"定員超過のため{skipped}件は予約できませんでした。")
             return redirect("admin_lesson_list")
     else:
-        form = LessonSlotEditForm()
+        form = LessonSlotSingleCreateForm()
 
     context = {
         "form": form
@@ -497,6 +531,73 @@ def delete_student_admin(request, student_id):
         'student': student
     }
     return render(request, 'booking/admin/delete_student.html', context)
+
+
+# 生徒グループ一覧
+@login_required
+@user_passes_test(is_staff)
+def student_group_list(request):
+    """生徒グループ一覧。授業作成時に自動予約するグループを管理する。"""
+    groups = StudentGroup.objects.prefetch_related('students__family__user').annotate(
+        student_count=Count('students', distinct=True)
+    )
+    context = {'groups': groups}
+    return render(request, 'booking/admin/student_group_list.html', context)
+
+
+# 生徒グループ追加
+@login_required
+@user_passes_test(is_staff)
+def add_student_group(request):
+    """生徒グループ追加"""
+    if request.method == 'POST':
+        form = StudentGroupForm(request.POST)
+        if form.is_valid():
+            group = form.save()
+            messages.success(request, f"グループ「{group.name}」を作成しました。")
+            return redirect('admin_student_group_list')
+    else:
+        form = StudentGroupForm()
+
+    context = {'form': form}
+    return render(request, 'booking/admin/student_group_form.html', context)
+
+
+# 生徒グループ編集
+@login_required
+@user_passes_test(is_staff)
+def edit_student_group(request, group_id):
+    """生徒グループ編集"""
+    group = get_object_or_404(StudentGroup, pk=group_id)
+
+    if request.method == 'POST':
+        form = StudentGroupForm(request.POST, instance=group)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"グループ「{group.name}」を更新しました。")
+            return redirect('admin_student_group_list')
+    else:
+        form = StudentGroupForm(instance=group)
+
+    context = {'form': form, 'group': group}
+    return render(request, 'booking/admin/student_group_form.html', context)
+
+
+# 生徒グループ削除
+@login_required
+@user_passes_test(is_staff)
+def delete_student_group(request, group_id):
+    """生徒グループ削除"""
+    group = get_object_or_404(StudentGroup, pk=group_id)
+
+    if request.method == 'POST':
+        group_name = group.name
+        group.delete()
+        messages.success(request, f"グループ「{group_name}」を削除しました。")
+        return redirect('admin_student_group_list')
+
+    context = {'group': group}
+    return render(request, 'booking/admin/delete_student_group.html', context)
 
 
 # 保護者削除

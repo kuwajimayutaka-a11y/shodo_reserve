@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import CustomUser, LessonSlot, Student, CLASSROOM_CHOICES
+from .models import CustomUser, LessonSlot, Student, StudentGroup, CLASSROOM_CHOICES
 
 
 class SignUpForm(UserCreationForm):
@@ -52,14 +52,6 @@ class LessonSlotCreateForm(forms.Form):
         widget=forms.CheckboxSelectMultiple,
         label="繰り返し設定 (曜日)",
     )
-    time_slots = forms.CharField(
-        label="授業時間 (1行に1つ、HH:MM-HH:MM形式)",
-        widget=forms.Textarea(attrs={
-            'rows': 5,
-            'placeholder': '例:\n09:00-10:00\n10:30-11:30\n13:00-14:00'
-        }),
-        help_text="1行に1つ「HH:MM-HH:MM」の形式で入力。第N週のみの場合は末尾に @1,2 のように追加（例: 10:00-11:30 @1,2）"
-    )
     capacity = forms.IntegerField(
         label="定員",
         min_value=1,
@@ -82,15 +74,8 @@ class LessonSlotCreateForm(forms.Form):
         cleaned_data = super().clean()
         start_date = cleaned_data.get("start_date")
         end_date = cleaned_data.get("end_date")
-        time_slots = cleaned_data.get("time_slots")
         if start_date and end_date and start_date > end_date:
             raise forms.ValidationError("開始日は終了日よりも前の日付を設定してください。")
-        if time_slots:
-            import re
-            for line in time_slots.strip().split('\n'):
-                line = re.sub(r'@[\d,]+', '', line).strip()
-                if line and '-' not in line:
-                    raise forms.ValidationError("時間は「HH:MM-HH:MM」または「HH:MM-HH:MM @1,2」の形式で入力してください。")
         return cleaned_data
 
 
@@ -113,6 +98,83 @@ class LessonSlotEditForm(forms.ModelForm):
             self.initial['start_time'] = self.instance.start_time.strftime('%Y-%m-%dT%H:%M')
             self.initial['end_time'] = self.instance.end_time.strftime('%Y-%m-%dT%H:%M')
             self.initial['reservation_start_time'] = self.instance.reservation_start_time.strftime('%Y-%m-%dT%H:%M')
+
+
+class LessonSlotSingleCreateForm(LessonSlotEditForm):
+    """授業枠個別作成用。作成後に自動予約するグループを選べる（編集画面では使わない）。"""
+    student_group = forms.ModelChoiceField(
+        queryset=StudentGroup.objects.all(),
+        required=False,
+        label="自動予約グループ (任意)",
+        help_text="選択すると、作成した授業枠にこのグループの生徒を自動的に予約します。",
+    )
+
+
+class StudentModelMultipleChoiceField(forms.ModelMultipleChoiceField):
+    def label_from_instance(self, obj):
+        return f"{obj.name}（{obj.family.user.name}）"
+
+
+class StudentGroupForm(forms.ModelForm):
+    students = StudentModelMultipleChoiceField(
+        queryset=Student.objects.select_related('family__user').order_by('family__user__name', 'name'),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        label="生徒",
+    )
+
+    class Meta:
+        model = StudentGroup
+        fields = ['name', 'students']
+        labels = {'name': 'グループ名'}
+        widgets = {'name': forms.TextInput(attrs={'placeholder': '例: 水10:00グループ'})}
+
+
+class LessonTimeSlotForm(forms.Form):
+    """一括作成の1コマ分（時間帯・対象週・自動予約グループ）"""
+    start_time = forms.TimeField(
+        label="開始時刻",
+        widget=forms.TimeInput(attrs={'type': 'time'}),
+    )
+    end_time = forms.TimeField(
+        label="終了時刻",
+        widget=forms.TimeInput(attrs={'type': 'time'}),
+    )
+    weeks_of_month = forms.CharField(
+        required=False,
+        label="対象週 (任意)",
+        widget=forms.TextInput(attrs={'placeholder': '例: 1,2（空欄なら毎週）'}),
+        help_text="第N週のみ開催する場合にカンマ区切りで指定（空欄なら毎週）。",
+    )
+    student_group = forms.ModelChoiceField(
+        queryset=StudentGroup.objects.all(),
+        required=False,
+        label="自動予約グループ (任意)",
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_time = cleaned_data.get("start_time")
+        end_time = cleaned_data.get("end_time")
+        if start_time and end_time and start_time >= end_time:
+            raise forms.ValidationError("終了時刻は開始時刻より後にしてください。")
+
+        weeks_of_month = cleaned_data.get("weeks_of_month", "").strip()
+        if weeks_of_month:
+            try:
+                cleaned_data["weeks_of_month_list"] = [
+                    int(w) for w in weeks_of_month.split(',') if w.strip()
+                ]
+            except ValueError:
+                raise forms.ValidationError("対象週は「1,2」のようにカンマ区切りの数字で入力してください。")
+        else:
+            cleaned_data["weeks_of_month_list"] = None
+        return cleaned_data
+
+
+LessonTimeSlotFormSet = forms.formset_factory(
+    LessonTimeSlotForm, can_delete=True, extra=0, min_num=1, validate_min=True,
+)
 
 
 class StudentForm(forms.ModelForm):

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}{% if group %}生徒グループ編集{% else %}生徒グループ追加{% endif %}{% endblock %}
+
+{% block content %}
+<a href="{% url 'admin_student_group_list' %}" class="back-link"><i class="bi bi-arrow-left"></i>生徒グループ管理に戻る</a>
+{% include "booking/partials/_page_head.html" with title=group|yesno:"生徒グループ編集,生徒グループ追加" %}
+
+<div class="card-wa pad form-wide">
+<form method="post">
+    {% csrf_token %}
+    {% include "booking/partials/_field.html" with field=form.name %}
+
+    <div class="field">
+        <label class="label">{{ form.students.label }}</label>
+        <input type="text" id="student-search" placeholder="生徒名・保護者名で検索" style="margin-bottom:.5rem;">
+        <div style="max-height:360px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);padding:.75rem;">
+            <div class="checkbox-grid" id="student-checkbox-list">
+                {% for checkbox in form.students %}
+                    <label class="checkbox-item" data-search-text="{{ checkbox.choice_label|lower }}">{{ checkbox.tag }} {{ checkbox.choice_label }}</label>
+                {% endfor %}
+            </div>
+            <div class="field-hint" id="student-search-empty" style="display:none;">一致する生徒が見つかりません。</div>
+        </div>
+        {% for e in form.students.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+    </div>
+
+    {% if form.non_field_errors %}
+        <div class="alert-wa alert-wa-error"><i class="bi bi-exclamation-octagon-fill"></i><div>{{ form.non_field_errors }}</div></div>
+    {% endif %}
+
+    <div class="form-actions">
+        <button type="submit" class="btn-wa btn-primary-wa">{% if group %}更新{% else %}作成{% endif %}</button>
+        <a href="{% url 'admin_student_group_list' %}" class="btn-wa btn-outline-wa">キャンセル</a>
+    </div>
+</form>
+</div>
+
+<script>
+(function() {
+    var searchInput = document.getElementById('student-search');
+    var labels = Array.from(document.querySelectorAll('#student-checkbox-list .checkbox-item'));
+    var emptyMsg = document.getElementById('student-search-empty');
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', function() {
+        var query = searchInput.value.trim().toLowerCase();
+        var visibleCount = 0;
+        labels.forEach(function(label) {
+            var match = !query || label.dataset.searchText.indexOf(query) !== -1;
+            label.style.display = match ? '' : 'none';
+            if (match) visibleCount++;
+        });
+        emptyMsg.style.display = visibleCount === 0 ? '' : 'none';
+    });
+})();
+</script>
+{% endblock %}
