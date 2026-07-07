@@ -1,0 +1,250 @@
+{% load static %}
+{# ライト・グラスモーフィズム・テーマ（管理ダッシュボード / 管理カレンダー限定） #}
+{# base.html の :root 変数と共通クラスを後勝ちで上書き。このpartialを読み込んだページにのみ適用される。 #}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* ---- ライト配色（このページのみ再定義） ---- */
+  :root{
+    --bg:#c9d3de;
+    --surface:rgba(255,255,255,.55);
+    --surface-2:rgba(255,255,255,.4);
+    --ink:#1c2430;--ink-2:#5b6675;--muted:#8b95a3;
+    --border:rgba(28,36,48,.08);--border-strong:rgba(28,36,48,.18);
+    --navy:#2a3a54;
+    --blue:#3a7bfd;--blue-hover:#2f6ae0;--blue-soft:rgba(58,123,253,.12);
+    --accent-soft:rgba(58,123,253,.12);
+    --ok:#2f9e6e;
+    --danger:#d6455d;--danger-soft:rgba(214,69,93,.1);
+    --sat:#4a7dd4;--sun:#c96a7c;
+    --glass-border:rgba(255,255,255,.65);
+    --glass-strong:rgba(255,255,255,.72);
+    --radius-card:24px;--radius-md:18px;--radius-sm:12px;
+    --shadow-card:0 18px 40px -18px rgba(30,45,70,.35);
+    --shadow-pop:0 26px 54px -20px rgba(30,45,70,.45);
+  }
+
+  /* ---- 背景：淡い青グレーの「部屋」グラデ ---- */
+  body{
+    background:#c9d3de;
+    font-family:'Inter','Hiragino Sans','Noto Sans JP','Yu Gothic UI',sans-serif;
+    color:var(--ink);
+    overflow-x:hidden;
+  }
+  /* 元ヘッダーの書（紫紺の和紙＋金の草書）を背景に。上に淡い白ベールを重ねて
+     金文字をうっすら透かしつつ、濃色テキストの可読性を確保する。 */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-2;
+    background:
+      linear-gradient(155deg, rgba(238,242,248,.82) 0%, rgba(222,229,239,.86) 50%, rgba(205,214,227,.9) 100%),
+      url("{% static 'booking/img/bg.jpg' %}") center/cover no-repeat;
+  }
+
+  /* ---- ガラス面（外側パネル） ---- */
+  .card-wa,.stat-card,.menu-card,.cal,.table-wrap{
+    background:var(--surface);
+    -webkit-backdrop-filter:blur(22px) saturate(1.4);
+    backdrop-filter:blur(22px) saturate(1.4);
+    border:1px solid var(--glass-border);
+    border-radius:var(--radius-card);
+    box-shadow:var(--shadow-card);
+  }
+  .card-wa-head{border-bottom-color:var(--border);}
+  .lesson-card-wa,.timeslot-row{
+    background:var(--surface-2);
+    border:1px solid var(--glass-border);
+    border-radius:var(--radius-md);
+  }
+
+  /* ---- タイポグラフィ ---- */
+  main{font-family:'Inter','Hiragino Sans','Noto Sans JP','Yu Gothic UI',sans-serif;}
+  .page-head{margin-bottom:1.75rem;}
+  .page-head h1{font-weight:700;letter-spacing:-.01em;}
+  .section-title{font-weight:700;letter-spacing:-.005em;margin:2.25rem 0 1.1rem;}
+  .section-title i{color:var(--blue);}
+  .card-wa-head h2,.card-wa-head .h,.cal-title{font-weight:700;letter-spacing:-.005em;}
+  .stat-value,.meta,.pill,.cal-cell,.wtable,.lg-time,.cap-row{font-variant-numeric:tabular-nums;}
+
+  /* ---- 統計カード ---- */
+  .stat-grid{gap:14px;margin-bottom:1.75rem;}
+  .stat-card{padding:20px;text-align:left;}
+  .stat-card .stat-label{font-size:12.5px;color:var(--ink-2);font-weight:600;margin-bottom:0;}
+  .stat-card .stat-value{font-size:2.2rem;font-weight:700;letter-spacing:-.02em;color:var(--ink);margin-top:6px;line-height:1;}
+  .stat-card .stat-value small{font-size:.42em;color:var(--muted);font-weight:600;}
+  .delta-pill{display:inline-block;margin-top:.75rem;font-size:11.5px;font-weight:600;color:var(--ok);background:rgba(47,158,110,.12);padding:3px 10px;border-radius:999px;}
+  .delta-pill.delta-zero{color:var(--ink-2);background:rgba(28,36,48,.06);}
+
+  /* 稼働率リング（conic-gradient） */
+  .occ-card{grid-column:1/-1;display:flex;align-items:center;gap:20px;}
+  .occ-ring{--p:0;position:relative;width:96px;height:96px;flex:none;border-radius:50%;
+    background:conic-gradient(var(--blue) calc(var(--p)*1%), rgba(28,36,48,.09) 0);
+    display:grid;place-items:center;}
+  .occ-ring::before{content:"";position:absolute;inset:9px;border-radius:50%;background:rgba(255,255,255,.62);
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
+  .occ-ring span{position:relative;font-weight:700;font-size:.95rem;font-variant-numeric:tabular-nums;}
+
+  /* ---- 直近の授業（グラスカード＋容量バー） ---- */
+  .lessons{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:.5rem;}
+  .lesson-glass{padding:18px 20px;margin-bottom:0;}
+  .lg-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .lg-time{font-size:1.15rem;font-weight:700;letter-spacing:-.01em;}
+  .cap{margin-top:14px;}
+  .cap-row{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-2);margin-bottom:6px;}
+  .cap-row b{color:var(--ink);font-weight:600;}
+  .cap-bar{height:6px;border-radius:999px;background:rgba(28,36,48,.08);overflow:hidden;}
+  .cap-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--blue),#6fa0ff);}
+  .lg-names{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+  .lg-names .nm-fam{color:var(--muted);font-size:11px;margin-left:2px;}
+  .lg-empty{font-size:.82rem;color:var(--muted);margin-top:11px;}
+
+  /* ---- メニュー：アイコンをアクセントタイルに ---- */
+  .menu-grid{gap:14px;margin-bottom:1.75rem;}
+  .menu-card{padding:20px 18px;transition:transform .18s ease, background .18s ease, box-shadow .18s ease;}
+  .menu-card:hover{transform:translateY(-2px);background:var(--glass-strong);box-shadow:var(--shadow-pop);border-color:var(--glass-border);}
+  .menu-card .menu-ico{width:42px;height:42px;border-radius:14px;background:var(--accent-soft);color:var(--blue);display:grid;place-items:center;margin-bottom:.9rem;}
+  .menu-card .menu-ico i{font-size:20px;}
+  .menu-card .menu-title{font-weight:700;}
+
+  /* ---- ボタン・入力（ガラスになじむ半透明白） ---- */
+  .btn-outline-wa{background:rgba(255,255,255,.5);border-color:var(--glass-border);}
+  .btn-outline-wa:hover{background:var(--glass-strong);}
+  .input,.select,
+  main input:not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]):not([type=file]):not([type=hidden]),
+  main textarea,main select{background:rgba(255,255,255,.55);border-color:var(--border-strong);}
+
+  /* ---- カレンダーページ：クイックリンク ---- */
+  .quick{display:flex;gap:10px;margin:0 0 24px;flex-wrap:wrap;}
+  .quick-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:600;color:var(--ink);text-decoration:none;
+    padding:9px 16px;border-radius:999px;background:var(--surface);border:1px solid var(--glass-border);
+    -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);box-shadow:0 8px 20px -12px rgba(30,45,70,.35);
+    transition:background .15s ease, transform .15s ease;}
+  .quick-link:hover{background:var(--glass-strong);transform:translateY(-1px);color:var(--ink);}
+  .quick-link i{color:var(--blue);font-size:1rem;}
+
+  /* ---- カレンダーページ：2カラムレイアウト ---- */
+  .cal-col{margin-bottom:1.25rem;}
+  .cal-placeholder{display:flex;align-items:center;justify-content:center;min-height:220px;padding:2rem;
+    border-radius:var(--radius-card);border:1px dashed var(--border-strong);color:var(--muted);font-size:.85rem;text-align:center;}
+  @media(min-width:820px){
+    .cal-layout{display:grid;grid-template-columns:360px 1fr;gap:22px;align-items:start;}
+    .cal-col{position:sticky;top:92px;margin-bottom:0;}
+  }
+
+  /* ---- ミニカレンダー ---- */
+  .cal{padding:22px 20px 18px;}
+  .cal-col .cal{max-width:none;margin:0;}
+  .cal-title{letter-spacing:.02em;}
+  .cal-nav{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.5);border-color:var(--glass-border);}
+  .cal-nav:hover{background:var(--glass-strong);}
+  .cal-cell{font-family:'Inter',sans-serif;border-radius:14px;}
+  .cal-cell.has-lesson:hover{background:var(--blue-soft);}
+  .cal-cell.today{box-shadow:inset 0 0 0 1.5px var(--border-strong);background:rgba(255,255,255,.5);}
+  .cal-cell.selected{box-shadow:0 8px 18px -8px rgba(58,123,253,.7);}
+
+  /* ---- 日付ラベル ---- */
+  .day-label{display:flex;align-items:center;gap:8px;margin:0 4px 14px;}
+  .day-label h2{font-size:1rem;font-weight:700;}
+  .dl-icon{width:26px;height:26px;border-radius:9px;background:var(--accent-soft);color:var(--blue);display:grid;place-items:center;}
+  .dl-icon i{font-size:14px;}
+
+  /* ---- スロット（授業枠）カード ---- */
+  .slot{background:var(--surface);-webkit-backdrop-filter:blur(22px) saturate(1.4);backdrop-filter:blur(22px) saturate(1.4);
+    border:1px solid var(--glass-border);border-radius:var(--radius-card);box-shadow:var(--shadow-card);padding:20px;margin-bottom:16px;}
+  .slot-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .slot-room{font-weight:700;font-size:.95rem;}
+  .slot-del{margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:600;color:var(--danger);
+    background:var(--danger-soft);border:none;border-radius:999px;padding:6px 12px;cursor:pointer;text-decoration:none;transition:background .15s ease;}
+  .slot-del:hover{background:rgba(214,69,93,.18);color:var(--danger);}
+  .slot-del i{font-size:.85rem;}
+  .slot-time{font-size:1.25rem;font-weight:700;font-variant-numeric:tabular-nums;margin-top:12px;}
+
+  /* 容量バー（カレンダー） */
+  .cap-left{font-weight:600;color:var(--blue);}
+  .cap-left.low{color:var(--danger);}
+  .cap-bar i.full{background:linear-gradient(90deg,#e07a90,var(--danger));}
+
+  .open-date{font-size:.72rem;color:var(--muted);margin-top:10px;display:flex;align-items:center;gap:5px;}
+  .open-date i{font-size:.85rem;}
+
+  /* 予約フォーム */
+  .booking-form{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center;}
+  .booking-form .select,.booking-form select{flex:1;min-width:180px;border-radius:14px;}
+  .btn-book{font:inherit;font-size:.85rem;font-weight:700;color:#fff;padding:11px 20px;border:none;border-radius:14px;cursor:pointer;
+    background:linear-gradient(135deg,var(--blue),#5e93ff);box-shadow:0 10px 20px -10px rgba(58,123,253,.7);
+    transition:transform .15s ease, box-shadow .15s ease;white-space:nowrap;}
+  .btn-book:hover{transform:translateY(-1px);box-shadow:0 14px 24px -10px rgba(58,123,253,.75);}
+  .btn-book:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+  @media(max-width:600px){.booking-form .btn-book{width:100%;}}
+
+  /* 現在の予約（チップ） */
+  .bookings{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
+  .bookings h4{font-size:.75rem;font-weight:700;color:var(--ink-2);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+  .bookings h4 .count{font-size:.68rem;font-weight:600;color:var(--blue);background:var(--accent-soft);padding:2px 8px;border-radius:999px;}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;}
+  .chip{font-size:.72rem;color:var(--ink);line-height:1;background:var(--surface);border:1px solid var(--glass-border);padding:7px 11px;border-radius:999px;white-space:nowrap;}
+  .chip small{color:var(--muted);font-size:.66rem;margin-left:3px;}
+
+  /* ---- Select2（ライトガラス） ---- */
+  .select2-container--default .select2-selection--single{
+    background:rgba(255,255,255,.55)!important;border:1px solid var(--border-strong)!important;
+    height:auto!important;border-radius:var(--radius-sm)!important;}
+  .select2-container--default .select2-selection--single .select2-selection__rendered{color:var(--ink)!important;line-height:1.4!important;padding:10px 12px!important;}
+  .select2-container--default .select2-selection--single .select2-selection__arrow{height:100%!important;}
+  .select2-dropdown{background:rgba(255,255,255,.92)!important;border:1px solid var(--border-strong)!important;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);}
+  .select2-container--default .select2-results__option--highlighted[aria-selected]{background:var(--blue)!important;color:#fff!important;}
+
+  /* ---- ヘッダー：モック風の浮遊ライトグラス・ピル ---- */
+  .hdr{
+    background:rgba(255,255,255,.55);
+    -webkit-backdrop-filter:blur(22px) saturate(1.4);
+    backdrop-filter:blur(22px) saturate(1.4);
+    border:1px solid var(--glass-border);
+    border-radius:999px;
+    box-shadow:var(--shadow-card);
+    top:12px;left:16px;right:16px;height:auto;min-height:52px;padding:8px 20px;
+  }
+  .hdr-logo,.hdr-logo:hover{color:var(--ink);text-shadow:none;
+    font-family:'Inter','Hiragino Sans','Noto Sans JP','Yu Gothic UI',sans-serif;
+    flex-wrap:wrap;column-gap:9px;row-gap:0;line-height:1.15;}
+  .hdr-logo-name{font-weight:700;letter-spacing:.02em;}
+  .hdr-logo-sub{flex-basis:100%;font-weight:300;font-size:.72rem;color:var(--muted);letter-spacing:.06em;}
+  .hdr-brush{background:var(--blue);}
+  .hdr-user{color:var(--ink-2);text-shadow:none;}
+  .hdr-admin-badge{background:var(--blue);box-shadow:0 6px 14px -6px rgba(58,123,253,.6);text-shadow:none;}
+  nav a{color:var(--ink-2);text-shadow:none;border-radius:999px;}
+  nav a:hover{background:rgba(28,36,48,.06);color:var(--ink);}
+  .logout-btn{background:rgba(255,255,255,.45);color:var(--ink);border:1px solid var(--glass-border);border-radius:999px;text-shadow:none;}
+  .logout-btn:hover{background:var(--glass-strong);}
+  .menu-btn span{background:var(--ink);}
+  @media(max-width:750px){
+    .hdr{left:8px;right:8px;top:8px;border-radius:20px;}
+    nav{top:66px;background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid var(--glass-border);border-radius:16px;box-shadow:var(--shadow-card);}
+  }
+
+  /* ---- バッジ／ピル系もフロストガラス調に ---- */
+  .pill,.delta-pill,.bookings h4 .count,.chip,.slot-del,.slot-top .teacher{
+    -webkit-backdrop-filter:blur(10px) saturate(1.4);
+    backdrop-filter:blur(10px) saturate(1.4);
+    border:1px solid var(--glass-border);
+  }
+  .pill-success{background:rgba(47,158,110,.16);color:#1c7a52;border-color:rgba(47,158,110,.32);}
+  .pill-danger{background:rgba(214,69,93,.16);color:#b83a50;border-color:rgba(214,69,93,.32);}
+  .pill-warning{background:rgba(217,119,6,.16);color:#a15c08;border-color:rgba(217,119,6,.3);}
+  .pill-muted{background:rgba(255,255,255,.5);color:var(--ink-2);border-color:var(--glass-border);}
+  .pill-open{background:rgba(58,123,253,.16);color:#2f6ae0;border-color:rgba(58,123,253,.32);}
+  .pill-room-yokogawa{background:rgba(13,148,136,.16);color:#0f766e;border-color:rgba(13,148,136,.3);}
+  .pill-room-ishihara{background:rgba(124,58,237,.16);color:#6d28d9;border-color:rgba(124,58,237,.3);}
+  .delta-pill{background:rgba(47,158,110,.15);border-color:rgba(47,158,110,.28);}
+  .delta-pill.delta-zero{background:rgba(255,255,255,.45);border-color:var(--glass-border);}
+  .bookings h4 .count{background:rgba(58,123,253,.15);border-color:rgba(58,123,253,.28);}
+  .slot-del{background:rgba(214,69,93,.14);border-color:rgba(214,69,93,.28);}
+  .slot-del:hover{background:rgba(214,69,93,.22);}
+  .hdr-admin-badge{background:rgba(58,123,253,.5);border:1px solid rgba(255,255,255,.5);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 6px 14px -8px rgba(58,123,253,.6);}
+
+  /* ---- backdrop-filter 非対応ブラウザ向けフォールバック ---- */
+  @supports not ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
+    .card-wa,.stat-card,.menu-card,.cal,.table-wrap{background:rgba(255,255,255,.9);}
+  }
+</style>

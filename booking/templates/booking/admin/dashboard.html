@@ -1,37 +1,40 @@
 {% extends "base.html" %}
 {% block title %}管理者ダッシュボード{% endblock %}
 
+{% block extra_head %}{% include "booking/partials/_glass_theme.html" %}{% endblock %}
+
 {% block content %}
 {% include "booking/partials/_page_head.html" with title="管理者ダッシュボード" sub="教室運営の概況と管理メニュー" %}
 
 <!-- 直近の授業 -->
 {% if next_lesson %}
 <h2 class="section-title"><i class="bi bi-calendar-day"></i>直近の授業 ― {{ next_lesson.start_time|date:"Y年m月d日（D）" }}</h2>
-{% for lesson in next_day_lessons %}
-<div class="card-wa">
-    <div class="card-wa-head" style="justify-content:space-between;">
-        <span class="h">
-            {{ lesson.start_time|date:"H:i" }} – {{ lesson.end_time|date:"H:i" }}
-            <span style="font-size:12px;color:var(--muted);margin-left:8px;font-weight:400;">{{ lesson.title|default:"書道教室" }}</span>
+<div class="lessons">
+    {% for lesson in next_day_lessons %}
+    {% with reservations=lesson.reservation_set.all %}
+    <div class="card-wa lesson-glass">
+        <div class="lg-top">
+            <span class="lg-time">{{ lesson.start_time|date:"H:i" }} – {{ lesson.end_time|date:"H:i" }}</span>
+            <span style="font-size:12px;color:var(--muted);">{{ lesson.title|default:"書道教室" }}</span>
             {% include "booking/partials/_classroom_badge.html" with classroom=lesson.classroom %}
-        </span>
-        <span class="pill {% if lesson.available_slots > 0 %}pill-success{% else %}pill-danger{% endif %}">残り {{ lesson.available_slots }} / {{ lesson.capacity }} 名</span>
-    </div>
-    <div class="card-wa-body">
-        {% with reservations=lesson.reservation_set.all %}
+        </div>
+        <div class="cap">
+            <div class="cap-row"><span>予約状況</span><span><b>{{ reservations|length }}</b> / {{ lesson.capacity }} 名</span></div>
+            <div class="cap-bar"><i style="width:{% widthratio reservations|length lesson.capacity 100 %}%"></i></div>
+        </div>
         {% if reservations %}
-        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        <div class="lg-names">
             {% for res in reservations %}
-            <span class="pill pill-muted"><b style="color:var(--ink);">{{ res.student.name }}</b>&nbsp;<span style="color:var(--muted);font-size:11px;">{{ res.student.family.user.name }}</span></span>
+            <span class="pill pill-muted"><b>{{ res.student.name }}</b><span class="nm-fam">{{ res.student.family.user.name }}</span></span>
             {% endfor %}
         </div>
         {% else %}
-        <div style="font-size:13px;color:var(--muted);">まだ予約がありません。</div>
+        <p class="lg-empty">まだ予約がありません。</p>
         {% endif %}
-        {% endwith %}
     </div>
+    {% endwith %}
+    {% endfor %}
 </div>
-{% endfor %}
 {% endif %}
 
 <!-- 統計 -->
@@ -42,19 +45,19 @@
         <div class="stat-label">{{ stat.label }}</div>
         <div class="stat-value">{{ stat.value }}</div>
         {% if stat.delta %}
-        <div style="font-size:12px;color:var(--success);font-weight:700;margin-top:.4rem;"><i class="bi bi-arrow-up-short"></i>今月 +{{ stat.delta }}</div>
+        <span class="delta-pill"><i class="bi bi-arrow-up-short"></i>今月 +{{ stat.delta }}</span>
         {% else %}
-        <div style="font-size:12px;color:var(--muted);margin-top:.4rem;">今月 +0</div>
+        <span class="delta-pill delta-zero">今月 +0</span>
         {% endif %}
     </div>
     {% endfor %}
-    <div class="stat-card">
-        <div class="stat-label">今週の予約席</div>
-        <div class="stat-value" style="margin-bottom:.6rem;">{{ week_occupancy.booked }}<span style="font-size:.5em;color:var(--muted);font-weight:600;"> / {{ week_occupancy.capacity }} 席</span></div>
-        <div style="height:7px;background:var(--surface-2);border-radius:999px;overflow:hidden;">
-            <div style="height:100%;width:{{ week_occupancy.percent }}%;background:var(--blue);border-radius:999px;"></div>
+    <div class="stat-card occ-card">
+        <div class="occ-ring" style="--p:{{ week_occupancy.percent }};"><span>{{ week_occupancy.percent }}%</span></div>
+        <div>
+            <div class="stat-label">今週の予約席</div>
+            <div class="stat-value">{{ week_occupancy.booked }}<small> / {{ week_occupancy.capacity }} 席</small></div>
+            <span class="delta-pill delta-zero">稼働率 {{ week_occupancy.percent }}%</span>
         </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:.4rem;">稼働率 {{ week_occupancy.percent }}%</div>
     </div>
 </div>
 
@@ -63,7 +66,7 @@
 <div class="menu-grid">
     {% for icon, url, title, desc in menu_items %}
     <a href="{{ url }}" class="menu-card">
-        <i class="{{ icon }}"></i>
+        <span class="menu-ico"><i class="{{ icon }}"></i></span>
         <div class="menu-title">{{ title }}</div>
         <div class="menu-desc">{{ desc }}</div>
     </a>

@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% block title %}管理者用予約カレンダー{% endblock %}
 
+{% block extra_head %}{% include "booking/partials/_glass_theme.html" %}{% endblock %}
+
 {% block content %}
 <!-- Select2用CDN -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -8,20 +10,23 @@
 
 {% include "booking/partials/_page_head.html" with title="管理者用予約カレンダー" sub="日付を選んで授業枠の予約を作成・確認" %}
 
-<div style="margin-bottom:1rem;display:flex;gap:.75rem;flex-wrap:wrap;">
-    <a href="{% url 'admin_student_management' %}" class="btn-wa btn-outline-wa btn-sm-wa"><i class="bi bi-mortarboard"></i>生徒管理</a>
-    <a href="{% url 'admin_reservation_list' %}" class="btn-wa btn-outline-wa btn-sm-wa"><i class="bi bi-card-list"></i>予約一覧</a>
+<div class="quick">
+    <a href="{% url 'admin_student_management' %}" class="quick-link"><i class="bi bi-mortarboard"></i>生徒管理</a>
+    <a href="{% url 'admin_reservation_list' %}" class="quick-link"><i class="bi bi-card-list"></i>予約一覧</a>
 </div>
 
-<h2 class="section-title"><i class="bi bi-calendar3"></i>授業枠一覧と予約作成</h2>
-{% include "booking/partials/_mini_calendar.html" with dates=lessons_by_date %}
-
-<div id="date-blocks" data-month-url="{% url 'admin_calendar_month' %}" data-coverage-start="{{ since|date:'Y-m' }}">
-{% if lessons_by_date %}
-    {% include "booking/partials/_calendar_date_blocks.html" %}
-{% else %}
-    {% include "booking/partials/_empty_state.html" with icon="bi-calendar-x" text="現在、授業枠はありません。" %}
-{% endif %}
+<div class="cal-layout">
+    <div class="cal-col">
+        {% include "booking/partials/_mini_calendar.html" with dates=lessons_by_date %}
+    </div>
+    <div class="cal-detail" id="date-blocks" data-month-url="{% url 'admin_calendar_month' %}" data-coverage-start="{{ since|date:'Y-m' }}">
+    {% if lessons_by_date %}
+        {% include "booking/partials/_calendar_date_blocks.html" %}
+        <div class="cal-placeholder">左のカレンダーで日付を選ぶと、その日の授業枠が表示されます。</div>
+    {% else %}
+        {% include "booking/partials/_empty_state.html" with icon="bi-calendar-x" text="現在、授業枠はありません。" %}
+    {% endif %}
+    </div>
 </div>
 <div id="snackbar-wrap" class="snackbar-wrap"></div>
 
@@ -51,34 +56,44 @@
         function updateAvailableSlots(lessonId, availableSlots) {
             const card = document.querySelector('.reservation-card[data-lesson-id="' + lessonId + '"]');
             if (!card) return;
-            const slotsEl = card.querySelector('.js-available-slots');
-            if (!slotsEl) return;
-            slotsEl.textContent = availableSlots;
+            const capacity = parseInt(card.dataset.capacity, 10) || 0;
+            const booked = capacity ? capacity - availableSlots : null;
+            const bookedEl = card.querySelector('.js-booked');
+            if (bookedEl && booked !== null) bookedEl.textContent = booked;
+            const remEl = card.querySelector('.js-remaining');
+            if (remEl) {
+                remEl.textContent = '残り ' + availableSlots + ' 枠';
+                remEl.classList.toggle('low', availableSlots <= 1);
+            }
+            const bar = card.querySelector('.js-cap-bar');
+            if (bar && capacity) {
+                bar.style.width = Math.round(booked / capacity * 100) + '%';
+                bar.classList.toggle('full', availableSlots <= 1);
+            }
         }
 
         function appendCurrentReservation(lessonId, studentName, familyName) {
             const card = document.querySelector('.reservation-card[data-lesson-id="' + lessonId + '"]');
             if (!card) return;
-            let box = card.querySelector('.js-current-reservations');
-            let list;
-            if (!box) {
-                box = document.createElement('div');
-                box.className = 'js-current-reservations';
-                box.style.marginTop = '.9rem';
-                box.style.padding = '.75rem';
-                box.style.background = 'var(--surface-2)';
-                box.style.borderRadius = '8px';
-                box.innerHTML = '<strong style="font-size:14px;">現在の予約:</strong><ul class="js-current-reservation-list" style="margin:.35rem 0 0; padding-left:1.25rem;"></ul>';
-                card.appendChild(box);
-            }
-            list = box.querySelector('.js-current-reservation-list');
+            const box = card.querySelector('.js-current-reservations');
+            if (!box) return;
+            box.style.display = '';
+            const list = box.querySelector('.js-current-reservation-list');
             if (!list) return;
-            const label = studentName + ' (' + familyName + ')';
-            const exists = Array.from(list.querySelectorAll('li')).some(function (li) { return li.textContent === label; });
-            if (exists) return;
-            const li = document.createElement('li');
-            li.textContent = label;
-            list.appendChild(li);
+            const key = studentName + '｜' + familyName;
+            const exists = Array.from(list.querySelectorAll('.chip')).some(function (c) { return c.dataset.key === key; });
+            if (!exists) {
+                const chip = document.createElement('span');
+                chip.className = 'chip';
+                chip.dataset.key = key;
+                chip.textContent = studentName;
+                const small = document.createElement('small');
+                small.textContent = familyName;
+                chip.appendChild(small);
+                list.appendChild(chip);
+            }
+            const countEl = box.querySelector('.js-res-count');
+            if (countEl) countEl.textContent = list.querySelectorAll('.chip').length + '名';
         }
 
         // 動的に差し込まれる過去月のフォームにも効くよう submit をデリゲート
@@ -142,6 +157,20 @@
                 });
             };
         }
+
+        // 初期状態では右カラムが空になるため、最初の授業日を自動選択して表示する。
+        // 日付が選択されたらプレースホルダを隠す。
+        function hidePlaceholder() {
+            const ph = document.querySelector('.cal-placeholder');
+            if (ph) ph.style.display = 'none';
+        }
+        document.addEventListener('click', function (e) {
+            if (e.target.closest && e.target.closest('.cal-cell.has-lesson')) hidePlaceholder();
+        });
+        setTimeout(function () {
+            const first = document.querySelector('#mini-calendar .cal-cell.has-lesson');
+            if (first) first.click();
+        }, 0);
     }
 
     if (document.readyState === 'loading') {
