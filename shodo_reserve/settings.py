@@ -4,15 +4,34 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# TODO(セキュリティ): SECRET_KEY は環境変数化する（現状は一旦据え置き）。
 SECRET_KEY = 'django-insecure-#&wkgot=uzqff-4$y^-!qg(vjh_iffdg82rz#e4p(ef4&*848+'
 
-DEBUG = True
+# DEBUG は既定で False。ローカル開発時のみ DJANGO_DEBUG=True を設定する。
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() in ('1', 'true', 'yes')
 
-ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS は環境変数（カンマ区切り）優先。未設定なら本番ドメイン＋ローカルを許可。
+ALLOWED_HOSTS = [
+    h.strip() for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if h.strip()
+]
+if not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ['shodo-reserve-syg.onrender.com', 'localhost', '127.0.0.1']
 
 CSRF_TRUSTED_ORIGINS = [
     'https://shodo-reserve-syg.onrender.com',
 ]
+
+# セキュリティ設定（本番は HTTPS 前提）。DEBUG 時は無効化しローカル HTTP 開発を許可する。
+# Render 等のリバースプロキシ配下では X-Forwarded-Proto ヘッダで HTTPS を判定する。
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = not DEBUG      # Cookie を HTTPS 接続のみに限定
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_SSL_REDIRECT = not DEBUG        # HTTP アクセスを HTTPS へリダイレクト
+if not DEBUG:
+    # HSTS。*.onrender.com は共有ドメインのため includeSubDomains / preload は付けない。
+    SECURE_HSTS_SECONDS = 31536000  # 1年
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
 
 INSTALLED_APPS = [
     'django.contrib.admin',
