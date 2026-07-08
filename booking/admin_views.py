@@ -83,9 +83,12 @@ def admin_dashboard(request):
         'percent': round(week_booked / week_capacity * 100) if week_capacity else 0,
     }
 
+    # 今日の0時以降で最も早い授業枠を「直近の授業」とする。
+    # これにより、開始時刻を過ぎた授業も当日中（翌0時まで）は表示され続ける。
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     next_lesson = (
         lesson_qs
-        .filter(start_time__gte=timezone.now())
+        .filter(start_time__gte=today_start)
         .order_by('start_time')
         .first()
     )
