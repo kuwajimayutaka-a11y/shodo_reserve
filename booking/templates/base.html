@@ -146,6 +146,11 @@
     .alert-wa-info{background:var(--blue-soft);border-color:#bfdbfe;color:#1d4ed8;}
     .alert-wa a{color:inherit;font-weight:700;}
 
+    /* スクロール位置を復元したときは、画面上部のメッセージが見えなくなるため一時的に浮かせる */
+    .msg-float{position:fixed;top:calc(64px + 12px);left:50%;transform:translateX(-50%);z-index:900;width:min(680px,calc(100% - 24px));margin-bottom:0;transition:opacity .35s;}
+    .msg-float .alert-wa{box-shadow:0 6px 20px rgba(0,0,0,.18);margin-bottom:.5rem;}
+    .msg-float-out{opacity:0;}
+
     /* ===== Empty state ===== */
     .empty-state{text-align:center;padding:3rem 1rem;color:var(--muted);}
     .empty-state i{font-size:2.75rem;color:var(--border-strong);display:block;margin-bottom:.75rem;}
@@ -300,7 +305,7 @@
 
 <main>
     {% if messages %}
-    <div style="margin-bottom:1rem;">
+    <div id="page-messages" style="margin-bottom:1rem;">
         {% for message in messages %}
         {% if message.tags == 'success' %}
             <div class="alert-wa alert-wa-success"><i class="bi bi-check-circle-fill"></i><div>{{ message }}</div></div>
@@ -318,6 +323,112 @@
 </main>
 
 <div class="footer-line"></div>
+
+<script>
+/* 一覧 → 詳細 → 一覧（ブラウザの戻る / 保存・削除完了後のリダイレクト）で
+   一覧のスクロール位置を保つ。
+
+   仕組み: 一覧ページから離れる操作（サイト内リンクのクリック・フォーム送信）を
+   したときだけ「そのURLの位置」を sessionStorage に記録し、同じURLを開いたときに
+   復元して記録を消す。ヘッダーのメニューから改めて開いた場合は記録が無いので、
+   従来どおり先頭から表示される。 */
+(function () {
+    var KEY = 'wa:scrollPos';
+    var MAX = 12;  // 記録しておくページ数の上限
+
+    function here() { return location.pathname + location.search; }
+
+    function load() {
+        try { return JSON.parse(sessionStorage.getItem(KEY)) || {}; } catch (e) { return {}; }
+    }
+
+    function store(map) {
+        try {
+            var keys = Object.keys(map);
+            while (keys.length > MAX) { delete map[keys.shift()]; }
+            sessionStorage.setItem(KEY, JSON.stringify(map));
+        } catch (e) { /* プライベートモード等で使えない場合は何もしない */ }
+    }
+
+    // 現在位置を記録する（先頭にいるときは記録しない）
+    function save() {
+        var y = window.scrollY || document.documentElement.scrollTop || 0;
+        var map = load();
+        if (y > 0) { map[here()] = y; } else { delete map[here()]; }
+        store(map);
+    }
+
+    // サイト内リンクのクリックとフォーム送信を「離脱」と見なす。
+    // capture フェーズで拾うので、他のスクリプトが preventDefault してもここは動く
+    // （その場合も次に同じURLを開いたときに復元されるだけで害はない）。
+    document.addEventListener('click', function (e) {
+        var a = e.target.closest && e.target.closest('a[href]');
+        if (!a) return;
+        var href = a.getAttribute('href') || '';
+        if (!href || href.charAt(0) === '#' || href.toLowerCase().indexOf('javascript:') === 0) return;
+        if (a.target === '_blank') return;
+        if (a.hostname && a.hostname !== location.hostname) return;
+        save();
+    }, true);
+
+    document.addEventListener('submit', save, true);
+
+    function scrollBackTo(y) {
+        // 復元中にユーザーが自分で操作したら以降のやり直しは中止する
+        var cancelled = false;
+        var stop = function () { cancelled = true; };
+        ['wheel', 'touchstart', 'keydown'].forEach(function (ev) {
+            window.addEventListener(ev, stop, { once: true, passive: true });
+        });
+
+        var tries = 0;
+        (function attempt() {
+            if (cancelled) return;
+            window.scrollTo(0, y);
+            // 画像やフォントの読み込みで高さが後から変わることがあるため数回やり直す
+            if (++tries < 6) setTimeout(attempt, 60);
+        })();
+    }
+
+    // 復元するとメッセージが画面外になるため、数秒だけ画面上に浮かせて見せる
+    function floatMessages() {
+        var box = document.getElementById('page-messages');
+        if (!box) return;
+        box.classList.add('msg-float');
+        setTimeout(function () { box.classList.add('msg-float-out'); }, 4000);
+        setTimeout(function () { box.classList.remove('msg-float', 'msg-float-out'); }, 4400);
+    }
+
+    window.addEventListener('pageshow', function (e) {
+        if (e.persisted) return;   // bfcache からの復帰はブラウザ標準の復元に任せる
+        if (location.hash) return; // アンカー指定があるときは邪魔しない
+
+        var map = load();
+        var url = here();
+        var y = map[url];
+
+        if (y) {
+            delete map[url];       // 一度使ったら消す
+        } else if (document.getElementById('page-messages')) {
+            // 完了後のリダイレクトでクエリ文字列が変わることがある
+            // （例: 一括削除の後は ?scope=upcoming が付いて戻ってくる）。
+            // メッセージが出ている＝何かを完了した直後なので、パスだけ一致する記録を使う。
+            for (var i = 0, keys = Object.keys(map); i < keys.length; i++) {
+                if (keys[i].split('?')[0] === location.pathname) {
+                    y = map[keys[i]];
+                    delete map[keys[i]];
+                    break;
+                }
+            }
+        }
+        if (!y) return;            // 記録が無ければ何もしない（＝先頭のまま）
+
+        store(map);
+        scrollBackTo(y);
+        floatMessages();
+    });
+})();
+</script>
 
 </body>
 </html>
