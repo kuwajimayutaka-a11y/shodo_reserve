@@ -5,70 +5,212 @@
 {% block content %}
 {% include "booking/partials/_page_head.html" with title="生徒管理" sub="保護者アカウントと生徒の管理" %}
 
-<form method="get" style="margin-bottom:1.25rem;display:flex;gap:8px;max-width:460px;flex-wrap:wrap;">
-    <input type="text" name="q" value="{{ query }}" placeholder="保護者名・生徒名・電話番号で検索" style="flex:1;min-width:200px;">
-    <button type="submit" class="btn-wa btn-primary-wa"><i class="bi bi-search"></i>検索</button>
-    {% if query %}
-        <a href="{% url 'admin_student_management' %}" class="btn-wa btn-outline-wa">クリア</a>
-    {% endif %}
-</form>
-{% if query %}
-    <p style="color:var(--muted);margin-bottom:1rem;">「{{ query }}」の検索結果: {{ families|length }}件</p>
+<style>
+    .seg{display:inline-flex;border:1px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden;}
+    .seg a{padding:8px 16px;font-size:14px;font-weight:600;color:var(--ink-2);text-decoration:none;background:var(--surface);border-right:1px solid var(--border);}
+    .seg a:last-child{border-right:none;}
+    .seg a.active{background:var(--blue);color:#fff;}
+    .filter-bar{display:flex;flex-wrap:wrap;gap:.6rem;align-items:flex-end;margin-bottom:.6rem;}
+    .filter-bar .fld{display:flex;flex-direction:column;gap:.25rem;}
+    .filter-bar .fld label{font-size:12px;font-weight:600;color:var(--muted);}
+    .filter-bar .input{padding:8px 11px;font-size:14px;}
+    .filter-bar .input.name{min-width:240px;}
+    .count-note{font-size:13px;color:var(--ink-2);margin:0 0 1rem;}
+    .count-note .hint{color:var(--muted);}
+    .stu-name{font-weight:700;}
+    .stu-parent{color:var(--ink-2);text-decoration:none;border-bottom:1px dotted var(--border-strong);}
+    .stu-parent:hover{color:var(--blue);}
+    .stu-actions{text-align:center;white-space:nowrap;}
+    .stu-actions .btn-wa{margin:0 1px;}
+    .pager{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center;justify-content:center;margin:1.25rem 0 .25rem;}
+    .pager a,.pager span{min-width:36px;padding:7px 10px;font-size:14px;text-align:center;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--ink-2);text-decoration:none;}
+    .pager a:hover{background:var(--surface-2);}
+    .pager .current{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700;}
+    .pager .gap{border:none;background:none;min-width:auto;padding:7px 2px;color:var(--muted);}
+    .pager .disabled{color:var(--muted);opacity:.5;}
+    .empty-fam{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;padding:.7rem 0;border-bottom:1px solid var(--border);}
+    .empty-fam:last-child{border-bottom:none;}
+</style>
+
+{% if room_locked %}
+    <p style="margin:0 0 1rem;font-size:13px;color:var(--muted);">
+        <i class="bi bi-shield-lock me-1"></i>担当教室
+        {% if room == 'yokogawa' %}<span class="pill pill-room-yokogawa">横川</span>{% else %}<span class="pill pill-room-ishihara">石原</span>{% endif %}
+        の保護者のみ表示しています。
+    </p>
+{% else %}
+    <div style="margin-bottom:1rem;">
+        <div class="seg">
+            <a href="?room=all{% if query %}&q={{ query|urlencode }}{% endif %}" class="{% if room == 'all' %}active{% endif %}">全ての教室</a>
+            <a href="?room=yokogawa{% if query %}&q={{ query|urlencode }}{% endif %}" class="{% if room == 'yokogawa' %}active{% endif %}">横川</a>
+            <a href="?room=ishihara{% if query %}&q={{ query|urlencode }}{% endif %}" class="{% if room == 'ishihara' %}active{% endif %}">石原</a>
+        </div>
+    </div>
 {% endif %}
 
-{% for family in families %}
-    <div class="card-wa pad">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;">
-            <div>
-                <h3 style="margin:0 0 .35rem;font-size:17px;font-weight:800;">
-                    <i class="bi bi-house-heart me-1" style="color:var(--navy);"></i>{{ family.user.name }}
-                    {% if family.access_yokogawa %}<span class="pill pill-room-yokogawa">横川</span>{% endif %}
-                    {% if family.access_ishihara %}<span class="pill pill-room-ishihara">石原</span>{% endif %}
-                </h3>
-                {% if family.phone_number %}
-                    <p style="margin:0;color:var(--muted);font-size:14px;"><i class="bi bi-telephone me-1"></i>{{ family.phone_number }}</p>
-                {% endif %}
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;">
-                <a href="{% url 'admin_edit_family' family.id %}" class="btn-wa btn-outline-wa btn-sm-wa btn-icon-wa" title="保護者情報を編集" aria-label="保護者情報を編集"><i class="bi bi-pencil"></i></a>
-                <a href="{% url 'admin_delete_family' family.id %}" class="btn-wa btn-outline-danger-wa btn-sm-wa btn-icon-wa" title="保護者を削除" aria-label="保護者を削除"><i class="bi bi-trash"></i></a>
-            </div>
-        </div>
-
-        {% if family.student_set.all %}
-            <div class="table-wrap" style="box-shadow:none;">
-                <table class="wtable">
-                    <thead>
-                        <tr><th>生徒名</th><th style="text-align:center;">今月の予約数</th><th style="text-align:center;">操作</th></tr>
-                    </thead>
-                    <tbody>
-                        {% for student in family.student_set.all %}
-                        <tr>
-                            <td>{{ student.name }}</td>
-                            <td style="text-align:center;"><span class="pill pill-room-yokogawa">{{ student.month_reservation_count }}</span></td>
-                            <td style="text-align:center;white-space:nowrap;">
-                                <a href="{% url 'admin_edit_student' student.id %}" class="btn-wa btn-outline-wa btn-sm-wa btn-icon-wa" title="編集" aria-label="編集"><i class="bi bi-pencil"></i></a>
-                                <a href="{% url 'admin_delete_student' student.id %}" class="btn-wa btn-outline-danger-wa btn-sm-wa btn-icon-wa" title="削除" aria-label="削除"><i class="bi bi-trash"></i></a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <div class="field-hint" style="padding:1rem;background:var(--surface-2);border-radius:var(--radius-sm);text-align:center;">この保護者には生徒が登録されていません。</div>
-        {% endif %}
-        <div style="margin-top:.9rem;">
-            <a href="{% url 'admin_add_student' family.id %}" class="btn-wa btn-primary-wa btn-sm-wa"><i class="bi bi-person-plus"></i>生徒を追加</a>
-        </div>
+<form method="get" class="filter-bar">
+    {% if room != 'all' and not room_locked %}<input type="hidden" name="room" value="{{ room }}">{% endif %}
+    <div class="fld">
+        <label for="f-q">生徒名・保護者名・電話番号</label>
+        <input type="text" id="f-q" name="q" value="{{ query }}" placeholder="名前や電話番号を入力" class="input name" autocomplete="off">
     </div>
-{% empty %}
+    <button type="submit" class="btn-wa btn-primary-wa"><i class="bi bi-search"></i>全体を検索</button>
+    {% if query %}
+        <a href="?{% if room != 'all' and not room_locked %}room={{ room }}{% endif %}" class="btn-wa btn-outline-wa">クリア</a>
+    {% endif %}
+</form>
+
+<p class="count-note">
+    {% if query %}
+        「{{ query }}」の検索結果: <strong>{{ total_count }}名</strong>
+    {% else %}
+        <strong>{{ total_count }}名</strong>の生徒
+    {% endif %}
+    {% if page_obj.paginator.num_pages > 1 %}
+        （{{ page_obj.start_index }}〜{{ page_obj.end_index }}名を表示 / {{ page_obj.number }}／{{ page_obj.paginator.num_pages }}ページ）
+    {% endif %}
+    <span class="hint" id="live-note"></span>
+</p>
+
+{% if students %}
+    <div class="table-wrap">
+        <table class="wtable">
+            <thead>
+                <tr>
+                    <th>生徒名</th>
+                    <th>保護者</th>
+                    <th>電話番号</th>
+                    <th>教室</th>
+                    <th style="text-align:center;">今月の予約</th>
+                    <th style="text-align:center;">操作</th>
+                </tr>
+            </thead>
+            <tbody id="student-rows">
+                {% for student in students %}
+                <tr data-search="{{ student.name }} {{ student.family.user.name }} {{ student.family.phone_number }}">
+                    <td class="stu-name">{{ student.name }}</td>
+                    <td>
+                        <a href="{% url 'admin_edit_family' student.family.id %}{% if current_query %}?back={{ current_query|urlencode }}{% endif %}" class="stu-parent" title="保護者情報を編集">{{ student.family.user.name }}</a>
+                    </td>
+                    <td style="white-space:nowrap;color:var(--ink-2);">{{ student.family.phone_number|default:"—" }}</td>
+                    <td style="white-space:nowrap;">
+                        {% if student.family.access_yokogawa %}<span class="pill pill-room-yokogawa">横川</span>{% endif %}
+                        {% if student.family.access_ishihara %}<span class="pill pill-room-ishihara">石原</span>{% endif %}
+                    </td>
+                    <td style="text-align:center;"><span class="pill pill-room-yokogawa">{{ student.month_reservation_count }}</span></td>
+                    <td class="stu-actions">
+                        <a href="{% url 'admin_edit_student' student.id %}{% if current_query %}?back={{ current_query|urlencode }}{% endif %}" class="btn-wa btn-outline-wa btn-sm-wa btn-icon-wa" title="生徒を編集" aria-label="生徒を編集"><i class="bi bi-pencil"></i></a>
+                        <a href="{% url 'admin_add_student' student.family.id %}{% if current_query %}?back={{ current_query|urlencode }}{% endif %}" class="btn-wa btn-outline-wa btn-sm-wa btn-icon-wa" title="この保護者に生徒を追加" aria-label="この保護者に生徒を追加"><i class="bi bi-person-plus"></i></a>
+                        <a href="{% url 'admin_delete_student' student.id %}{% if current_query %}?back={{ current_query|urlencode }}{% endif %}" class="btn-wa btn-outline-danger-wa btn-sm-wa btn-icon-wa" title="生徒を削除" aria-label="生徒を削除"><i class="bi bi-trash"></i></a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div id="no-match" class="field-hint" style="display:none;padding:1.25rem;text-align:center;">
+        このページ内に一致する生徒はいません。<strong>Enter</strong> で全体を検索できます。
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+        <div class="pager">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if base_query %}&{{ base_query }}{% endif %}" title="前のページ"><i class="bi bi-chevron-left"></i></a>
+            {% else %}
+                <span class="disabled"><i class="bi bi-chevron-left"></i></span>
+            {% endif %}
+            {% for num in page_obj.paginator.page_range %}
+                {% if num == page_obj.number %}
+                    <span class="current">{{ num }}</span>
+                {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" or num == 1 or num == page_obj.paginator.num_pages %}
+                    <a href="?page={{ num }}{% if base_query %}&{{ base_query }}{% endif %}">{{ num }}</a>
+                {% elif num == page_obj.number|add:"-3" or num == page_obj.number|add:"3" %}
+                    <span class="gap">…</span>
+                {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if base_query %}&{{ base_query }}{% endif %}" title="次のページ"><i class="bi bi-chevron-right"></i></a>
+            {% else %}
+                <span class="disabled"><i class="bi bi-chevron-right"></i></span>
+            {% endif %}
+        </div>
+    {% endif %}
+{% else %}
     <div class="card-wa">
         {% if query %}
-            {% include "booking/partials/_empty_state.html" with icon="bi-search" text="「"|add:query|add:"」に一致する保護者・生徒が見つかりませんでした。" %}
+            {% include "booking/partials/_empty_state.html" with icon="bi-search" text="「"|add:query|add:"」に一致する生徒が見つかりませんでした。" %}
         {% else %}
-            {% include "booking/partials/_empty_state.html" with icon="bi-people" text="保護者アカウントがありません。" %}
+            {% include "booking/partials/_empty_state.html" with icon="bi-people" text="生徒が登録されていません。" %}
         {% endif %}
     </div>
-{% endfor %}
+{% endif %}
+
+{% if empty_families %}
+    <div class="section-title" style="margin-top:2rem;"><i class="bi bi-person-exclamation"></i>生徒が未登録の保護者（{{ empty_families|length }}件）</div>
+    <div class="card-wa pad">
+        {% for family in empty_families %}
+            <div class="empty-fam">
+                <div>
+                    <div style="font-weight:700;">
+                        {{ family.user.name }}
+                        {% if family.access_yokogawa %}<span class="pill pill-room-yokogawa">横川</span>{% endif %}
+                        {% if family.access_ishihara %}<span class="pill pill-room-ishihara">石原</span>{% endif %}
+                    </div>
+                    <div style="font-size:12px;color:var(--muted);">
+                        {{ family.user.email }}{% if family.phone_number %} / {{ family.phone_number }}{% endif %}
+                    </div>
+                </div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <a href="{% url 'admin_add_student' family.id %}{% if current_query %}?back={{ current_query|urlencode }}{% endif %}" class="btn-wa btn-primary-wa btn-sm-wa"><i class="bi bi-person-plus"></i>生徒を追加</a>
+                    <a href="{% url 'admin_edit_family' family.id %}{% if current_query %}?back={{ current_query|urlencode }}{% endif %}" class="btn-wa btn-outline-wa btn-sm-wa btn-icon-wa" title="保護者情報を編集" aria-label="保護者情報を編集"><i class="bi bi-pencil"></i></a>
+                    <a href="{% url 'admin_delete_family' family.id %}{% if current_query %}?back={{ current_query|urlencode }}{% endif %}" class="btn-wa btn-outline-danger-wa btn-sm-wa btn-icon-wa" title="保護者を削除" aria-label="保護者を削除"><i class="bi bi-trash"></i></a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<script>
+/* 検索欄への入力で、表示中のページを即時に絞り込む（リロードなし）。
+   ページ分割しているため、全件から探したいときは Enter（＝フォーム送信）で
+   サーバー側検索に切り替える。 */
+(function () {
+    var input = document.getElementById('f-q');
+    var tbody = document.getElementById('student-rows');
+    if (!input || !tbody) return;
+
+    var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+    var note = document.getElementById('live-note');
+    var noMatch = document.getElementById('no-match');
+    var pageCount = rows.length;
+    var multiPage = {{ page_obj.paginator.num_pages|default:1 }} > 1;
+    var initial = input.value;
+
+    function apply() {
+        // サーバー側検索の結果を表示している間は、同じ語で二重に絞り込まない
+        var kw = input.value.trim().toLowerCase();
+        if (kw === initial.trim().toLowerCase()) { kw = ''; }
+
+        var shown = 0;
+        rows.forEach(function (tr) {
+            var hit = !kw || (tr.dataset.search || '').toLowerCase().indexOf(kw) !== -1;
+            tr.style.display = hit ? '' : 'none';
+            if (hit) shown++;
+        });
+
+        if (noMatch) noMatch.style.display = shown === 0 ? '' : 'none';
+        if (!note) return;
+        if (!kw) {
+            note.textContent = '';
+        } else if (shown === 0) {
+            note.textContent = multiPage ? '／このページ内に一致なし（Enter で全体を検索）' : '／一致なし';
+        } else {
+            note.textContent = '／このページ内で ' + shown + '／' + pageCount + '名に絞り込み中'
+                + (multiPage ? '（Enter で全体を検索）' : '');
+        }
+    }
+
+    input.addEventListener('input', apply);
+})();
+</script>
 {% endblock %}

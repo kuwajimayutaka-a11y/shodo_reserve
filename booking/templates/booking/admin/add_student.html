@@ -3,21 +3,21 @@
 {% block title %}生徒追加{% endblock %}
 
 {% block content %}
-<a href="{% url 'admin_student_management' %}" class="back-link"><i class="bi bi-arrow-left"></i>生徒管理に戻る</a>
+<a href="{{ back_url }}" class="back-link"><i class="bi bi-arrow-left"></i>生徒管理に戻る</a>
 {% include "booking/partials/_page_head.html" with title="生徒追加" %}
 
 <div class="alert-wa alert-wa-info"><i class="bi bi-house-heart"></i><div><strong>保護者:</strong> {{ family.user.name }}</div></div>
 
 <div class="card-wa pad form-narrow">
 <form method="post">
-    {% csrf_token %}
+    {% csrf_token %}{% if back %}<input type="hidden" name="back" value="{{ back }}">{% endif %}
     {% include "booking/partials/_field.html" with field=form.name %}
     {% if form.non_field_errors %}
         <div class="alert-wa alert-wa-error"><i class="bi bi-exclamation-octagon-fill"></i><div>{{ form.non_field_errors }}</div></div>
     {% endif %}
     <div class="form-actions">
         <button type="submit" class="btn-wa btn-primary-wa">追加</button>
-        <a href="{% url 'admin_student_management' %}" class="btn-wa btn-outline-wa">キャンセル</a>
+        <a href="{{ back_url }}" class="btn-wa btn-outline-wa">キャンセル</a>
     </div>
 </form>
 </div>

@@ -3,14 +3,14 @@
 {% block title %}保護者情報編集{% endblock %}
 
 {% block content %}
-<a href="{% url 'admin_student_management' %}" class="back-link"><i class="bi bi-arrow-left"></i>生徒管理に戻る</a>
+<a href="{{ back_url }}" class="back-link"><i class="bi bi-arrow-left"></i>生徒管理に戻る</a>
 {% include "booking/partials/_page_head.html" with title="保護者情報編集" %}
 
 <div class="alert-wa alert-wa-info"><i class="bi bi-envelope"></i><div><strong>メールアドレス:</strong> {{ family.user.email }}</div></div>
 
 <div class="card-wa pad form-narrow">
 <form method="post">
-    {% csrf_token %}
+    {% csrf_token %}{% if back %}<input type="hidden" name="back" value="{{ back }}">{% endif %}
     {% include "booking/partials/_field.html" with field=form.name %}
     {% include "booking/partials/_field.html" with field=form.phone_number %}
 
@@ -28,7 +28,8 @@
 
     <div class="form-actions">
         <button type="submit" class="btn-wa btn-primary-wa">更新</button>
-        <a href="{% url 'admin_student_management' %}" class="btn-wa btn-outline-wa">キャンセル</a>
+        <a href="{{ back_url }}" class="btn-wa btn-outline-wa">キャンセル</a>
+        <a href="{% url 'admin_delete_family' family.id %}{% if back %}?back={{ back|urlencode }}{% endif %}" class="btn-wa btn-outline-danger-wa" style="margin-left:auto;"><i class="bi bi-trash"></i>この保護者を削除</a>
     </div>
 </form>
 </div>

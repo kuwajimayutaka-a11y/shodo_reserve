@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.db.models import Q, Count, Prefetch
 from django.db.models.functions import ExtractHour, ExtractMinute
@@ -28,6 +29,19 @@ def _allowed_classrooms(user):
     if not classroom or classroom == 'all':
         return ['ishihara', 'yokogawa']
     return [classroom]
+
+
+def _student_list_url(request):
+    """生徒管理一覧に戻るURL。絞り込み・ページ番号を保った状態で戻れるようにする。
+
+    一覧の各リンクが付ける back（一覧のクエリ文字列）を引き継ぐ。POST で消えないよう
+    フォーム側の hidden も見る。クエリ文字列以外が入っていたら安全側に捨てる。
+    """
+    back = (request.POST.get('back') or request.GET.get('back') or '').lstrip('?')
+    if any(ch in back for ch in '/\\:\r\n '):
+        back = ''
+    url = reverse('admin_student_management')
+    return f'{url}?{back}' if back else url
 
 
 def _reserve_group_for_lesson(lesson, group):
@@ -440,13 +454,37 @@ def reservation_list(request):
     return render(request, 'booking/admin/reservation_list.html', context)
 
 # 生徒管理一覧
+STUDENTS_PER_PAGE = 50
+
+
 @login_required
 @user_passes_test(is_staff)
 def student_management(request):
-    """生徒管理一覧"""
+    """生徒管理一覧。
+
+    生徒1人=1行のテーブルで表示する。生徒数が増えても探せるよう、
+    名前順に並べ、教室での絞り込み・名前/電話での検索・ページ分割に対応する。
+    生徒が未登録の保護者は生徒の表に出てこないため、表の下にまとめて表示する。
+    """
     query = request.GET.get('q', '').strip()
     now = timezone.localtime(timezone.now())
-    students_qs = Student.objects.annotate(
+
+    # 教室絞り込み。担当教室が1つに限定されているスタッフは、その教室に固定する。
+    allowed = _allowed_classrooms(request.user)
+    room_locked = len(allowed) == 1
+    room = allowed[0] if room_locked else request.GET.get('room', '').strip()
+    if room not in ('yokogawa', 'ishihara'):
+        room = 'all'
+
+    families = Family.objects.all()
+    if room == 'yokogawa':
+        families = families.filter(access_yokogawa=True)
+    elif room == 'ishihara':
+        families = families.filter(access_ishihara=True)
+
+    students = Student.objects.filter(family__in=families).select_related(
+        'family', 'family__user'
+    ).annotate(
         month_reservation_count=Count(
             'reservation',
             filter=Q(
@@ -454,20 +492,46 @@ def student_management(request):
                 reservation__lesson_slot__start_time__month=now.month,
             ),
         )
-    )
-    families = Family.objects.all().select_related('user').prefetch_related(
-        Prefetch('student_set', queryset=students_qs)
-    )
+    # 生徒名を第1キーにすると同姓（兄弟姉妹）が隣り合う。id はページ分割を安定させるため
+    ).order_by('name', 'family__user__name', 'id')
+
     if query:
-        families = families.filter(
-            Q(user__name__icontains=query) |
-            Q(phone_number__icontains=query) |
-            Q(student__name__icontains=query)
-        ).distinct()
+        students = students.filter(
+            Q(name__icontains=query)
+            | Q(family__user__name__icontains=query)
+            | Q(family__phone_number__icontains=query)
+        )
+
+    total_count = students.count()
+    paginator = Paginator(students, STUDENTS_PER_PAGE)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    # 生徒が未登録の保護者（本番で8件程度）。生徒の表からは漏れるので別枠で出す。
+    empty_families = families.filter(student__isnull=True).select_related('user')
+    if query:
+        empty_families = empty_families.filter(
+            Q(user__name__icontains=query) | Q(phone_number__icontains=query)
+        )
+    empty_families = empty_families.order_by('user__name')
+
+    # ページ送りのリンクで q / room を保つためのクエリ文字列
+    params = request.GET.copy()
+    params.pop('page', None)
+    base_query = params.urlencode()
+    # 編集・削除から戻ってきたときに同じ絞り込み・同じページを再現するための現在地
+    current_query = request.GET.urlencode()
 
     context = {
-        'families': families,
+        'page_obj': page_obj,
+        'students': page_obj.object_list,
+        'total_count': total_count,
+        'empty_families': empty_families,
         'query': query,
+        'room': room,
+        'room_locked': room_locked,
+        'base_query': base_query,
+        'current_query': current_query,
+        'per_page': STUDENTS_PER_PAGE,
     }
     return render(request, 'booking/admin/student_management.html', context)
 
@@ -485,13 +549,15 @@ def add_student_admin(request, family_id):
             student.family = family
             student.save()
             messages.success(request, f"生徒「{student.name}」を追加しました。")
-            return redirect('admin_student_management')
+            return redirect(_student_list_url(request))
     else:
         form = StudentForm()
-    
+
     context = {
         'form': form,
-        'family': family
+        'family': family,
+        'back': request.GET.get('back', ''),
+        'back_url': _student_list_url(request),
     }
     return render(request, 'booking/admin/add_student.html', context)
 
@@ -507,13 +573,15 @@ def edit_student_admin(request, student_id):
         if form.is_valid():
             form.save()
             messages.success(request, f"生徒「{student.name}」を更新しました。")
-            return redirect('admin_student_management')
+            return redirect(_student_list_url(request))
     else:
         form = StudentForm(instance=student)
-    
+
     context = {
         'form': form,
-        'student': student
+        'student': student,
+        'back': request.GET.get('back', ''),
+        'back_url': _student_list_url(request),
     }
     return render(request, 'booking/admin/edit_student.html', context)
 
@@ -528,10 +596,12 @@ def delete_student_admin(request, student_id):
         student_name = student.name
         student.delete()
         messages.success(request, f"生徒「{student_name}」を削除しました。")
-        return redirect('admin_student_management')
-    
+        return redirect(_student_list_url(request))
+
     context = {
-        'student': student
+        'student': student,
+        'back': request.GET.get('back', ''),
+        'back_url': _student_list_url(request),
     }
     return render(request, 'booking/admin/delete_student.html', context)
 
@@ -613,8 +683,12 @@ def delete_family_admin(request, family_id):
         name = family.user.name
         family.user.delete()  # CASCADE で Family・Student・Reservation も削除
         messages.success(request, f"保護者「{name}」とその生徒・予約をすべて削除しました。")
-        return redirect('admin_student_management')
-    return render(request, 'booking/admin/delete_family.html', {'family': family})
+        return redirect(_student_list_url(request))
+    return render(request, 'booking/admin/delete_family.html', {
+        'family': family,
+        'back': request.GET.get('back', ''),
+        'back_url': _student_list_url(request),
+    })
 
 
 # 保護者情報編集
@@ -633,7 +707,7 @@ def edit_family_admin(request, family_id):
             family.access_ishihara = form.cleaned_data['access_ishihara']
             family.save()
             messages.success(request, f"保護者「{family.user.name}」の情報を更新しました。")
-            return redirect('admin_student_management')
+            return redirect(_student_list_url(request))
     else:
         form = FamilyEditForm(initial={
             'name': family.user.name,
@@ -641,7 +715,12 @@ def edit_family_admin(request, family_id):
             'access_yokogawa': family.access_yokogawa,
             'access_ishihara': family.access_ishihara,
         })
-    return render(request, 'booking/admin/edit_family.html', {'form': form, 'family': family})
+    return render(request, 'booking/admin/edit_family.html', {
+        'form': form,
+        'family': family,
+        'back': request.GET.get('back', ''),
+        'back_url': _student_list_url(request),
+    })
 
 
 # 予約キャンセル(管理者用)

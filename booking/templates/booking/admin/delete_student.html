@@ -3,7 +3,7 @@
 {% block title %}生徒削除{% endblock %}
 
 {% block content %}
-<a href="{% url 'admin_student_management' %}" class="back-link"><i class="bi bi-arrow-left"></i>生徒管理に戻る</a>
+<a href="{{ back_url }}" class="back-link"><i class="bi bi-arrow-left"></i>生徒管理に戻る</a>
 {% include "booking/partials/_page_head.html" with title="生徒削除確認" %}
 
 <div class="card-wa">
@@ -23,7 +23,7 @@
 </div>
 
 <div class="form-actions">
-    <form method="post" style="display:inline;">{% csrf_token %}<button type="submit" class="btn-wa btn-danger-wa">削除する</button></form>
-    <a href="{% url 'admin_student_management' %}" class="btn-wa btn-outline-wa">キャンセル</a>
+    <form method="post" style="display:inline;">{% csrf_token %}{% if back %}<input type="hidden" name="back" value="{{ back }}">{% endif %}<button type="submit" class="btn-wa btn-danger-wa">削除する</button></form>
+    <a href="{{ back_url }}" class="btn-wa btn-outline-wa">キャンセル</a>
 </div>
 {% endblock %}
